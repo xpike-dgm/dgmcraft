@@ -343,6 +343,14 @@ UI/UX vitrin: kartlar, nabiz, renkli konsol, sihirbaz ikonlari.
 - Konsol: hata kırmızı, uyarı amber, giriş yeşil, komut mavi; Otomatik kaydır düğmesi + hazır metni.
 - Sihirbaz: her adıma kahraman ikonu, çalışırken animasyonlu bekleme çubuğu.
 
+## [0.22.1] - 2026-09-23
+
+Güncelleme denetimi düzeltmesi.
+
+### Fixed
+- Etiket ile sabit sayı hiç eşitlenemiyordu (her zaman "güncelleme var" ya da hiç yok). Uygulanan sürüm kaydediliyor, karşılaştırma ona göre.
+- Exe ile çalışanlarda güncelleme yeni klasöre açılıyor (çalışan exe'nin üstüne yazılamazdı).
+
 ### Notlar
 - Kilit `version.json` + Syncthing ile yayilir; sahibin Yayınla/Bitir akışını kullanması gerekir (doğrudan dosya değiştirmede kilit devreye girmez).
 - Durum makinesi test edildi: yayinlaniyor -> bekliyor -> yok.
