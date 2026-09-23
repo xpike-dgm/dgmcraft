@@ -351,6 +351,14 @@ Güncelleme denetimi düzeltmesi.
 - Etiket ile sabit sayı hiç eşitlenemiyordu (her zaman "güncelleme var" ya da hiç yok). Uygulanan sürüm kaydediliyor, karşılaştırma ona göre.
 - Exe ile çalışanlarda güncelleme yeni klasöre açılıyor (çalışan exe'nin üstüne yazılamazdı).
 
+## [0.22.2] - 2026-09-24
+
+Ayarlar penceresi taşması.
+
+### Fixed
+- Ayarlar artık kaydırmalı (fare tekerleği destekli); alanlar alta kesilmiyor.
+- Üst barda "Kapalı" iki kez yazıyordu; rozet nokta göstergesine indi.
+
 ### Notlar
 - Kilit `version.json` + Syncthing ile yayilir; sahibin Yayınla/Bitir akışını kullanması gerekir (doğrudan dosya değiştirmede kilit devreye girmez).
 - Durum makinesi test edildi: yayinlaniyor -> bekliyor -> yok.

@@ -62,7 +62,7 @@ class AnaPencere(tk.Tk):
         self.nokta_lbl = tk.Label(sag, text="●", font=("Segoe UI", 16), bg=TEMA.PANEL, fg=TEMA.SOLUK2)
         self.nokta_lbl.pack(side="left", padx=(0, 6))
         self._nokta_acik = True
-        self._rozet_lbl, self._rozet_boya = TEMA.rozet(sag, TEMA.PANEL, self.durum_var.get())
+        self._rozet_lbl, self._rozet_boya = TEMA.rozet(sag, TEMA.PANEL, "●")
         tk.Label(sag, textvariable=self.durum_var, font=TEMA.FONT_ROZET, bg=TEMA.PANEL, fg=TEMA.YAZI).pack(side="left", padx=(10, 0))
         tk.Label(sag, textvariable=self.vpn_var, font=TEMA.FONT_KUCUK, bg=TEMA.PANEL, fg=TEMA.SOLUK).pack(side="left", padx=(12, 0))
         TEMA.ayirici(self)
@@ -482,10 +482,43 @@ class AnaPencere(tk.Tk):
     def _ayarlar(self):
         win = tk.Toplevel(self)
         win.title("Ayarlar")
-        win.geometry("440x480")
+        win.geometry("480x600")
         win.configure(bg=TEMA.BG)
-        ic = tk.Frame(win, bg=TEMA.BG)
-        ic.pack(fill="both", expand=True, padx=24, pady=16)
+        canvas = tk.Canvas(win, bg=TEMA.BG, highlightthickness=0)
+        kaydir = ttk.Scrollbar(win, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=kaydir.set)
+        kaydir.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+        ic = tk.Frame(canvas, bg=TEMA.BG)
+        canvas.create_window((0, 0), window=ic, anchor="nw", width=440)
+
+        def _bolge(event=None):
+            try:
+                canvas.configure(scrollregion=canvas.bbox("all"))
+            except Exception:
+                pass
+
+        ic.bind("<Configure>", _bolge)
+
+        def _tekerlek(event):
+            try:
+                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            except Exception:
+                pass
+
+        win.bind_all("<MouseWheel>", _tekerlek, add="+")
+
+        def _kapat():
+            try:
+                win.unbind_all("<MouseWheel>")
+            except Exception:
+                pass
+            try:
+                win.destroy()
+            except Exception:
+                pass
+
+        win.protocol("WM_DELETE_WINDOW", _kapat)
         tk.Label(ic, text="AYARLAR", font=("Segoe UI", 9, "bold"), bg=TEMA.BG, fg=TEMA.SOLUK).pack(anchor="w", pady=(0, 10))
         tk.Label(ic, text="Site portu:", font=TEMA.FONT_NORMAL, bg=TEMA.BG, fg=TEMA.YAZI).pack(anchor="w", pady=(6, 2))
         port_var = tk.StringVar(value=str(self.ayar.get("sitePort", 8000)))
@@ -530,7 +563,7 @@ class AnaPencere(tk.Tk):
                     store.ai_anahtar_kaydet(yeni_ai)
             except Exception:
                 pass
-            win.destroy()
+            _kapat()
 
         def klasor_ac():
             try:
