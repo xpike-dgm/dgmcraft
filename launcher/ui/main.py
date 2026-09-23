@@ -19,8 +19,14 @@ class AnaPencere(tk.Tk):
     def __init__(self, sunucu_koku, ayar):
         super().__init__()
         self.title("DgmCraft Sunucu Başlatıcı")
-        self.geometry("920x680")
-        self.minsize(860, 600)
+        try:
+            w, h = 980, 700
+            x = (self.winfo_screenwidth() - w) // 2
+            y = max(0, (self.winfo_screenheight() - h) // 2 - 20)
+            self.geometry("%dx%d+%d+%d" % (w, h, x, y))
+        except Exception:
+            self.geometry("980x700")
+        self.resizable(False, False)
         self.kok = sunucu_koku
         self.ayar = ayar
         self.log_q = queue.Queue(maxsize=5000)
@@ -62,8 +68,8 @@ class AnaPencere(tk.Tk):
         self.nokta_lbl = tk.Label(sag, text="●", font=("Segoe UI", 16), bg=TEMA.PANEL, fg=TEMA.SOLUK2)
         self.nokta_lbl.pack(side="left", padx=(0, 6))
         self._nokta_acik = True
-        self._rozet_lbl, self._rozet_boya = TEMA.rozet(sag, TEMA.PANEL, "●")
-        tk.Label(sag, textvariable=self.durum_var, font=TEMA.FONT_ROZET, bg=TEMA.PANEL, fg=TEMA.YAZI).pack(side="left", padx=(10, 0))
+        self.durum_lbl = tk.Label(sag, textvariable=self.durum_var, font=TEMA.FONT_ROZET, bg=TEMA.PANEL, fg=TEMA.YAZI)
+        self.durum_lbl.pack(side="left", padx=(10, 0))
         tk.Label(sag, textvariable=self.vpn_var, font=TEMA.FONT_KUCUK, bg=TEMA.PANEL, fg=TEMA.SOLUK).pack(side="left", padx=(12, 0))
         TEMA.ayirici(self)
         # --- bilgi şeridi ---
@@ -280,7 +286,8 @@ class AnaPencere(tk.Tk):
 
     def _rozet_renk(self, renk):
         try:
-            self._rozet_boya(renk)
+            self.durum_lbl.configure(fg={"yesil": TEMA.YESIL, "mavi": TEMA.MAVI,
+                                          "amber": TEMA.AMBER_HI}.get(renk, TEMA.YAZI))
         except Exception:
             pass
 
@@ -482,7 +489,14 @@ class AnaPencere(tk.Tk):
     def _ayarlar(self):
         win = tk.Toplevel(self)
         win.title("Ayarlar")
-        win.geometry("480x600")
+        try:
+            w, h = 600, 700
+            x = (win.winfo_screenwidth() - w) // 2
+            y = max(0, (win.winfo_screenheight() - h) // 2 - 20)
+            win.geometry("%dx%d+%d+%d" % (w, h, x, y))
+        except Exception:
+            win.geometry("600x700")
+        win.resizable(False, False)
         win.configure(bg=TEMA.BG)
         canvas = tk.Canvas(win, bg=TEMA.BG, highlightthickness=0)
         kaydir = ttk.Scrollbar(win, orient="vertical", command=canvas.yview)
@@ -519,32 +533,79 @@ class AnaPencere(tk.Tk):
                 pass
 
         win.protocol("WM_DELETE_WINDOW", _kapat)
-        tk.Label(ic, text="AYARLAR", font=("Segoe UI", 9, "bold"), bg=TEMA.BG, fg=TEMA.SOLUK).pack(anchor="w", pady=(0, 10))
-        tk.Label(ic, text="Site portu:", font=TEMA.FONT_NORMAL, bg=TEMA.BG, fg=TEMA.YAZI).pack(anchor="w", pady=(6, 2))
-        port_var = tk.StringVar(value=str(self.ayar.get("sitePort", 8000)))
-        TEMA.giris(ic, textvariable=port_var, width=20).pack(anchor="w", pady=2)
-        tk.Label(ic, text="Adın:", font=TEMA.FONT_NORMAL, bg=TEMA.BG, fg=TEMA.YAZI).pack(anchor="w", pady=(10, 2))
+
+        def kart(baslik):
+            k = tk.Frame(ic, bg=TEMA.KART, highlightthickness=1, highlightbackground=TEMA.BORDER_YUMUSAK)
+            k.pack(fill="x", pady=(0, 10))
+            tk.Label(k, text=baslik.upper(), font=("Segoe UI", 8, "bold"), bg=TEMA.KART, fg=TEMA.SOLUK2).pack(anchor="w", padx=12, pady=(10, 4))
+            govde = tk.Frame(k, bg=TEMA.KART)
+            govde.pack(fill="x", padx=12, pady=(0, 12))
+            return govde
+
+        # Profil
+        g = kart("Profil")
+        satir = tk.Frame(g, bg=TEMA.KART)
+        satir.pack(fill="x")
+        sol = tk.Frame(satir, bg=TEMA.KART)
+        sol.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        tk.Label(sol, text="Adın", font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 2))
         ad_var = tk.StringVar(value=self.ayar.get("kullaniciAdi", ""))
-        TEMA.giris(ic, textvariable=ad_var, width=30).pack(anchor="w", pady=2)
+        e_ad = TEMA.giris(sol, textvariable=ad_var)
+        e_ad.pack(fill="x", ipady=5)
+        sagc = tk.Frame(satir, bg=TEMA.KART)
+        sagc.pack(side="left")
+        tk.Label(sagc, text="Site portu", font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 2))
+        port_var = tk.StringVar(value=str(self.ayar.get("sitePort", 8000)))
+        e_port = TEMA.giris(sagc, textvariable=port_var, width=12)
+        e_port.pack(ipady=5)
+        # Yapay zeka
+        g = kart("Yapay zeka")
         try:
-            ai_var = tk.StringVar(value="")
             ai_kayitli = bool(store.ai_anahtar_oku())
         except Exception:
-            ai_var = tk.StringVar(value="")
             ai_kayitli = False
-        tk.Label(ic, text="AI anahtarı:" + (" (kayıtlı anahtar var)" if ai_kayitli else ""),
-                 font=TEMA.FONT_NORMAL, bg=TEMA.BG, fg=TEMA.YAZI).pack(anchor="w", pady=(10, 2))
-        ai_giris = TEMA.giris(ic, textvariable=ai_var, width=30)
-        ai_giris.pack(anchor="w", pady=2)
+        tk.Label(g, text="AI anahtarı" + (" (kayıtlı anahtar var)" if ai_kayitli else ""),
+                 font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 2))
+        ai_var = tk.StringVar(value="")
+        ai_giris = TEMA.giris(g, textvariable=ai_var)
+        ai_giris.pack(fill="x", ipady=5)
         try:
             ai_giris.configure(show="*")
         except Exception:
             pass
+        # Bağlantı
+        g = kart("Bağlantı")
+        satir2 = tk.Frame(g, bg=TEMA.KART)
+        satir2.pack(fill="x", pady=(4, 0))
+        ttk.Button(satir2, text="VPN Bağlan", command=self._vpn_baglan, style="Secondary.TButton").pack(side="left", padx=(0, 8))
+        ttk.Button(satir2, text="Kurulum Sihirbazı", command=self._sihirbaz_ac, style="Secondary.TButton").pack(side="left")
+        tk.Label(g, text="VPN anahtarı kurulumda saklanır; yoksa sihirbazdan eklenir.",
+                 font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.SOLUK).pack(anchor="w", pady=(6, 0))
+        # Güncelleme
+        g = kart("Güncelleme")
+        tk.Label(g, text="GitHub repo (boşsa denetim kapalı)",
+                 font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 2))
+        repo_var = tk.StringVar(value=self.ayar.get("githubRepo", ""))
+        TEMA.giris(g, textvariable=repo_var).pack(fill="x", ipady=5)
         try:
-            v = version.oku()
-            tk.Label(ic, text="Sürüm: %s" % v.get("surum", "?"), font=TEMA.FONT_KUCUK, bg=TEMA.BG, fg=TEMA.SOLUK2).pack(anchor="w", pady=(10, 0))
+            tk.Label(g, text="Yüklü launcher: %s" % C.PAKET_SURUMU,
+                     font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.SOLUK).pack(anchor="w", pady=(6, 0))
         except Exception:
             pass
+        ttk.Button(g, text="Güncellemeleri Denetle", command=self._guncelleme_denetle, style="Secondary.TButton").pack(anchor="w", pady=(8, 0))
+        # Sahip
+        g = kart("Sahip")
+        try:
+            vs = version.oku()
+            tk.Label(g, text="Sunucu sürümü: %s%s" % (vs.get("surum", "?"), " (hazırlanıyor)" if vs.get("guncelleniyor") else ""),
+                     font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 6))
+        except Exception:
+            pass
+        satir3 = tk.Frame(g, bg=TEMA.KART)
+        satir3.pack(fill="x")
+        ttk.Button(satir3, text="Klasörü Aç", command=self._klasor_ac, style="Secondary.TButton").pack(side="left", padx=(0, 8))
+        ttk.Button(satir3, text="Güncelleme Yayınla", command=self._guncelleme_yayinla, style="Secondary.TButton").pack(side="left", padx=(0, 8))
+        ttk.Button(satir3, text="Bitir", command=self._guncelleme_bitir, style="Secondary.TButton").pack(side="left")
 
         def kaydet_kapat():
             try:
@@ -565,35 +626,13 @@ class AnaPencere(tk.Tk):
                 pass
             _kapat()
 
-        def klasor_ac():
-            try:
-                hedef = self.kok
-                subprocess.Popen(["explorer", hedef])
-            except Exception as e:
-                messagebox.showerror("Hata", str(e)[:300])
+        ttk.Button(ic, text="Kaydet ve Kapat", command=kaydet_kapat, style="Primary.TButton").pack(fill="x", pady=(2, 6))
 
-        ttk.Button(ic, text="Kaydet", command=kaydet_kapat, style="Primary.TButton").pack(anchor="w", pady=(14, 4))
-        ttk.Button(ic, text="Sunucu klasörünü aç (sahip)", command=klasor_ac, style="Secondary.TButton").pack(anchor="w", pady=3)
-        ttk.Button(ic, text="VPN Bağlan (anahtar dosyadan okunur)", command=self._vpn_baglan, style="Secondary.TButton").pack(anchor="w", pady=3)
-        ttk.Button(ic, text="Kurulum Sihirbazını Aç", command=self._sihirbaz_ac, style="Secondary.TButton").pack(anchor="w", pady=3)
-        tk.Label(ic, text="GitHub repo (örn. kullanici/dgmcraft, boşsa denetim kapalı):",
-                 font=TEMA.FONT_NORMAL, bg=TEMA.BG, fg=TEMA.YAZI).pack(anchor="w", pady=(10, 2))
-        repo_var = tk.StringVar(value=self.ayar.get("githubRepo", ""))
-        TEMA.giris(ic, textvariable=repo_var, width=30).pack(anchor="w", pady=2)
+    def _klasor_ac(self):
         try:
-            tk.Label(ic, text="Yüklü launcher: %s" % C.PAKET_SURUMU,
-                     font=TEMA.FONT_KUCUK, bg=TEMA.BG, fg=TEMA.SOLUK2).pack(anchor="w", pady=(6, 0))
-        except Exception:
-            pass
-        ttk.Button(ic, text="Güncellemeleri Denetle", command=self._guncelleme_denetle, style="Secondary.TButton").pack(anchor="w", pady=3)
-        try:
-            vs = version.oku()
-            tk.Label(ic, text="Sunucu sürümü: %s%s" % (vs.get("surum", "?"), " (hazırlanıyor)" if vs.get("guncelleniyor") else ""),
-                     font=TEMA.FONT_KUCUK, bg=TEMA.BG, fg=TEMA.SOLUK2).pack(anchor="w", pady=(10, 0))
-        except Exception:
-            pass
-        ttk.Button(ic, text="Güncelleme Yayınla (sahip)", command=self._guncelleme_yayinla, style="Secondary.TButton").pack(anchor="w", pady=3)
-        ttk.Button(ic, text="Güncellemeyi Bitir (sahip)", command=self._guncelleme_bitir, style="Secondary.TButton").pack(anchor="w", pady=3)
+            subprocess.Popen(["explorer", self.kok])
+        except Exception as e:
+            messagebox.showerror("Hata", str(e)[:300])
 
     def _guncelleme_denetle(self):
         try:

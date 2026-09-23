@@ -358,6 +358,16 @@ Ayarlar penceresi taşması + exe güncelleyici düzeltmesi.
 ### Fixed
 - Ayarlar artık kaydırmalı (fare tekerleği destekli); alanlar alta kesilmiyor.
 - Üst barda "Kapalı" iki kez yazıyordu; rozet nokta göstergesine indi.
+
+## [0.22.3] - 2026-09-24
+
+Pencere boyutları + Ayarlar yenileme.
+
+### Fixed
+- Ana pencere 980x700 sabit, ortalanmış açılıyor; yeniden boyutlandırma kilitli.
+- Durum göstergesi tek: atan nokta + renkli yazı (üçlü tekrar bitti).
+- Konsol seçimi mavi yerine temalı amber.
+- Ayarlar bölümlü kartlara geçti (Profil / Yapay zeka / Bağlantı / Güncelleme / Sahip), 600x700 sabit ve ortalanmış.
 - Exe ile çalışanda güncelleyici yanlış klasöre (AppData) yazıyordu; yeni klasöre açılıyor.
 - Güncelleme notlarındaki ham "**Full Changelog**" satırı temizleniyor.
 

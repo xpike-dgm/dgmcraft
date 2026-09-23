@@ -116,6 +116,7 @@ def konsol(parent, height=22):
     from tkinter import scrolledtext
     alan = scrolledtext.ScrolledText(parent, height=height, wrap="word",
                                      bg=KART2, fg="#C4CFC8", insertbackground=AMBER,
+                                     selectbackground="#3A2C07", selectforeground="#FFE9B8",
                                      relief="flat", highlightthickness=1,
                                      highlightbackground=BORDER_YUMUSAK,
                                      font=FONT_KONSOL, padx=8, pady=8)
