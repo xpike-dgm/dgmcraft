@@ -334,6 +334,15 @@ Zorunlu guncelleme kilidi (sahip yayinlar, arkadas guncellemeden giremez).
 - Guncelleme ekrani: surum, not, dosya gelme yuzdesi; dosyalar tam gelmeden Uygula acilmaz.
 - Ana ekranda "Guncelleme (X)" dugmesi; kilitliyken Baslat kapali, ekran otomatik acilir.
 
+## [0.22.0] - 2026-09-23
+
+UI/UX vitrin: kartlar, nabiz, renkli konsol, sihirbaz ikonlari.
+
+### Added
+- Ana pencere: Durum/Eşitleme/VPN/Sürüm kartları, atan durum noktası (sunucu açıkken nabız).
+- Konsol: hata kırmızı, uyarı amber, giriş yeşil, komut mavi; Otomatik kaydır düğmesi + hazır metni.
+- Sihirbaz: her adıma kahraman ikonu, çalışırken animasyonlu bekleme çubuğu.
+
 ### Notlar
 - Kilit `version.json` + Syncthing ile yayilir; sahibin Yayınla/Bitir akışını kullanması gerekir (doğrudan dosya değiştirmede kilit devreye girmez).
 - Durum makinesi test edildi: yayinlaniyor -> bekliyor -> yok.

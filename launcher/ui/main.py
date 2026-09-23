@@ -38,8 +38,10 @@ class AnaPencere(tk.Tk):
         self._guncelle_penceresi = None
         self._otomatik_acilan_surum = ""
         self._arayuz()
+        self._yaz_ana("DGM Craft konsolu hazır.\nSunucuyu başlatınca çıktılar burada renklenecek.\n")
         self.after(500, self._log_pompa)
         self.after(2000, self._periyodik)
+        self.after(800, self._nokta_pompa)
         self.protocol("WM_DELETE_WINDOW", self._kapanis_sor)
         self._ilk_kilit_kontrol()
 
@@ -57,6 +59,9 @@ class AnaPencere(tk.Tk):
         tk.Label(sol, text="Sunucu Başlatıcı", font=TEMA.FONT_KUCUK, bg=TEMA.PANEL, fg=TEMA.SOLUK).pack(anchor="w")
         sag = tk.Frame(head, bg=TEMA.PANEL)
         sag.pack(side="right", padx=16, pady=12)
+        self.nokta_lbl = tk.Label(sag, text="●", font=("Segoe UI", 16), bg=TEMA.PANEL, fg=TEMA.SOLUK2)
+        self.nokta_lbl.pack(side="left", padx=(0, 6))
+        self._nokta_acik = True
         self._rozet_lbl, self._rozet_boya = TEMA.rozet(sag, TEMA.PANEL, self.durum_var.get())
         tk.Label(sag, textvariable=self.durum_var, font=TEMA.FONT_ROZET, bg=TEMA.PANEL, fg=TEMA.YAZI).pack(side="left", padx=(10, 0))
         tk.Label(sag, textvariable=self.vpn_var, font=TEMA.FONT_KUCUK, bg=TEMA.PANEL, fg=TEMA.SOLUK).pack(side="left", padx=(12, 0))
@@ -67,6 +72,23 @@ class AnaPencere(tk.Tk):
         tk.Label(bilgi, textvariable=self.katil_var, font=("Segoe UI", 10, "bold"), bg=TEMA.BG, fg=TEMA.MAVI).pack(side="left")
         tk.Label(bilgi, textvariable=self.sync_var, font=TEMA.FONT_KUCUK, bg=TEMA.BG, fg=TEMA.SOLUK).pack(side="right")
         tk.Label(self, text=T.SINIRLI_NOT, font=TEMA.FONT_KUCUK, bg=TEMA.BG, fg=TEMA.SOLUK2).pack(anchor="w", padx=16)
+        # --- istatistik kartları ---
+        kartlar = tk.Frame(self, bg=TEMA.BG)
+        kartlar.pack(fill="x", padx=16, pady=(10, 0))
+        self.kart_durum_var = tk.StringVar(value="Kapalı")
+        self.kart_eslesme_var = tk.StringVar(value="—")
+        self.kart_vpn_var = tk.StringVar(value="—")
+        self.kart_surum_var = tk.StringVar(value="—")
+        for baslik, var in (("Durum", self.kart_durum_var), ("Eşitleme", self.kart_eslesme_var),
+                            ("VPN", self.kart_vpn_var), ("Sürüm", self.kart_surum_var)):
+            k = tk.Frame(kartlar, bg=TEMA.KART, highlightthickness=1, highlightbackground=TEMA.BORDER_YUMUSAK)
+            k.pack(side="left", fill="x", expand=True, padx=(0, 8))
+            tk.Label(k, text=baslik.upper(), font=("Segoe UI", 8, "bold"), bg=TEMA.KART, fg=TEMA.SOLUK2).pack(anchor="w", padx=10, pady=(8, 0))
+            tk.Label(k, textvariable=var, font=("Segoe UI", 13, "bold"), bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", padx=10, pady=(0, 8))
+        try:
+            self.kart_surum_var.set((version.oku().get("surum") or "—")[:24])
+        except Exception:
+            pass
         # --- eylemler ---
         btn = tk.Frame(self, bg=TEMA.BG)
         btn.pack(fill="x", padx=12, pady=10)
@@ -84,9 +106,20 @@ class AnaPencere(tk.Tk):
         kart_bas = tk.Frame(kart, bg=TEMA.KART)
         kart_bas.pack(fill="x", padx=10, pady=(8, 4))
         tk.Label(kart_bas, text="KONSOL", font=("Segoe UI", 9, "bold"), bg=TEMA.KART, fg=TEMA.SOLUK).pack(side="left")
+        self.otomatik_kaydir_var = tk.BooleanVar(value=True)
+        oto = tk.Checkbutton(kart_bas, text="Otomatik kaydır", variable=self.otomatik_kaydir_var,
+                             bg=TEMA.KART, fg=TEMA.SOLUK, selectcolor=TEMA.KART2,
+                             activebackground=TEMA.KART, activeforeground=TEMA.YAZI, font=TEMA.FONT_KUCUK)
+        oto.pack(side="right", padx=(0, 8))
         ttk.Button(kart_bas, text="Temizle", command=self._log_temizle, style="Secondary.TButton").pack(side="right")
         self.log_alani = TEMA.konsol(kart, height=20)
         self.log_alani.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        for ad, renk in (("hata", "#FF8A8A"), ("uyari", TEMA.AMBER_HI), ("giris", TEMA.YESIL),
+                         ("cikis", TEMA.SOLUK), ("komut", TEMA.MAVI), ("soluk", TEMA.SOLUK2)):
+            try:
+                self.log_alani.tag_configure(ad, foreground=renk)
+            except Exception:
+                pass
         self.log_alani.configure(state="disabled")
         # --- komut satırı ---
         alt = tk.Frame(self, bg=TEMA.BG)
@@ -131,12 +164,61 @@ class AnaPencere(tk.Tk):
             pass
         self._yaz_ana(metin)
 
+    @staticmethod
+    def _satir_etiketi(satir):
+        s = satir.strip()
+        if s.startswith("> "):
+            return "komut"
+        kucuk = s.lower()
+        if "error" in kucuk or "exception" in kucuk or "severe" in kucuk or "failed" in kucuk or "hata" in kucuk:
+            return "hata"
+        if "warn" in kucuk or "uyarı" in kucuk or "uyari" in kucuk:
+            return "uyari"
+        if "joined the game" in kucuk or "katıldı" in kucuk:
+            return "giris"
+        if "left the game" in kucuk or "lost connection" in kucuk or "ayrıldı" in kucuk:
+            return "cikis"
+        return None
+
     def _yaz_ana(self, metin):
         try:
             self.log_alani.configure(state="normal")
-            self.log_alani.insert("end", metin if metin.endswith("\n") else metin + "\n")
-            self.log_alani.see("end")
+            for satir in (metin or "").splitlines(True):
+                etiket = self._satir_etiketi(satir)
+                if etiket:
+                    self.log_alani.insert("end", satir if satir.endswith("\n") else satir + "\n", etiket)
+                else:
+                    self.log_alani.insert("end", satir if satir.endswith("\n") else satir + "\n")
+            try:
+                if self.otomatik_kaydir_var.get():
+                    self.log_alani.see("end")
+            except Exception:
+                self.log_alani.see("end")
             self.log_alani.configure(state="disabled")
+        except Exception:
+            pass
+
+    def _nokta_pompa(self):
+        try:
+            calisiyor = bool(self.sunucu.proc and self.sunucu.proc.poll() is None)
+        except Exception:
+            calisiyor = False
+        try:
+            if calisiyor:
+                self._nokta_acik = not self._nokta_acik
+                self.nokta_lbl.configure(fg=TEMA.YESIL if self._nokta_acik else "#1E3A2E")
+            else:
+                self.nokta_lbl.configure(fg=TEMA.SOLUK2)
+        except Exception:
+            pass
+        try:
+            self.after(600, self._nokta_pompa)
+        except Exception:
+            pass
+
+    def _surum_kart_yenile(self):
+        try:
+            self.kart_surum_var.set((version.oku().get("surum") or "—")[:24])
         except Exception:
             pass
 
@@ -174,11 +256,14 @@ class AnaPencere(tk.Tk):
             yuzde = self.sync.ilerleme_yuzdesi()
             durum = self.sync.son_esitleme_durumu()
             self._ui(self.sync_var.set, "Eşitleme: %s (%s%%)" % (durum, yuzde))
+            self._ui(self.kart_eslesme_var.set, "%s %s%%" % (durum, yuzde))
         except Exception:
             self._ui(self.sync_var.set, "Eşitleme: bilinmiyor")
+            self._ui(self.kart_eslesme_var.set, "—")
         try:
             bagli, ip, _backend = vpn.bagli_mi()
             self._ui(self.vpn_var.set, "VPN: bağlı (%s)" % ip if bagli else "VPN: bağlı değil — " + T.VPN_KAPALI_COZUM)
+            self._ui(self.kart_vpn_var.set, ip if bagli else "kapalı")
             if bagli and not self.site_srv.httpd:
                 try:
                     port = int(self.ayar.get("sitePort", 8000))
@@ -190,6 +275,7 @@ class AnaPencere(tk.Tk):
                     pass
         except Exception as e:
             self._ui(self.vpn_var.set, "VPN: hata (%s)" % str(e)[:100])
+            self._ui(self.kart_vpn_var.set, "hata")
         self._ui(lambda: self._ilk_kilit_kontrol(sessiz=True))
 
     def _rozet_renk(self, renk):
@@ -232,11 +318,19 @@ class AnaPencere(tk.Tk):
             self.durum_var.set("güncelleme yayınlanıyor, bekle (sürüm %s)" % surum)
             self._rozet_renk("amber")
             self.baslat_btn.configure(state="disabled")
+            try:
+                self.kart_durum_var.set("Bakım")
+            except Exception:
+                pass
             return
         if gdurum == "bekliyor":
             self.durum_var.set("yeni sürüm hazır: %s — güncellemeden başlayamazsın" % surum)
             self._rozet_renk("amber")
             self.baslat_btn.configure(state="disabled")
+            try:
+                self.kart_durum_var.set("Bakım")
+            except Exception:
+                pass
             if surum != self._otomatik_acilan_surum:
                 self._otomatik_acilan_surum = surum
                 self._guncelle_pencere_ac()
@@ -245,6 +339,10 @@ class AnaPencere(tk.Tk):
             self.durum_var.set("sunucu dosyaları güncelleniyor")
             self._rozet_renk("amber")
             self.baslat_btn.configure(state="disabled")
+            try:
+                self.kart_durum_var.set("Bakım")
+            except Exception:
+                pass
             return
         dolu, k = kilit.kilit_dolu_mu(self.kok)
         calisiyor = self.sunucu.proc and self.sunucu.proc.poll() is None
@@ -253,6 +351,10 @@ class AnaPencere(tk.Tk):
             ip = k.get("vpnIp", "")
             self.durum_var.set(T.DURUM_MISAFIR.format(host=host))
             self._rozet_renk("mavi")
+            try:
+                self.kart_durum_var.set("Misafir")
+            except Exception:
+                pass
             self.katil_var.set(T.KATIL_ADRESI.format(adres="%s:%s" % (ip, k.get("port", 25565))))
             self.baslat_btn.configure(state="disabled")
             if not sessiz:
@@ -264,10 +366,18 @@ class AnaPencere(tk.Tk):
             self._rozet_renk("gri")
             self.katil_var.set("")
             self.baslat_btn.configure(state="normal")
+            try:
+                self.kart_durum_var.set("Kapalı")
+            except Exception:
+                pass
         elif calisiyor:
             self.durum_var.set(T.DURUM_ACIK)
             self._rozet_renk("yesil")
             self.baslat_btn.configure(state="disabled")
+            try:
+                self.kart_durum_var.set("Açık")
+            except Exception:
+                pass
 
     def _baslat_akisi(self):
         if version.guncelleniyor_mu():
@@ -607,6 +717,7 @@ class AnaPencere(tk.Tk):
             except Exception:
                 pass
             self._guncelle_penceresi = None
+            self._surum_kart_yenile()
             self._yaz("Sürüm %s uygulandı.\n" % s)
             self._ilk_kilit_kontrol(sessiz=True)
 

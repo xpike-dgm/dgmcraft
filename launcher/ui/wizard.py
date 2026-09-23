@@ -55,9 +55,14 @@ class Wizard(tk.Toplevel):
         self.adim_sayisi_var = tk.StringVar(value="")
         tk.Label(ust, textvariable=self.adim_sayisi_var, font=TEMA.FONT_KUCUK,
                  bg=TEMA.BG, fg=TEMA.SOLUK).pack(anchor="w")
+        baslik_satir = tk.Frame(ust, bg=TEMA.BG)
+        baslik_satir.pack(fill="x", pady=(2, 10))
+        self.hero_var = tk.StringVar(value="")
+        tk.Label(baslik_satir, textvariable=self.hero_var, font=("Segoe UI", 34),
+                 bg=TEMA.BG).pack(side="left", padx=(0, 12))
         self.adim_baslik_var = tk.StringVar(value="")
-        tk.Label(ust, textvariable=self.adim_baslik_var, font=FONT_ADIM_BASLIK,
-                 bg=TEMA.BG, fg=TEMA.YAZI).pack(anchor="w", pady=(2, 10))
+        tk.Label(baslik_satir, textvariable=self.adim_baslik_var, font=FONT_ADIM_BASLIK,
+                 bg=TEMA.BG, fg=TEMA.YAZI).pack(side="left")
         self.bar = ttk.Progressbar(ust, maximum=100, length=560,
                                    style="Amber.Horizontal.TProgressbar")
         self.bar.pack(fill="x", pady=(0, 6))
@@ -71,6 +76,8 @@ class Wizard(tk.Toplevel):
         self.geri_btn.pack(side="left")
         self.birincil_btn = ttk.Button(alt, text="Başla →", command=self._birincil_bas, style="Primary.TButton")
         self.birincil_btn.pack(side="right")
+        self.mesgul_bar = ttk.Progressbar(self, mode="indeterminate", style="Amber.Horizontal.TProgressbar")
+        self.hero_ikonlar = ["👋", "🏷️", "🔑", "📁", "🛡️", "👥", "🚀"]
         self.after(150, self._ui_pompa)
         # Çarpı her zaman çalışır: ilk kurulumda sessiz çıkış (bir dahaki
         # açılışta sihirbaz yine gelir), sonradan açıldıysa bir şey kaydedilmez.
@@ -146,6 +153,10 @@ class Wizard(tk.Toplevel):
         baslik, kurucu = self.adimlar[self.adim]
         self.adim_sayisi_var.set("ADIM %d / %d" % (self.adim + 1, len(self.adimlar)))
         self.adim_baslik_var.set(baslik)
+        try:
+            self.hero_var.set(self.hero_ikonlar[self.adim % len(self.hero_ikonlar)])
+        except Exception:
+            pass
         try:
             self.bar.configure(value=100 * (self.adim + 1) / len(self.adimlar))
         except Exception:
@@ -368,6 +379,8 @@ class Wizard(tk.Toplevel):
         try:
             self.birincil_btn.configure(state="disabled")
             self.geri_btn.configure(state="disabled")
+            self.mesgul_bar.pack(fill="x", padx=32, pady=(0, 12))
+            self.mesgul_bar.start(12)
         except Exception:
             pass
         return metin
@@ -377,6 +390,11 @@ class Wizard(tk.Toplevel):
 
     def _mesgul_kapat_ana(self):
         self._mesgul = False
+        try:
+            self.mesgul_bar.stop()
+            self.mesgul_bar.pack_forget()
+        except Exception:
+            pass
         try:
             self.birincil_btn.configure(state="normal")
             self.geri_btn.configure(state="normal" if self.adim > 0 else "disabled")
