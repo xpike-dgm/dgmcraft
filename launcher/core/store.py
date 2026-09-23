@@ -59,6 +59,7 @@ VARSAYILAN_AYAR = {
     "sonEsitleme": "",
     "uygulananSurum": "",
     "githubRepo": "",
+    "launcherSurumu": "",
 }
 
 

@@ -592,18 +592,29 @@ class AnaPencere(tk.Tk):
         if self.sunucu.proc and self.sunucu.proc.poll() is None:
             messagebox.showwarning("Önce kapat", "Uygulamadan önce sunucuyu Güvenli Kapat ile kapatmalısın.")
             return
-        threading.Thread(target=self._guncelleme_uygula_thread, args=(sonuc.get("zip_url", ""),), daemon=True).start()
+        threading.Thread(target=self._guncelleme_uygula_thread, args=(sonuc,), daemon=True).start()
 
-    def _guncelleme_uygula_thread(self, zip_url):
-        if not zip_url:
-            self._ui(messagebox.showwarning, "Güncelleme", "İndirme adresi alınamadı.")
-            return
+    def _guncelleme_uygula_thread(self, sonuc):
         try:
-            guncelleme.uygula(self.kok, zip_url, durum_yaz=self._yaz)
+            hedef, exe_mi = guncelleme.uygula(self.kok, sonuc, durum_yaz=self._yaz)
         except Exception as e:
             self._ui(messagebox.showerror, "Güncelleme hatası", str(e)[:400])
             return
-        self._ui(messagebox.showinfo, "Güncelleme", "Güncelleme uygulandı. Değişiklikler için uygulamayı kapatıp aç.")
+        try:
+            self.ayar["launcherSurumu"] = (sonuc or {}).get("son", "")
+            store.kaydet(self.ayar)
+        except Exception:
+            pass
+        if exe_mi:
+            self._ui(messagebox.showinfo, "Güncelleme",
+                     "Yeni sürüm şuraya açıldı:\n%s\n\nEski uygulamayı kapatıp yeni klasördeki exe'yi çalıştır." % hedef)
+            try:
+                import subprocess as _sp
+                _sp.Popen(["explorer", hedef])
+            except Exception:
+                pass
+        else:
+            self._ui(messagebox.showinfo, "Güncelleme", "Güncelleme uygulandı. Değişiklikler için uygulamayı kapatıp aç.")
 
     def _sihirbaz_ac(self):
         try:
