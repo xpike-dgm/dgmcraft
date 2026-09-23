@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arşiv • DgmCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo">DGM<span>CRAFT</span></div>
+<div class="nav-links"><a href="index.html">Komutlar</a><a href="log.html">Log</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><b>Arşiv</b></div>
+<div class="nav-right">
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+<a class="btn" href="index.html">Ana sayfa</a>
+</div>
+</div></nav>
+<div class="wrap">
+<a class="back" href="index.html">← ana sayfaya dön</a>
+<div class="hero" style="padding-top:18px">
+<span class="kicker"><i></i> olaylar • fotoğraflar • istatistik</span>
+<h1>Arşiv</h1>
+<p>Sunucuda olan biten, çekilen fotoğraflar ve detaylı istatistik bağlantısı.</p>
+</div>
+<div id="cevrimdisiBand" class="bant bilgi" style="display:none"><span id="cevrimdisiYazi">Canlı veri için uygulamadan Siteyi Aç.</span><button id="yenidenDene" class="copy btn2">Yeniden dene</button></div>
+<div class="sec-head"><span class="bar"></span><h2>Olay Akışı</h2></div>
+<div class="logbar">
+<button class="filtre aktif" data-f="tum">Tümü</button>
+<button class="filtre" data-f="giris">Giriş</button>
+<button class="filtre" data-f="olum">Ölüm</button>
+<button class="filtre" data-f="boss">Boss</button>
+<button class="filtre" data-f="uyari">Uyarı</button>
+</div>
+<div id="olayListe"><div class="empty">Yükleniyor…</div></div>
+<div class="sec-head"><span class="bar"></span><h2>Galeri</h2></div>
+<p class="sub">Fotoğraf eklemek için <b>galeri/</b> klasörüne dosya kopyalaman yeterli.</p>
+<div class="galeri" id="galeri"><div class="empty">Henüz fotoğraf yok.</div></div>
+<div class="sec-head"><span class="bar"></span><h2>Detaylı İstatistik</h2></div>
+<div id="planKutu"></div>
+</div>
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • Canlı veri için uygulamanın çalışıyor olması gerekir.</p></div></footer>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  Canli.initAdmin();
+  var disBand = document.getElementById('cevrimdisiBand');
+  var filtre = 'tum', timer = null, calisiyor = true;
+  function olayCiz(liste){
+    var kutu = document.getElementById('olayListe');
+    var gor = (liste || []).filter(function(o){
+      return filtre === 'tum' || (o.tur || '') === filtre;
+    }).slice(0, 100);
+    if(!gor.length){ kutu.innerHTML = '<div class="empty">Bu filtrede olay yok.</div>'; return; }
+    kutu.innerHTML = '';
+    gor.forEach(function(o){
+      var d = document.createElement('div');
+      d.className = 'cmd';
+      var renk = { giris: '#7DE2A8', olum: '#E5484D', boss: '#2FD35C', uyari: '#2FD35C' }[(o.tur || '')] || '#C4CFC8';
+      d.innerHTML = '<div class="cmd-top"><code style="border-color:var(--border);background:#0F1513">' +
+        Canli.esc(Canli.saatStr(o.zaman)) + '</code><span class="rozet" style="color:' + renk + ';border:1px solid var(--border)">' +
+        Canli.esc(o.tur || '?') + '</span></div><p>' + Canli.esc(o.metin || '') + '</p>';
+      kutu.appendChild(d);
+    });
+  }
+  function yokla(){
+    if(!calisiyor) return;
+    Canli.get('/api/olaylar?son=100', 8000).then(function(r){
+      if(r.ok && r.data){
+        Canli.snapSave('olaylar', r.data.olaylar || []);
+        disBand.style.display = 'none';
+        Canli.dot('on', 'Canlı');
+        olayCiz(r.data.olaylar || []);
+      } else {
+        var s = Canli.snapLoad('olaylar');
+        if(s){
+          document.getElementById('cevrimdisiYazi').textContent = 'Canlı veri alınamıyor, son bilinen kayıt (' + Canli.snapSaat(s.zaman) + ').';
+          disBand.style.display = 'flex';
+          Canli.dot('orta', 'Önbellek ' + Canli.snapSaat(s.zaman));
+          olayCiz(s.data);
+        } else {
+          document.getElementById('cevrimdisiYazi').textContent = 'Sunucuya ulaşılamıyor. Canlı veri için uygulamadan Siteyi Aç.';
+          disBand.style.display = 'flex';
+          Canli.dot('off', 'Çevrimdışı');
+          document.getElementById('olayListe').innerHTML = '<div class="empty">Olay kaydı yok.</div>';
+        }
+        durdur();
+      }
+    });
+  }
+  function durdur(){ calisiyor = false; if(timer){ clearInterval(timer); timer = null; } }
+  function baslat(){
+    if(timer) return;
+    calisiyor = true; disBand.style.display = 'none';
+    yokla(); timer = setInterval(yokla, 15000);
+  }
+  document.getElementById('yenidenDene').onclick = baslat;
+  Array.prototype.forEach.call(document.querySelectorAll('.filtre'), function(b){
+    b.onclick = function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.filtre'), function(x){ x.classList.remove('aktif'); });
+      b.classList.add('aktif'); filtre = b.getAttribute('data-f');
+      var s = Canli.snapLoad('olaylar');
+      olayCiz(s ? s.data : []);
+      yokla();
+    };
+  });
+
+  // --- galeri: galeri/ klasor listesi (backend dizin listesi acarsa) ---
+  (function galeri(){
+    var kutu = document.getElementById('galeri');
+    function bos(){ kutu.innerHTML = '<div class="empty">Henüz fotoğraf yok.</div>'; }
+    if(location.protocol === 'file:'){ bos(); return; }
+    var ctrl = null;
+    try{ if(window.AbortController) ctrl = new AbortController(); }catch(e){}
+    var p = fetch('galeri/', ctrl ? { signal: ctrl.signal } : {});
+    var to = new Promise(function(_, rej){ setTimeout(function(){ try{ ctrl && ctrl.abort(); }catch(e){} rej(new Error('zamanasimi')); }, 8000); });
+    Promise.race([p, to]).then(function(res){
+      if(!res.ok) throw new Error('http ' + res.status);
+      return res.text();
+    }).then(function(html){
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var adlar = [];
+      Array.prototype.forEach.call(doc.querySelectorAll('a[href]'), function(a){
+        var h = decodeURIComponent(a.getAttribute('href') || '');
+        if(/\.(png|jpe?g|gif|webp|bmp)$/i.test(h) && adlar.indexOf(h) < 0) adlar.push(h);
+      });
+      if(!adlar.length){ bos(); return; }
+      kutu.innerHTML = '';
+      adlar.forEach(function(ad){
+        var f = document.createElement('figure');
+        var src = 'galeri/' + ad.split('/').pop();
+        f.innerHTML = '<img loading="lazy" src="' + Canli.esc(src) + '" alt="' + Canli.esc(ad) + '"><figcaption>' + Canli.esc(ad) + '</figcaption>';
+        f.onclick = function(){
+          var b = document.createElement('div');
+          b.className = 'buyutec';
+          b.innerHTML = '<img src="' + Canli.esc(src) + '" alt="">';
+          b.onclick = function(){ b.remove(); };
+          document.body.appendChild(b);
+        };
+        kutu.appendChild(f);
+      });
+    }).catch(bos);
+  })();
+
+  // --- Plan link karti (planAdres.txt gorece dosya) ---
+  (function plan(){
+    var kutu = document.getElementById('planKutu');
+    if(location.protocol === 'file:'){
+      fetch('planAdres.txt').then(function(r){
+        if(!r.ok) throw new Error('yok');
+        return r.text();
+      }).then(function(t){
+        t = (t || '').trim().split('\n')[0].trim();
+        if(!t) throw new Error('bos');
+        kutu.innerHTML = '<a class="card" href="' + Canli.esc(t) + '" target="_blank" rel="noopener"><div class="card-body"><div><h3>Plan Paneli</h3><small>Detaylı istatistik için tıkla</small></div><span class="arrow">→</span></div></a>';
+      }).catch(function(){ kutu.innerHTML = ''; });
+      return;
+    }
+    var ctrl = null;
+    try{ if(window.AbortController) ctrl = new AbortController(); }catch(e){}
+    var p = fetch('planAdres.txt', ctrl ? { signal: ctrl.signal } : {});
+    var to = new Promise(function(_, rej){ setTimeout(function(){ try{ ctrl && ctrl.abort(); }catch(e){} rej(new Error('zamanasimi')); }, 8000); });
+    Promise.race([p, to]).then(function(r){
+      if(!r.ok) throw new Error('yok');
+      return r.text();
+    }).then(function(t){
+      t = (t || '').trim().split('\n')[0].trim();
+      if(!t) throw new Error('bos');
+      kutu.innerHTML = '<a class="card" href="' + Canli.esc(t) + '" target="_blank" rel="noopener"><div class="card-body"><div><h3>Plan Paneli</h3><small>Detaylı istatistik için tıkla</small></div><span class="arrow">→</span></div></a>';
+    }).catch(function(){ kutu.innerHTML = ''; });
+  })();
+
+  var s0 = Canli.snapLoad('olaylar');
+  if(s0){ olayCiz(s0.data); Canli.dot('orta', 'Önbellek ' + Canli.snapSaat(s0.zaman)); }
+  baslat();
+})();
+</script>
+</body>
+</html>

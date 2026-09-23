@@ -1,0 +1,7 @@
+# DGM Craft site linki - bu dosya launcher tarafından otomatik yazılır.
+# Vanilla Skript ile uyumlu (dosya okuma yok, skript-io gerekmez).
+
+command /site:
+	description: Sunucu sitesinin adresini verir.
+	trigger:
+		send "&6Site: &fhttp://100.73.226.29:8000" to player

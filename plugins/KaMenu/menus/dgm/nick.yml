@@ -1,0 +1,61 @@
+# DGM Craft nick menus - /menu > Nick Rengi
+# Once ismini yaz, sonra renge bas.
+Title: '&d&lNick Rengi'
+
+Settings:
+  can_escape: true
+  after_action: CLOSE
+
+Body:
+  aciklama:
+    type: 'message'
+    text:
+      - '&7Önce aşağıya istediğin ismi yaz,'
+      - '&7sonra renk düğmesine bas.'
+      - '&7Sıfırlamak için oyunda /nick off yaz.'
+
+Inputs:
+  nick_adi:
+    type: 'input'
+    text: '&7İstediğin isim:'
+    default: ''
+    placeholder: 'örn. Kral'
+
+Bottom:
+  type: multi
+  columns: 3
+  buttons:
+    yesil:
+      text: '&2[ Yeşil ]'
+      actions:
+        - 'close'
+        - 'command: nick &2$(nick_adi)'
+    kirmizi:
+      text: '&c[ Kırmızı ]'
+      actions:
+        - 'close'
+        - 'command: nick &c$(nick_adi)'
+    mavi:
+      text: '&9[ Mavi ]'
+      actions:
+        - 'close'
+        - 'command: nick &9$(nick_adi)'
+    altin:
+      text: '&6[ Altın ]'
+      actions:
+        - 'close'
+        - 'command: nick &6$(nick_adi)'
+    mor:
+      text: '&5[ Mor ]'
+      actions:
+        - 'close'
+        - 'command: nick &5$(nick_adi)'
+    sari:
+      text: '&e[ Sarı ]'
+      actions:
+        - 'close'
+        - 'command: nick &e$(nick_adi)'
+  exit:
+    text: '&8[ Geri ]'
+    actions:
+      - 'open: dgm/menu'

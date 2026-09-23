@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envanter • DgmCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo">DGM<span>CRAFT</span></div>
+<div class="nav-links"><a href="index.html">Komutlar</a><a href="log.html">Log</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a></div>
+<div class="nav-right">
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+<a class="btn" href="index.html">Ana sayfa</a>
+</div>
+</div></nav>
+<div class="wrap">
+<a class="back" href="durum.html">← duruma dön</a>
+<div class="hero" style="padding-top:18px">
+<span class="kicker"><i></i> salt okunur</span>
+<h1 id="baslik">Envanter</h1>
+<p>Oyuncunun üstündeki eşyalar. Sadece görüntülenir, dokunulmaz.</p>
+</div>
+<div class="cmdsatir"><input id="adGirdi" placeholder="Oyuncu adı..."><button id="adGit" class="btn">Göster</button></div>
+<div id="icerik"><div class="empty">Oyuncu seç.</div></div>
+</div>
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • Canlı veri için uygulamanın çalışıyor olması gerekir.</p></div></footer>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  Canli.initAdmin();
+  function param(ad){
+    try{ return new URLSearchParams(location.search).get(ad); }catch(e){ return null; }
+  }
+  function slotHtml(e){
+    if(!e) return '<div class="slot"></div>';
+    return '<div class="slot dolu"><b>' + Canli.esc(e.ad || '?') + '</b>' +
+      (e.adet != null && e.adet !== 1 ? '<small>x' + Canli.esc(e.adet) + '</small>' : '') + '</div>';
+  }
+  function ciz(ad, esyalar){
+    var kutu = document.getElementById('icerik');
+    document.getElementById('baslik').textContent = ad + ' • Envanter';
+    var grid = new Array(36).fill(null);
+    (esyalar || []).forEach(function(e){
+      if(e && e.slot != null && e.slot >= 0 && e.slot < 36) grid[e.slot] = e;
+    });
+    var zirhAd = ['Kask', 'Göğüslük', 'Pantolon', 'Bot'];
+    var zirh = (esyalar || []).filter(function(e){ return e && (e.slot === 'bas' || e.slot === 'govde' || e.slot === 'bacak' || e.slot === 'ayak' || e.zirh); });
+    var h = '<div class="sec-head"><span class="bar"></span><h2>Zırh</h2></div><div class="zirh">';
+    for(var i = 0; i < 4; i++){
+      var p = zirh[i];
+      h += p ? slotHtml(p).replace('slot dolu', 'slot dolu') : '<div class="slot"><small>' + zirhAd[i] + '</small></div>';
+    }
+    h += '</div><div class="sec-head"><span class="bar"></span><h2>Çanta (36 slot)</h2></div><div class="envgrid">';
+    grid.forEach(function(e){ h += slotHtml(e); });
+    kutu.innerHTML = h + '</div>';
+  }
+  function yukle(ad){
+    ad = (ad || '').trim();
+    if(!ad){ document.getElementById('icerik').innerHTML = '<div class="empty">Oyuncu seç.</div>'; return; }
+    Canli.get('/api/envanter?oyuncu=' + encodeURIComponent(ad), 8000).then(function(r){
+      if(r.ok && r.data && r.data.esya){
+        Canli.dot('on', 'Canlı');
+        ciz(ad, r.data.esya);
+      } else {
+        Canli.dot('off', 'Çevrimdışı');
+        document.getElementById('baslik').textContent = ad + ' • Envanter';
+        document.getElementById('icerik').innerHTML = '<div class="empty">Bu özellik uygulama güncellemesi bekliyor.</div>';
+      }
+    });
+  }
+  document.getElementById('adGit').onclick = function(){
+    var v = document.getElementById('adGirdi').value.trim();
+    if(v) location.href = 'envanter.html?ad=' + encodeURIComponent(v);
+  };
+  document.getElementById('adGirdi').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') document.getElementById('adGit').click();
+  });
+  var ilk = param('ad');
+  if(ilk){ document.getElementById('adGirdi').value = ilk; yukle(ilk); }
+  else Canli.dot('off', 'Oyuncu seç');
+})();
+</script>
+</body>
+</html>

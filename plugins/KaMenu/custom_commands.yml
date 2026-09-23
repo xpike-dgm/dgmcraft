@@ -1,0 +1,5 @@
+# DGM Craft ozel komutlar - tum oyuncular kullanabilir.
+# /menu -> ana dialog menusu. Ornek eslemeler kaldirildi (dosyalari yok).
+custom-commands:
+  menu: 'dgm/menu'          # /menu
+  liderlik: 'dgm/liderlik'  # /liderlik

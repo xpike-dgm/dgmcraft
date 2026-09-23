@@ -1,0 +1,44 @@
+# DGM Craft - örnek sunucu ayarı. Gerçek dosya repoya girmez.
+# İlk açılışta launcher bu dosyayı kopyalar ve rastgele RCON şifresi yazar.
+#Minecraft server properties
+accepts-transfers=false
+allow-flight=false
+allow-nether=true
+broadcast-console-to-ops=true
+broadcast-rcon-to-ops=true
+difficulty=normal
+enable-command-block=false
+enable-query=false
+enable-rcon=true
+enable-status=true
+enforce-secure-profile=false
+enforce-whitelist=true
+force-gamemode=false
+gamemode=survival
+generate-structures=true
+hardcore=false
+hide-online-players=false
+level-name=world
+max-players=10
+max-tick-time=60000
+motd=DGM Craft Survival+ - Vanilla ruhu, RPG dokunusu
+network-compression-threshold=256
+online-mode=false
+op-permission-level=4
+player-idle-timeout=0
+prevent-proxy-connections=false
+pvp=true
+rcon.password=
+rcon.port=25575
+server-ip=
+server-name=DGM Craft
+server-port=25565
+simulation-distance=10
+spawn-animals=true
+spawn-monsters=true
+spawn-npcs=true
+spawn-protection=0
+sync-chunk-writes=true
+use-native-transport=true
+view-distance=10
+white-list=false

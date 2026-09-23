@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DgmCraft • Anasayfa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo"><svg class="logo-kup" viewBox="0 0 32 32" aria-hidden="true"><polygon points="16,3 29,10 16,17 3,10" fill="#3EF06E"/><polygon points="3,10 16,17 16,29 3,22" fill="#14532D"/><polygon points="29,10 16,17 16,29 29,22" fill="#1E7A44"/></svg>DGM<span>CRAFT</span></div>
+<div class="nav-links"><b>Anasayfa</b><a href="#kategoriler">Komutlar</a><a href="durum.html">Durum</a><a href="log.html">Log</a><a href="arsiv.html">Arşiv</a></div>
+<div class="nav-right">
+<span class="durum-hap" id="hapDurum"><i></i><span id="hapYazi">…</span></span>
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+</div>
+</div></nav>
+
+<header class="hero2">
+<div class="hero2-ic">
+<svg class="hero-logo" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="44" fill="rgba(62,240,110,.12)"/><polygon points="48,18 78,34 48,50 18,34" fill="#3EF06E"/><polygon points="18,34 48,50 48,80 18,64" fill="#14532D"/><polygon points="78,34 48,50 48,80 78,64" fill="#1E7A44"/><rect x="30" y="24" width="12" height="6" fill="#B9FFCF" opacity=".8"/></svg>
+<h1>Arkadaşlarınla Minecraft keyfi<br>seni <em>bekliyor!</em></h1>
+<p class="hero2-alt">3 kişilik Survival+ sunucusu: komutlar, canlı durum ve log tek sitede.</p>
+<div class="hero2-butonlar">
+<button class="btn-buyuk yesil" id="btnOyna">▶&nbsp; OYNA</button>
+<button class="btn-buyuk cizgili" id="btnDiscord">Discord'a Katıl</button>
+</div>
+<div class="ipbar">
+<svg class="logo-kup" viewBox="0 0 32 32" aria-hidden="true"><polygon points="16,3 29,10 16,17 3,10" fill="#3EF06E"/><polygon points="3,10 16,17 16,29 3,22" fill="#14532D"/><polygon points="29,10 16,17 16,29 29,22" fill="#1E7A44"/></svg>
+<code id="ipAdres">yükleniyor…</code>
+<span class="ip-aktif"><i></i><span id="ipAktif">– oyuncu aktif</span></span>
+<button class="copy" id="ipKopyala" title="IP'yi kopyala">⧉</button>
+</div>
+<div class="scrollcue">SUNUCUYU KEŞFET<br>﹀</div>
+</div>
+</header>
+
+<div class="wrap">
+<div class="cols">
+<div class="col-ana">
+<div class="sec-head"><span class="bar"></span><h2>⚡ Hızlı Erişim</h2></div>
+<div class="hgrid">
+<a class="card hkart" href="#kategoriler"><div class="card-body"><div><span class="hik">⌨️</span><h3>Komutlar</h3><small>28 kategori, 342 komut</small></div><span class="arrow">→</span></div></a>
+<a class="card hkart" href="durum.html"><div class="card-body"><div><span class="hik">💚</span><h3>Sunucu Durumu</h3><small>TPS, RAM, oyundakiler</small></div><span class="arrow">→</span></div></a>
+<a class="card hkart" href="log.html"><div class="card-body"><div><span class="hik">📜</span><h3>Canlı Log</h3><small>Anlık sunucu günlüğü</small></div><span class="arrow">→</span></div></a>
+<a class="card hkart" href="arsiv.html"><div class="card-body"><div><span class="hik">🖼️</span><h3>Arşiv</h3><small>Olaylar ve galeri</small></div><span class="arrow">→</span></div></a>
+</div>
+<div class="sec-head"><span class="bar"></span><h2>📰 Son Olaylar</h2><a href="arsiv.html" class="tumugor">Tümü →</a></div>
+<div id="sonOlaylar"><div class="empty">Yükleniyor…</div></div>
+<div class="sec-head" id="kategoriler"><span class="bar"></span><h2>⌨️ Komut Kategorileri</h2></div>
+<div class="search"><span>🔎</span><input id="q" placeholder="Kategori veya komut ara... örn: ev, ışınlanma, /sat"></div>
+<div id="directWrap" style="display:none;margin-top:16px">
+<div class="sec-head" style="margin:0 0 8px"><span class="bar"></span><h2 style="font-size:17px">Direkt komut sonuçları</h2></div>
+<div id="direct"></div>
+</div>
+<p class="sub" id="count">yükleniyor...</p>
+<div class="grid" id="grid"></div>
+</div>
+<aside class="col-yan">
+<div class="mini" id="miniDurum">
+<div class="sec-head" style="margin-top:0"><span class="bar"></span><h2>Sunucu</h2></div>
+<div id="miniDurumIc"><div class="empty">Yükleniyor…</div></div>
+</div>
+<div class="mini" id="miniZengin" style="display:none">
+<div class="sec-head" style="margin-top:0"><span class="bar"></span><h2>🏆 En Zenginler</h2></div>
+<div id="miniZenginIc"></div>
+</div>
+</aside>
+</div>
+</div>
+
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • warm-dark + yeşil tema. Arka plan için <b>assets/hero-bg.jpg</b> eklersen hero otomatik kullanır.</p></div></footer>
+<div class="toast" id="toast" style="display:none"></div>
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  var DISCORD_URL = '';
+  var adres = '';
+
+  function toast(metin){
+    var t = document.getElementById('toast');
+    t.textContent = metin; t.style.display = 'block';
+    clearTimeout(t._z);
+    t._z = setTimeout(function(){ t.style.display = 'none'; }, 2600);
+  }
+
+  // sunucu adresi: gorece dosya (oyundaki /site ile ayni kaynak). Yoksa /site yonlendirmesi.
+  function adresYukle(){
+    var el = document.getElementById('ipAdres');
+    fetch('sunucu-adres.txt').then(function(r){
+      if(!r.ok) throw new Error('yok');
+      return r.text();
+    }).then(function(t){
+      t = (t || '').trim().split('\n')[0].trim();
+      if(!t) throw new Error('bos');
+      adres = t; el.textContent = t;
+    }).catch(function(){
+      el.textContent = 'Oyunda /site yaz';
+    });
+  }
+  document.getElementById('ipKopyala').onclick = function(){
+    if(!adres){ toast('Adres yok — oyunda /site yaz'); return; }
+    try{ navigator.clipboard.writeText(adres).then(function(){ toast('IP kopyalandı, oyuna yapıştır!'); }, function(){ toast(adres); }); }
+    catch(e){ toast(adres); }
+  };
+  document.getElementById('btnOyna').onclick = function(){
+    if(!adres){ toast('Adres yok — oyunda /site yaz'); document.getElementById('ipAdres').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    try{ navigator.clipboard.writeText(adres).then(function(){ toast('IP kopyalandı, oyuna yapıştır!'); }, function(){ toast(adres); }); }
+    catch(e){ toast(adres); }
+  };
+  document.getElementById('btnDiscord').onclick = function(){
+    if(DISCORD_URL) window.open(DISCORD_URL, '_blank', 'noopener');
+    else toast('Discord adresini bana söyle, butona ekleyeyim');
+  };
+
+  // canli sayilar: hap + ip bar + mini durum
+  function durumYokla(){
+    Canli.get('/api/durum', 8000).then(function(r){
+      var hy = document.getElementById('hapYazi');
+      var hap = document.getElementById('hapDurum');
+      if(r.ok && r.data){
+        Canli.snapSave('durum', r.data);
+        var n = (r.data.cevrimici || []).length;
+        hy.textContent = n + ' aktif';
+        hap.classList.add('acik');
+        document.getElementById('ipAktif').textContent = n + ' oyuncu aktif';
+        Canli.dot('on', 'Canlı');
+        miniDurum(r.data);
+      } else {
+        hap.classList.remove('acik');
+        var s = Canli.snapLoad('durum');
+        if(s){
+          var n2 = (s.data.cevrimici || []).length;
+          hy.textContent = n2 + ' aktif (önbellek)';
+          document.getElementById('ipAktif').textContent = n2 + ' oyuncu aktif';
+          Canli.dot('orta', 'Önbellek ' + Canli.snapSaat(s.zaman));
+          miniDurum(s.data);
+        } else {
+          hy.textContent = 'çevrimdışı';
+          document.getElementById('ipAktif').textContent = 'çevrimdışı';
+          Canli.dot('off', 'Çevrimdışı');
+          document.getElementById('miniDurumIc').innerHTML = '<div class="empty">Canlı veri için uygulamadan Siteyi Aç.</div>';
+        }
+      }
+    });
+  }
+  function miniDurum(d){
+    var cev = d.cevrimici || [];
+    var oran = (d.ramKullanimMB != null && d.ramMaxMB) ? Math.min(100, Math.round(d.ramKullanimMB / d.ramMaxMB * 100)) : 0;
+    document.getElementById('miniDurumIc').innerHTML =
+      '<div class="obilgi"><span>TPS: <b>' + Canli.esc(d.tps == null ? '–' : d.tps) + '</b></span>' +
+      '<span>RAM: <b>%' + oran + '</b></span></div>' +
+      '<div class="rambar"><i style="width:' + oran + '%"></i></div>' +
+      '<div class="obilgi"><span>Oyunda: <b>' + (cev.length ? cev.map(Canli.esc).join(', ') : 'kimse yok') + '</b></span></div>' +
+      '<div style="margin-top:10px"><a href="durum.html" class="tumugor">Detay →</a></div>';
+  }
+  function zenginYukle(){
+    function ciz(liste){
+      if(!liste || !liste.length) return;
+      document.getElementById('miniZengin').style.display = 'block';
+      var MAD = ['🥇', '🥈', '🥉'];
+      document.getElementById('miniZenginIc').innerHTML = liste.slice(0, 3).map(function(z, i){
+        return '<div class="direct-item"><div><code>' + (MAD[i] || '') + ' ' + Canli.esc(z.ad || '?') + '</code></div><span class="para">' + Canli.esc(z.deger) + '</span></div>';
+      }).join('');
+    }
+    Canli.get('/api/liderlik', 8000).then(function(r){
+      if(r.ok && r.data){ Canli.snapSave('liderlik', r.data); ciz(r.data.zenginler); }
+      else { var s = Canli.snapLoad('liderlik'); if(s) ciz(s.data.zenginler); }
+    });
+  }
+  function olayYukle(){
+    function ciz(liste){
+      var kutu = document.getElementById('sonOlaylar');
+      liste = (liste || []).slice(-3).reverse();
+      if(!liste.length){ kutu.innerHTML = '<div class="empty">Henüz olay yok.</div>'; return; }
+      kutu.innerHTML = '';
+      liste.forEach(function(o){
+        var d = document.createElement('div');
+        d.className = 'cmd';
+        d.innerHTML = '<div class="cmd-top"><code style="border-color:var(--border);background:#0F1513">' + Canli.esc(Canli.saatStr(o.zaman)) + '</code><span class="rozet off">' + Canli.esc(o.tur || '?') + '</span></div><p>' + Canli.esc(o.metin || '') + '</p>';
+        kutu.appendChild(d);
+      });
+    }
+    Canli.get('/api/olaylar?son=100', 8000).then(function(r){
+      if(r.ok && r.data){ Canli.snapSave('olaylar', r.data.olaylar || []); ciz(r.data.olaylar || []); }
+      else { var s = Canli.snapLoad('olaylar'); ciz(s ? s.data : []); }
+    });
+  }
+
+  adresYukle(); durumYokla(); zenginYukle(); olayYukle();
+  setInterval(durumYokla, 15000);
+})();
+</script>
+</body>
+</html>

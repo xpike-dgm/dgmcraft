@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oyun Verisi • DgmCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo">DGM<span>CRAFT</span></div>
+<div class="nav-links"><a href="index.html">Komutlar</a><a href="log.html">Log</a><a href="durum.html">Durum</a><b>Veri</b><a href="arsiv.html">Arşiv</a></div>
+<div class="nav-right">
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+<a class="btn" href="index.html">Ana sayfa</a>
+</div>
+</div></nav>
+<div class="wrap">
+<a class="back" href="index.html">← ana sayfaya dön</a>
+<div class="hero" style="padding-top:18px">
+<span class="kicker"><i></i> liderlik • para • görevler</span>
+<h1>Oyun Verisi</h1>
+<p>Zenginler, yetenek sıralaması, süreler, para ve görev ilerlemesi.</p>
+</div>
+<div id="cevrimdisiBand" class="bant bilgi" style="display:none"><span id="cevrimdisiYazi">Canlı veri için uygulamadan Siteyi Aç.</span><button id="yenidenDene" class="copy btn2">Yeniden dene</button></div>
+<div class="sekmeler">
+<button class="sekme aktif" data-s="liderlik">Liderlik</button>
+<button class="sekme" data-s="ekonomi">Ekonomi</button>
+<button class="sekme" data-s="gorev">Görevler</button>
+</div>
+<div id="sekme-liderlik">
+<div class="sec-head"><span class="bar"></span><h2>En Zenginler</h2></div>
+<div id="tZengin"><div class="empty">Yükleniyor…</div></div>
+<div class="sec-head"><span class="bar"></span><h2>Yetenek Sıralaması</h2></div>
+<div id="tYetenek"><div class="empty">Yükleniyor…</div></div>
+<div class="sec-head"><span class="bar"></span><h2>Süreler</h2></div>
+<div id="tSure"><div class="empty">Yükleniyor…</div></div>
+</div>
+<div id="sekme-ekonomi" style="display:none">
+<div class="sec-head"><span class="bar"></span><h2>Bakiyeler</h2></div>
+<div id="tBakiye"><div class="empty">Yükleniyor…</div></div>
+<div class="sec-head"><span class="bar"></span><h2>Fiyat Listesi</h2></div>
+<div id="tFiyat"><div class="empty">Yükleniyor…</div></div>
+</div>
+<div id="sekme-gorev" style="display:none">
+<div class="logbar"><label class="ac-kapa">Oyuncu: <select id="gOyuncu" class="filtre"></select></label></div>
+<div class="sec-head"><span class="bar"></span><h2>Aktif Görevler</h2></div>
+<div id="gAktif"><div class="empty">Oyuncu seç.</div></div>
+<div class="sec-head"><span class="bar"></span><h2>Bitenler</h2></div>
+<div id="gBiten"><div class="empty">Oyuncu seç.</div></div>
+<div class="sec-head"><span class="bar"></span><h2>Kilitliler</h2></div>
+<div id="gKilitli"><div class="empty">Oyuncu seç.</div></div>
+</div>
+</div>
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • Canlı veri için uygulamanın çalışıyor olması gerekir.</p></div></footer>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  Canli.initAdmin();
+  var disBand = document.getElementById('cevrimdisiBand');
+  var aktifSekme = 'liderlik', timer = null, calisiyor = true;
+
+  var MAD = ['🥇', '🥈', '🥉'];
+  function tablo(kolonlar, satirlar, bosYazi){
+    if(!satirlar.length) return '<div class="empty">' + Canli.esc(bosYazi) + '</div>';
+    var h = '<table class="tablo"><tr>' + kolonlar.map(function(k){ return '<th>' + Canli.esc(k) + '</th>'; }).join('') + '</tr>';
+    satirlar.forEach(function(s, i){
+      h += '<tr class="' + (i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '') + '">' +
+        s.map(function(hucre, j){ return '<td>' + (j === 0 && i < 3 ? '<span class="madalya">' + MAD[i] + '</span>' : '') + hucre + '</td>'; }).join('') + '</tr>';
+    });
+    return h + '</table>';
+  }
+  function degerHucre(v){ return '<span class="para">' + Canli.esc(v == null ? '–' : v) + '</span>'; }
+
+  function liderlikCiz(d){
+    d = d || {};
+    document.getElementById('tZengin').innerHTML = tablo(['Oyuncu', 'Para'],
+      (d.zenginler || []).map(function(z){ return [Canli.esc(z.ad || '?'), degerHucre(z.deger)]; }), 'Zenginlik verisi yok.');
+    document.getElementById('tYetenek').innerHTML = tablo(['Oyuncu', 'Yetenek', 'Değer'],
+      (d.yetenekler || []).map(function(z){ return [Canli.esc(z.ad || '?'), Canli.esc(z.yetenek || z.ad2 || '–'), degerHucre(z.deger != null ? z.deger : z.seviye)]; }), 'Yetenek verisi yok.');
+    document.getElementById('tSure').innerHTML = tablo(['Oyuncu', 'Süre'],
+      (d.sureler || []).map(function(z){ return [Canli.esc(z.ad || '?'), Canli.esc(typeof z.deger === 'number' ? Canli.sureStr(z.deger) : (z.deger || '–'))]; }), 'Süre verisi yok.');
+  }
+  function ekonomiCiz(d){
+    d = d || {};
+    document.getElementById('tBakiye').innerHTML = tablo(['Oyuncu', 'Para'],
+      (d.bakiyeler || []).map(function(z){ return [Canli.esc(z.ad || '?'), degerHucre(z.para)]; }), 'Bakiye verisi yok.');
+    var f = d.fiyatlar || [];
+    if(!f.length){ document.getElementById('tFiyat').innerHTML = '<div class="empty">Fiyat verisi yok.</div>'; return; }
+    document.getElementById('tFiyat').innerHTML = tablo(['Eşya', 'Alış', 'Satış'],
+      f.map(function(z){ return [Canli.esc(z.esya || '?'), degerHucre(z.alis), degerHucre(z.satis)]; }), 'Fiyat verisi yok.');
+  }
+  function gorevListe(kutu, liste, bosYazi){
+    var el = document.getElementById(kutu);
+    if(!liste.length){ el.innerHTML = '<div class="empty">' + Canli.esc(bosYazi) + '</div>'; return; }
+    el.innerHTML = '';
+    liste.forEach(function(g){
+      var ad = g.ad || g.id || '?';
+      var yuzde = (g.yuzde != null) ? Math.max(0, Math.min(100, Number(g.yuzde))) : (g.tamam ? 100 : 0);
+      var d = document.createElement('div');
+      d.className = 'okart';
+      d.innerHTML = '<h3 style="font-size:17px">' + Canli.esc(ad) + '</h3>' +
+        (g.aciklama ? '<div class="obilgi"><span>' + Canli.esc(g.aciklama) + '</span></div>' : '') +
+        '<div class="yuzde"><i style="width:' + yuzde + '%"></i></div>' +
+        '<div class="obilgi"><span>% ' + yuzde + '</span></div>';
+      el.appendChild(d);
+    });
+  }
+  function gorevYukle(){
+    var ad = document.getElementById('gOyuncu').value;
+    if(!ad) return;
+    Canli.get('/api/gorevler?oyuncu=' + encodeURIComponent(ad), 8000).then(function(r){
+      if(r.ok && r.data){
+        var d = r.data;
+        Canli.snapSave('gorevler_' + ad, d);
+        gorevListe('gAktif', d.aktif || [], 'Aktif görev yok.');
+        gorevListe('gBiten', d.biten || [], 'Biten görev yok.');
+        gorevListe('gKilitli', d.kilitli || [], 'Kilitli görev yok.');
+      } else {
+        var s = Canli.snapLoad('gorevler_' + ad);
+        if(s){
+          gorevListe('gAktif', s.data.aktif || [], 'Aktif görev yok.');
+          gorevListe('gBiten', s.data.biten || [], 'Biten görev yok.');
+          gorevListe('gKilitli', s.data.kilitli || [], 'Kilitli görev yok.');
+        } else {
+          gorevListe('gAktif', [], 'Görev verisi alınamıyor.');
+          gorevListe('gBiten', [], 'Görev verisi alınamıyor.');
+          gorevListe('gKilitli', [], 'Görev verisi alınamıyor.');
+        }
+      }
+    });
+  }
+  function oyuncuSeciciDoldur(){
+    var sel = document.getElementById('gOyuncu');
+    function koy(liste){
+      sel.innerHTML = '';
+      if(!liste.length){ sel.innerHTML = '<option value="">Oyuncu yok</option>'; return; }
+      liste.forEach(function(o){
+        var op = document.createElement('option');
+        op.value = o.ad || o; op.textContent = o.ad || o;
+        sel.appendChild(op);
+      });
+    }
+    Canli.get('/api/oyuncular', 8000).then(function(r){
+      if(r.ok && r.data && r.data.oyuncular){ koy(r.data.oyuncular); }
+      else {
+        var s = Canli.snapLoad('oyuncular');
+        koy(s ? s.data : []);
+      }
+      if(sel.value) gorevYukle();
+    });
+  }
+  function yokla(){
+    if(!calisiyor) return;
+    var istekler = [
+      Canli.get('/api/liderlik', 8000),
+      Canli.get('/api/ekonomi', 8000)
+    ];
+    Promise.all(istekler).then(function(rs){
+      var canli = rs[0].ok || rs[1].ok;
+      if(rs[0].ok){ Canli.snapSave('liderlik', rs[0].data); liderlikCiz(rs[0].data); }
+      else { var s = Canli.snapLoad('liderlik'); if(s) liderlikCiz(s.data); }
+      if(rs[1].ok){ Canli.snapSave('ekonomi', rs[1].data); ekonomiCiz(rs[1].data); }
+      else { var s2 = Canli.snapLoad('ekonomi'); if(s2) ekonomiCiz(s2.data); }
+      if(canli){ disBand.style.display = 'none'; Canli.dot('on', 'Canlı'); }
+      else {
+        var eski = Canli.snapLoad('liderlik') || Canli.snapLoad('ekonomi');
+        document.getElementById('cevrimdisiYazi').textContent = eski ?
+          'Canlı veri alınamıyor, son bilinen kayıt (' + Canli.snapSaat(eski.zaman) + '). Canlı veri için uygulamadan Siteyi Aç.' :
+          'Sunucuya ulaşılamıyor. Canlı veri için uygulamadan Siteyi Aç.';
+        disBand.style.display = 'flex';
+        Canli.dot(eski ? 'orta' : 'off', eski ? 'Önbellek' : 'Çevrimdışı');
+        durdur();
+      }
+    });
+  }
+  function durdur(){ calisiyor = false; if(timer){ clearInterval(timer); timer = null; } }
+  function baslat(){
+    if(timer) return;
+    calisiyor = true; disBand.style.display = 'none';
+    yokla(); timer = setInterval(yokla, 15000);
+  }
+  document.getElementById('yenidenDene').onclick = baslat;
+  document.getElementById('gOyuncu').onchange = gorevYukle;
+  Array.prototype.forEach.call(document.querySelectorAll('.sekme'), function(b){
+    b.onclick = function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.sekme'), function(x){ x.classList.remove('aktif'); });
+      b.classList.add('aktif'); aktifSekme = b.getAttribute('data-s');
+      ['liderlik', 'ekonomi', 'gorev'].forEach(function(s){
+        document.getElementById('sekme-' + s).style.display = (s === aktifSekme) ? 'block' : 'none';
+      });
+    };
+  });
+  var s0 = Canli.snapLoad('liderlik'); if(s0) liderlikCiz(s0.data);
+  var e0 = Canli.snapLoad('ekonomi'); if(e0) ekonomiCiz(e0.data);
+  oyuncuSeciciDoldur();
+  baslat();
+})();
+</script>
+</body>
+</html>

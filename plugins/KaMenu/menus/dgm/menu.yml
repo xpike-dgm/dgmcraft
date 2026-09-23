@@ -1,0 +1,81 @@
+# DGM Craft ana menu (dialog) - /menu ile acilir
+Title: '&6&lDGM CRAFT'
+
+Settings:
+  can_escape: true
+  after_action: CLOSE
+
+Body:
+  hosgeldin:
+    type: 'message'
+    text:
+      - '&7Hoş geldin! Ne yapmak istersin?'
+      - ''
+  durum:
+    type: 'message'
+    text:
+      - '&6Para: &f%vault_eco_balance%'
+      - '&6Meslek: &f%auraskills_jobs_list%'
+      - '&6Görev: &f%beautyquests_started_ordered%'
+
+Bottom:
+  type: multi
+  columns: 2
+  buttons:
+    kitler:
+      text: '&a[ Kitler ]'
+      tooltip:
+        - '&7Başlangıç + günlük temalı kitler'
+        - '&eTıkla ve aç!'
+      actions:
+        - 'open: dgm/kits'
+    market:
+      text: '&6[ Market ]'
+      tooltip:
+        - '&7Blok, yemek, savaş, aletler'
+        - '&7Paran: &f%vault_eco_balance%'
+        - '&eTıkla ve aç!'
+      actions:
+        - 'close'
+        - 'command: shop'
+    nick:
+      text: '&d[ Nick Rengi ]'
+      tooltip:
+        - '&7İsmini renklendir'
+        - '&eTıkla ve aç!'
+      actions:
+        - 'open: dgm/nick'
+    gorevler:
+      text: '&e[ Görevler ]'
+      tooltip:
+        - '&7Günlük, haftalık, boss görevleri'
+        - '&eTıkla ve aç!'
+      actions:
+        - 'close'
+        - 'command: quests'
+    yetenekler:
+      text: '&b[ Yetenekler ]'
+      tooltip:
+        - '&711 yetenek + meslek seçimi'
+        - '&eTıkla ve aç!'
+      actions:
+        - 'close'
+        - 'command: skills'
+    bilgi:
+      text: '&7[ Bilgi ]'
+      tooltip:
+        - '&7Kurallar ve ekonomi özeti'
+        - '&eTıkla ve aç!'
+      actions:
+        - 'open: dgm/bilgi'
+    liderlik:
+      text: '&e[ Liderlik ]'
+      tooltip:
+        - '&7Zenginlik, avcı, süre, güç sıralamaları'
+        - '&eTıkla ve aç!'
+      actions:
+        - 'open: dgm/liderlik'
+  exit:
+    text: '&8[ Kapat ]'
+    actions:
+      - 'close'

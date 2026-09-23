@@ -1,0 +1,157 @@
+# DGM Craft Turkce komutlar v3 - kalan gunluk komutlar
+# Tum oyuncular kullanabilir.
+
+command /bakiye:
+	description: Bakiyeni gosterir.
+	trigger:
+		make player execute command "money"
+
+command /sapka:
+	description: Elindekini sapka yapar.
+	trigger:
+		make player execute command "hat"
+
+command /bosta:
+	description: AFK durumunu acar kapatir.
+	trigger:
+		make player execute command "afk"
+
+command /bilgi:
+	description: Sunucu bilgisini gosterir.
+	trigger:
+		make player execute command "info"
+
+command /karsilama:
+	description: Karsilama mesajini gosterir.
+	trigger:
+		make player execute command "motd"
+
+command /gecikme:
+	description: Gecikmeni gosterir.
+	trigger:
+		make player execute command "ping"
+
+command /zenginler:
+	description: En zenginleri listeler.
+	trigger:
+		make player execute command "balancetop"
+
+command /kitler:
+	description: Kit listesini gosterir.
+	trigger:
+		make player execute command "kits"
+
+command /yetenekskor:
+	description: Yetenek liderlerini gosterir.
+	trigger:
+		make player execute command "auraskills:top"
+
+command /rutbe:
+	description: Skill rutbeni gosterir.
+	trigger:
+		make player execute command "rank"
+
+command /ozellik:
+	description: Ozelliklerini gosterir.
+	trigger:
+		make player execute command "stats"
+
+command /nokta [<text>]:
+	description: Kayitli noktaya gidersin.
+	trigger:
+		make player execute command "warp %arg-1%"
+
+command /noktabilgi <text>:
+	description: Noktanin yerini gosterir.
+	trigger:
+		make player execute command "warpinfo %arg-1%"
+
+command /rastgele:
+	description: Rastgele araziye isinlanirsin.
+	trigger:
+		make player execute command "tpr"
+
+command /tumcagir:
+	description: Herkese isinlanma istegi gonderirsin.
+	trigger:
+		make player execute command "tpaall"
+
+command /otokabul:
+	description: Istekleri otomatik kabul edersin.
+	trigger:
+		make player execute command "tpauto"
+
+command /istekkapat:
+	description: Sana istek gelmesini engellersin.
+	trigger:
+		make player execute command "tptoggle"
+
+command /odemekapat:
+	description: Para almayi kapatirsin.
+	trigger:
+		make player execute command "paytoggle"
+
+command /mesajkapat:
+	description: Ozel mesajlari kapatirsin.
+	trigger:
+		make player execute command "msgtoggle"
+
+command /evad <text> <text>:
+	description: Ev adini degistirirsin.
+	trigger:
+		make player execute command "renamehome %arg-1% %arg-2%"
+
+command /cop:
+	description: Sanal cop kutusu acar.
+	trigger:
+		make player execute command "disposal"
+
+command /saatim <text>:
+	description: Sadece senin saatini degistirirsin.
+	trigger:
+		make player execute command "ptime %arg-1%"
+
+command /havam <text>:
+	description: Sadece senin havani degistirirsin.
+	trigger:
+		make player execute command "pweather %arg-1%"
+
+command /guvenlistesi:
+	description: Arsa yetkilerini listeler.
+	trigger:
+		make player execute command "trustlist"
+
+command /fiyat:
+	description: Elindekinin market fiyatini gosterir.
+	trigger:
+		make player execute command "value"
+
+command /donme:
+	description: Kendi etrafinda donersin.
+	trigger:
+		make player execute command "gspin"
+
+command /baliklama:
+	description: Baliklama atlarsin.
+	trigger:
+		make player execute command "gbellyflop"
+
+command /bacak:
+	description: Bacaklari havaya kaldirirsin.
+	trigger:
+		make player execute command "glegsup"
+
+command /postagonder <player> <text>:
+	description: Cevrimdisi mesaj birakirsin.
+	trigger:
+		make player execute command "mail send %arg-1% %arg-2%"
+
+command /cevap <text>:
+	description: Son mesaj atana cevap verirsin.
+	trigger:
+		make player execute command "r %arg-1%"
+
+command /yetkili <text>:
+	description: Yetkiliye yardim mesaji gonderirsin.
+	trigger:
+		make player execute command "helpop %arg-1%"

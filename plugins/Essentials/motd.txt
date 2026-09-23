@@ -1,0 +1,4 @@
+&6Hoş geldin, {PLAYER}&6!
+&6Komutlar için &c/yardim&6 yaz.
+&6Çevrimiçi oyuncuları görmek için &c/liste&6 yaz.
+&6Çevrimiçi:&c {ONLINE} &6- Dünya saati:&c {WORLDTIME12}

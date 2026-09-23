@@ -1,0 +1,32 @@
+# DGM Craft worth.yml — minimal /sell tablosu.
+# Listede OLMAYAN esya satilamaz. Blok halleri (demir blogu vb.) ve
+# ciftlik urunleri (bugday, seker kamisi, kabak) bilerek YOK: vanilla
+# toplamayi oldurmeyecek dusuk satis fiyatlari. Fiyat artirmak yasak
+# (enflasyon); dusurmek icin CHANGELOG gerekir.
+# Format: worth: altinda malzeme: fiyat (kucuk harf Ingilizce material).
+
+worth:
+  cobblestone: 0.25
+  stone: 0.3
+  cobbled_deepslate: 0.3
+  netherrack: 0.25
+  dirt: 0.1
+  sand: 0.2
+  gravel: 0.2
+  oak_log: 1.0
+  spruce_log: 1.0
+  birch_log: 1.0
+  jungle_log: 1.0
+  acacia_log: 1.0
+  dark_oak_log: 1.0
+  coal: 2.0
+  copper_ingot: 3.0
+  iron_ingot: 8.0
+  gold_ingot: 12.0
+  redstone: 4.0
+  lapis_lazuli: 5.0
+  diamond: 50.0
+  emerald: 60.0
+  netherite_scrap: 200.0
+  rotten_flesh: 0.1
+  string: 0.1

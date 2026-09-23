@@ -1,0 +1,3 @@
+# DGM Craft - Mojang EULA kabulü
+# https://aka.ms/MinecraftEULA adresini okuyarak kabul ettiniz.
+eula=true

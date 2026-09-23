@@ -1,0 +1,288 @@
+# DGM Craft Turkce komutlar v2 - Skript ile /xxxx -> /yyyy esleme
+# Kullanim: /turkcekomut [arguman] calisir, gercek komut arkada kosar.
+# Tum oyuncular kullanabilir (ozel izin gerekmez).
+
+command /ev [<text>]:
+	description: Evine isinlanirsin.
+	trigger:
+		make player execute command "home %arg-1%"
+
+command /evkur <text>:
+	description: Ev noktasi kaydedersin.
+	trigger:
+		make player execute command "sethome %arg-1%"
+
+command /evsil <text>:
+	description: Ev kaydini silersin.
+	trigger:
+		make player execute command "delhome %arg-1%"
+
+command /dogum:
+	description: Dogus noktasina gidersin.
+	trigger:
+		make player execute command "spawn"
+
+command /istek <player>:
+	description: Oyuncuya isinlanma istegi gonderirsin.
+	trigger:
+		make player execute command "tpa %arg-1%"
+
+command /kabul:
+	description: Gelen istegi kabul edersin.
+	trigger:
+		make player execute command "tpaccept"
+
+command /red:
+	description: Gelen istegi reddedersin.
+	trigger:
+		make player execute command "tpdeny"
+
+command /cagir <player>:
+	description: Oyuncuyu yanina cagirirsin.
+	trigger:
+		make player execute command "tpahere %arg-1%"
+
+command /don:
+	description: Onceki konumuna donersin.
+	trigger:
+		make player execute command "back"
+
+command /tepe:
+	description: En ust bloga cikarsin.
+	trigger:
+		make player execute command "essentials:top"
+
+command /para:
+	description: Bakiyeni gosterir.
+	trigger:
+		make player execute command "money"
+
+command /ode <player> <number>:
+	description: Oyuncuya para gonderirsin.
+	trigger:
+		make player execute command "pay %arg-1% %arg-2%"
+
+command /sat:
+	description: Elindekini satarsin.
+	trigger:
+		make player execute command "sell hand"
+
+command /deger:
+	description: Elindekinin fiyatini gosterir.
+	trigger:
+		make player execute command "worth"
+
+command /zenginler:
+	description: En zenginleri listeler.
+	trigger:
+		make player execute command "balancetop"
+
+command /kitler:
+	description: Kit listesini gosterir.
+	trigger:
+		make player execute command "kits"
+
+command /goster <text>:
+	description: Kit icerigini onizlersin.
+	trigger:
+		make player execute command "showkit %arg-1%"
+
+command /gorevler:
+	description: Gorev menusunu acar.
+	trigger:
+		make player execute command "quests"
+
+command /yetenek:
+	description: Yetenek menusunu acar.
+	trigger:
+		make player execute command "skills"
+
+command /yardim:
+	description: Yardimi gosterir.
+	trigger:
+		make player execute command "help"
+
+command /kurallar:
+	description: Kurallari gosterir.
+	trigger:
+		make player execute command "rules"
+
+command /tamir:
+	description: Elindekini tamir eder (50 para).
+	trigger:
+		make player execute command "repair"
+
+command /calisma:
+	description: Seyyar calisma masasi acar.
+	trigger:
+		make player execute command "workbench"
+
+command /pusula:
+	description: Yonu gosterir.
+	trigger:
+		make player execute command "compass"
+
+command /yakin:
+	description: Yakindakileri listeler.
+	trigger:
+		make player execute command "near"
+
+command /konum:
+	description: Konumunu gosterir.
+	trigger:
+		make player execute command "getpos"
+
+command /sure:
+	description: Oynama sureni gosterir.
+	trigger:
+		make player execute command "playtime"
+
+command /liste:
+	description: Cevrimicileri listeler.
+	trigger:
+		make player execute command "list"
+
+command /warplar:
+	description: Warp listesini gosterir.
+	trigger:
+		make player execute command "warp list"
+
+command /mesaj <player> <text>:
+	description: Ozel mesaj gonderirsin.
+	trigger:
+		make player execute command "msg %arg-1% %arg-2%"
+
+command /posta:
+	description: Postani okursun.
+	trigger:
+		make player execute command "mail read"
+
+command /yoksay <player>:
+	description: Oyuncuyu yoksayarsin.
+	trigger:
+		make player execute command "ignore %arg-1%"
+
+command /eylem <text>:
+	description: Eylem mesaji gonderirsin.
+	trigger:
+		make player execute command "me %arg-1%"
+
+command /gercekad <player>:
+	description: Takma adlinin gercek adini gosterir.
+	trigger:
+		make player execute command "realname %arg-1%"
+
+command /tarif <text>:
+	description: Esya tarifini gosterir.
+	trigger:
+		make player execute command "recipe %arg-1%"
+
+command /ol:
+	description: Oldurur (sikisinca kullan).
+	trigger:
+		make player execute command "suicide"
+
+command /guven <player>:
+	description: Arsana tam yetki verirsin.
+	trigger:
+		make player execute command "trust %arg-1%"
+
+command /guvenkaldir <player>:
+	description: Arsa yetkisini geri alirsin.
+	trigger:
+		make player execute command "untrust %arg-1%"
+
+command /sandikizni <player>:
+	description: Sandik kullanma izni verirsin.
+	trigger:
+		make player execute command "containertrust %arg-1%"
+
+command /girisizni <player>:
+	description: Giris izni verirsin.
+	trigger:
+		make player execute command "accesstrust %arg-1%"
+
+command /arsalarim:
+	description: Arsalarini listeler.
+	trigger:
+		make player execute command "claimlist"
+
+command /arsamsil:
+	description: Uzerinde durdugun arsayi silersin.
+	trigger:
+		make player execute command "abandonclaim"
+
+command /blokal <number>:
+	description: Claim blogu satin alirsin.
+	trigger:
+		make player execute command "buyclaimblocks %arg-1%"
+
+command /bloksat <number>:
+	description: Claim blogu satarsin.
+	trigger:
+		make player execute command "sellclaimblocks %arg-1%"
+
+command /pazar:
+	description: Marketi acar.
+	trigger:
+		make player execute command "shop"
+
+command /otur:
+	description: Oturursun.
+	trigger:
+		make player execute command "gsit"
+
+command /uzan:
+	description: Uzanirsin.
+	trigger:
+		make player execute command "glay"
+
+command /surun:
+	description: Surunursun.
+	trigger:
+		make player execute command "gcrawl"
+
+command /mezar:
+	description: Mezarina isinlanirsin.
+	trigger:
+		make player execute command "grave"
+
+command /isaret:
+	description: Isaret noktalarini acar.
+	trigger:
+		make player execute command "waypoint"
+
+command /anit:
+	description: Anit noktalarini acar.
+	trigger:
+		make player execute command "mw"
+
+command /evcil:
+	description: Evcil hayvan menusunu acar.
+	trigger:
+		make player execute command "pet"
+
+command /hediye <player>:
+	description: Petini hediye edersin.
+	trigger:
+		make player execute command "petgift %arg-1%"
+
+command /kozmetik:
+	description: Kozmetik menusunu acar.
+	trigger:
+		make player execute command "ultracosmetics"
+
+command /gorunum <text>:
+	description: Gorunumunu degistirirsin.
+	trigger:
+		make player execute command "skin %arg-1%"
+
+command /istatistik:
+	description: Istatistigini gosterir.
+	trigger:
+		make player execute command "plan ingame"
+
+command /skortablo:
+	description: Skor tablosunu acar kapatir.
+	trigger:
+		make player execute command "sb"

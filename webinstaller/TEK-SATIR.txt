@@ -1,0 +1,7 @@
+Arkadaşına gönderilecek tek satırlık kurulum komutu (PowerShell'e yapıştır, Enter):
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/xpike-dgm/dgmcraft/main/webinstaller/Kur.ps1 | iex"
+
+Notlar:
+- Repo adı değişirse iki yerdeki xpike-dgm/dgmcraft yazısını güncelle (bu dosya + Kur.ps1 içindeki $Repo).
+- Repo public olduğu sürece giriş/anahtar gerekmez.

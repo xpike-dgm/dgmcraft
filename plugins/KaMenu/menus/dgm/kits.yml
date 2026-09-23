@@ -1,0 +1,143 @@
+# DGM Craft kit menus - /menu > Kitler (15 kit)
+Title: '&a&lKitler'
+
+Settings:
+  can_escape: true
+  after_action: CLOSE
+
+Body:
+  aciklama:
+    type: 'message'
+    text:
+      - '&7Başlangıç tek seferlik ücretsiz.'
+      - '&7Günlük kitler 100-250, haftalıklar 150-500.'
+      - '&6Paran: &f%vault_eco_balance%'
+
+Bottom:
+  type: multi
+  columns: 2
+  buttons:
+    baslangic:
+      text: '&f[ Başlangıç ]'
+      tooltip:
+        - '&7Taş set + ekmek + meşale'
+        - '&aÜcretsiz, tek seferlik'
+      actions:
+        - 'close'
+        - 'command: kit baslangic'
+    madenci:
+      text: '&8[ Madenci ]'
+      tooltip:
+        - '&7Demir kazma seti'
+        - '&6200 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit madenci'
+    savasci:
+      text: '&c[ Savaşçı ]'
+      tooltip:
+        - '&7Demir kılıç + yay seti'
+        - '&6250 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit savasci'
+    kasif:
+      text: '&e[ Kâşif ]'
+      tooltip:
+        - '&7Pusula + tekne seti'
+        - '&6150 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit kasif'
+    ciftci:
+      text: '&a[ Çiftçi ]'
+      tooltip:
+        - '&7Çapa + tohum + kemik tozu'
+        - '&6150 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit ciftci'
+    balikci:
+      text: '&b[ Balıkçı ]'
+      tooltip:
+        - '&7Olta + tekne + yem desteği'
+        - '&6100 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit balikci'
+    insaatci:
+      text: '&6[ İnşaatçı ]'
+      tooltip:
+        - '&7İskele + merdiven + cam'
+        - '&6150 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit insaatci'
+    okcu:
+      text: '&f[ Okçu ]'
+      tooltip:
+        - '&7Yay + 64 ok + hedef + deri set'
+        - '&6200 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit okcu'
+    nether:
+      text: '&4[ Nether ]'
+      tooltip:
+        - '&7Altın bot + obsidyen hazırlık'
+        - '&6400 para / 3 günde bir'
+      actions:
+        - 'close'
+        - 'command: kit nether'
+    kiziltasci:
+      text: '&c[ Kızıltaşçı ]'
+      tooltip:
+        - '&7Reston + piston + devreler'
+        - '&6200 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit kiziltasci'
+    dalgici:
+      text: '&3[ Dalgıç ]'
+      tooltip:
+        - '&7Tekne + kapı + kova desteği'
+        - '&6200 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit dalgici'
+    gececi:
+      text: '&8[ Gececi ]'
+      tooltip:
+        - '&7Yatak + meşale + kalkan'
+        - '&6100 para / günlük'
+      actions:
+        - 'close'
+        - 'command: kit gececi'
+    tamirci:
+      text: '&7[ Tamirci ]'
+      tooltip:
+        - '&7Örs + kitaplık + isim etiketi'
+        - '&6300 para / haftalık'
+      actions:
+        - 'close'
+        - 'command: kit tamirci'
+    piknik:
+      text: '&d[ Piknik ]'
+      tooltip:
+        - '&7Kamp ateşi + yemek eğlence seti'
+        - '&6150 para / haftalık'
+      actions:
+        - 'close'
+        - 'command: kit piknik'
+    acil:
+      text: '&c&l[ Acil ]'
+      tooltip:
+        - '&7Altın elma + ender incisi kurtarma'
+        - '&6500 para / haftalık'
+      actions:
+        - 'close'
+        - 'command: kit acil'
+  exit:
+    text: '&8[ Geri ]'
+    actions:
+      - 'open: dgm/menu'

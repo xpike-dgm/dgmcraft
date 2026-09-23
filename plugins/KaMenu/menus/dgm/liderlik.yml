@@ -1,0 +1,53 @@
+# DGM Craft liderlik dialogu - /liderlik veya /menu > Liderlik
+Title: '&6&lLiderlik'
+
+Settings:
+  can_escape: true
+  after_action: CLOSE
+
+Body:
+  zenginler:
+    type: 'message'
+    text:
+      - '&6&lEN ZENGİNLER'
+      - '&e1. &f%ajlb_lb_vault_eco_balance_1_alltime_name% &7- &a%ajlb_lb_vault_eco_balance_1_alltime_value%'
+      - '&e2. &f%ajlb_lb_vault_eco_balance_2_alltime_name% &7- &a%ajlb_lb_vault_eco_balance_2_alltime_value%'
+      - '&e3. &f%ajlb_lb_vault_eco_balance_3_alltime_name% &7- &a%ajlb_lb_vault_eco_balance_3_alltime_value%'
+  avcilar:
+    type: 'message'
+    text:
+      - '&c&lMOB AVCILARI'
+      - '&e1. &f%ajlb_lb_statistic_mob_kills_1_alltime_name% &7- &c%ajlb_lb_statistic_mob_kills_1_alltime_value%'
+      - '&e2. &f%ajlb_lb_statistic_mob_kills_2_alltime_name% &7- &c%ajlb_lb_statistic_mob_kills_2_alltime_value%'
+      - '&e3. &f%ajlb_lb_statistic_mob_kills_3_alltime_name% &7- &c%ajlb_lb_statistic_mob_kills_3_alltime_value%'
+  sure:
+    type: 'message'
+    text:
+      - '&b&lEN ÇOK OYNAYAN'
+      - '&e1. &f%ajlb_lb_statistic_time_played_1_alltime_name% &7- &b%ajlb_lb_statistic_time_played_1_alltime_value%'
+      - '&e2. &f%ajlb_lb_statistic_time_played_2_alltime_name% &7- &b%ajlb_lb_statistic_time_played_2_alltime_value%'
+      - '&e3. &f%ajlb_lb_statistic_time_played_3_alltime_name% &7- &b%ajlb_lb_statistic_time_played_3_alltime_value%'
+  gucluler:
+    type: 'message'
+    text:
+      - '&d&lEN GÜÇLÜ'
+      - '&e1. &f%ajlb_lb_auraskills_power_1_alltime_name% &7- &d%ajlb_lb_auraskills_power_1_alltime_value%'
+      - '&e2. &f%ajlb_lb_auraskills_power_2_alltime_name% &7- &d%ajlb_lb_auraskills_power_2_alltime_value%'
+      - '&e3. &f%ajlb_lb_auraskills_power_3_alltime_name% &7- &d%ajlb_lb_auraskills_power_3_alltime_value%'
+  olenler:
+    type: 'message'
+    text:
+      - '&8&lÖLÜM SEVDALILARI'
+      - '&e1. &f%ajlb_lb_statistic_deaths_1_alltime_name% &7- &c%ajlb_lb_statistic_deaths_1_alltime_value% ölüm'
+      - '&e2. &f%ajlb_lb_statistic_deaths_2_alltime_name% &7- &c%ajlb_lb_statistic_deaths_2_alltime_value% ölüm'
+      - '&e3. &f%ajlb_lb_statistic_deaths_3_alltime_name% &7- &c%ajlb_lb_statistic_deaths_3_alltime_value% ölüm'
+  sirasen:
+    type: 'message'
+    text: '&7Sıran: &e%ajlb_position_vault_eco_balance_alltime%. &7Paran: &a%ajlb_value_vault_eco_balance_alltime%'
+
+Bottom:
+  type: 'notice'
+  confirm:
+    text: '&a[ Kapat ]'
+    actions:
+      - 'close'

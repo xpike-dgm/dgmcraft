@@ -1,0 +1,38 @@
+# DGM Craft bilgi menus - /menu > Bilgi
+Title: '&7&lBilgi'
+
+Settings:
+  can_escape: true
+  after_action: CLOSE
+
+Body:
+  kurallar:
+    type: 'message'
+    text:
+      - '&6&lKurallar:'
+      - '&7- Grief, hırsızlık, izinsiz PvP yok'
+      - '&7- Hile, X-ray, makro yok'
+      - '&7- Ölümde eşya iadesi yok'
+      - ''
+  ekonomi:
+    type: 'message'
+    text:
+      - '&6&lEkonomi:'
+      - '&7- Para: &f%vault_eco_balance%'
+      - '&7- /sat ile maden sat, görev yap, boss kes'
+      - '&7- Marketten alış pahalı (kolaylık vergisi)'
+      - ''
+  komutlar:
+    type: 'message'
+    text:
+      - '&6&lKomutlar:'
+      - '&7/dogum /ev /evkur /istek /don'
+      - '&7/para /ode /sat /zenginler'
+      - '&7/yetenek /gorevler /kitler /skortablo'
+
+Bottom:
+  type: 'notice'
+  confirm:
+    text: '&a[ Anladim ]'
+    actions:
+      - 'open: dgm/menu'

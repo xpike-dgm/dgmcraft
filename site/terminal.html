@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terminal • DgmCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo">DGM<span>CRAFT</span></div>
+<div class="nav-links"><a href="index.html">Komutlar</a><a href="log.html">Log</a><b>Terminal</b><a href="durum.html">Durum</a></div>
+<div class="nav-right">
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+<a class="btn" href="index.html">Ana sayfa</a>
+</div>
+</div></nav>
+<div class="wrap">
+<a class="back" href="log.html">← log sayfasına dön</a>
+<div class="hero" style="padding-top:18px">
+<span class="kicker"><i></i> gelişmiş komut ekranı</span>
+<h1>Terminal</h1>
+<p>Log sayfasındaki kutunun gelişmişi: geçmiş, TAB ile tamamlama, renkli çıktı. Tehlikeli komutlarda onay istenir.</p>
+</div>
+<div id="cevrimdisiBand" class="bant bilgi" style="display:none"><span>Canlı veri için uygulamadan Siteyi Aç.</span></div>
+<div class="term" id="term"></div>
+<div class="oneri" id="oneri" style="display:none"></div>
+<div class="term-girdi"><span>&gt;</span><input id="girdi" autocomplete="off" spellcheck="false" placeholder="komut yaz, TAB ile tamamla"></div>
+<div id="onayKutusu" class="onaykutusu" style="display:none">
+<span id="onayYazi">Bu komut tehlikeli görünüyor, emin misin?</span>
+<div class="row"><button id="onayEvet" class="btn-tehlike">Evet, çalıştır</button><button id="onayVazgec" class="btn-iptal">Vazgeç</button></div>
+</div>
+</div>
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • <span style="color:var(--amber)">dogrulanmadi:</span> prompt dosyasındaki 11. madde "ren…" ile kesik olduğu için bu sayfa belirtilen kısımları (geçmiş, TAB tamamlama) içerir; kesik kalan kısım uygulanmadı.</p></div></footer>
+<script src="assets/data.js"></script>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  Canli.initAdmin();
+  var term = document.getElementById('term');
+  var girdi = document.getElementById('girdi');
+  var oneri = document.getElementById('oneri');
+  var bekleyen = null, histIdx = -1;
+
+  function satir(cls, metin){
+    var d = document.createElement('div');
+    d.className = 'satir ' + cls;
+    d.textContent = metin;
+    term.appendChild(d);
+    term.scrollTop = term.scrollHeight;
+  }
+  function gecmisAl(){ try{ return JSON.parse(localStorage.getItem('dgm_term_gecmis') || '[]'); }catch(e){ return []; } }
+  function gecmisEkle(k){
+    var g = gecmisAl().filter(function(x){ return x !== k; });
+    g.push(k); if(g.length > 50) g = g.slice(-50);
+    try{ localStorage.setItem('dgm_term_gecmis', JSON.stringify(g)); }catch(e){}
+  }
+  function adaylar(prefix){
+    var p = (prefix || '').toLocaleLowerCase('tr');
+    var out = [], gorulen = {};
+    function ekle(v){ if(v && !gorulen[v]){ gorulen[v] = 1; out.push(v); } }
+    try{
+      (window.DGM_DATA || []).forEach(function(c){
+        (c.cmds || []).forEach(function(k){
+          var ad = (k.k || '').replace(/^\//, '');
+          if(ad.toLocaleLowerCase('tr').indexOf(p) === 0) ekle(ad);
+        });
+      });
+    }catch(e){}
+    gecmisAl().forEach(function(h){
+      var ad = String(h).replace(/^\//, '');
+      if(ad.toLocaleLowerCase('tr').indexOf(p) === 0) ekle(ad);
+    });
+    return out.slice(0, 8);
+  }
+  function gonder(komut, onayKodu){
+    komut = (komut || '').trim().replace(/^\//, '');
+    if(!komut) return;
+    satir('girdi', '> ' + komut);
+    Canli.post('/api/cmd', onayKodu ? { komut: komut, onayKodu: onayKodu } : { komut: komut }, 8000).then(function(r){
+      if(!r.ok){ satir('thata', 'Gönderilemedi: ' + (r.error || 'bağlantı yok')); document.getElementById('cevrimdisiBand').style.display = 'flex'; return; }
+      var d = r.data || {};
+      if(d.onayGerekli){
+        bekleyen = { komut: komut, kod: d.onayKodu };
+        document.getElementById('onayYazi').textContent = '“' + komut + '” tehlikeli görünüyor, emin misin?';
+        document.getElementById('onayKutusu').style.display = 'block';
+        satir('cikti', '(onay bekleniyor…)');
+      } else {
+        satir(/hata|error|exception/i.test(String(d.cevap || '')) ? 'thata' : 'cikti', (d.cevap == null || d.cevap === '') ? '(cevap boş)' : String(d.cevap));
+      }
+    });
+  }
+  function calistir(){
+    var k = girdi.value; if(!k.trim()) return;
+    document.getElementById('onayKutusu').style.display = 'none'; bekleyen = null;
+    gecmisEkle(k.trim()); histIdx = -1;
+    gonder(k); girdi.value = ''; oneri.style.display = 'none';
+  }
+  document.getElementById('onayEvet').onclick = function(){
+    if(!bekleyen) return;
+    gonder(bekleyen.komut, bekleyen.kod);
+    bekleyen = null; document.getElementById('onayKutusu').style.display = 'none'; girdi.focus();
+  };
+  document.getElementById('onayVazgec').onclick = function(){ bekleyen = null; document.getElementById('onayKutusu').style.display = 'none'; satir('cikti', '(vazgeçildi)'); girdi.focus(); };
+  girdi.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ calistir(); return; }
+    if(e.key === 'Tab'){
+      e.preventDefault();
+      var a = adaylar(girdi.value.trim());
+      if(a.length === 1){ girdi.value = a[0] + ' '; oneri.style.display = 'none'; }
+      else if(a.length > 1){
+        oneri.textContent = a.join('   ');
+        oneri.style.display = 'block';
+      }
+      return;
+    }
+    if(e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    var g = gecmisAl(); if(!g.length) return;
+    e.preventDefault();
+    if(e.key === 'ArrowUp') histIdx = Math.min(histIdx + 1, g.length - 1);
+    else histIdx = Math.max(histIdx - 1, -1);
+    girdi.value = histIdx === -1 ? '' : g[g.length - 1 - histIdx];
+  });
+  girdi.addEventListener('input', function(){
+    var a = adaylar(girdi.value.trim());
+    if(a.length > 1){ oneri.textContent = a.join('   '); oneri.style.display = 'block'; }
+    else oneri.style.display = 'none';
+  });
+  satir('tok', 'DgmCraft terminal. Komut yaz, TAB ile tamamla. Tehlikelilerde onay istenir.');
+  Canli.get('/api/durum', 8000).then(function(r){
+    if(r.ok){ Canli.dot('on', 'Canlı'); document.getElementById('cevrimdisiBand').style.display = 'none'; }
+    else { Canli.dot('off', 'Çevrimdışı'); document.getElementById('cevrimdisiBand').style.display = 'flex'; }
+  });
+  girdi.focus();
+})();
+</script>
+</body>
+</html>

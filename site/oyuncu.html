@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oyuncu • DgmCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo">DGM<span>CRAFT</span></div>
+<div class="nav-links"><a href="index.html">Komutlar</a><a href="log.html">Log</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a></div>
+<div class="nav-right">
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+<a class="btn" href="index.html">Ana sayfa</a>
+</div>
+</div></nav>
+<div class="wrap">
+<a class="back" href="durum.html">← duruma dön</a>
+<div class="hero" style="padding-top:18px">
+<span class="kicker"><i></i> oyuncu kartı</span>
+<h1 id="baslik">Oyuncu</h1>
+<p id="aciklama">Yetenekler, para ve oyun süresi bir arada.</p>
+</div>
+<div id="cevrimdisiBand" class="bant bilgi" style="display:none"><span>Canlı veri için uygulamadan Siteyi Aç.</span></div>
+<div id="secimKutu" style="display:none">
+<div class="sec-head"><span class="bar"></span><h2>Oyuncu Seç</h2></div>
+<p class="sub">Geçersiz ad. Listeden seç veya ad yaz.</p>
+<div class="cmdsatir"><input id="adGirdi" placeholder="Oyuncu adı..."><button id="adGit" class="btn">Git</button></div>
+<div id="adListe"></div>
+</div>
+<div id="profil" style="display:none">
+<div id="rozetKutu"></div>
+<div class="sec-head"><span class="bar"></span><h2>En Yüksek 3 Yetenek</h2></div>
+<div id="yetenekKutu"></div>
+<div class="sec-head"><span class="bar"></span><h2>Özet</h2></div>
+<div class="ustbar" id="ozetKutu"></div>
+</div>
+</div>
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • Canlı veri için uygulamanın çalışıyor olması gerekir.</p></div></footer>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  Canli.initAdmin();
+  function param(ad){
+    try{ return new URLSearchParams(location.search).get(ad); }catch(e){ return null; }
+  }
+  var ad = (param('ad') || '').trim();
+
+  function rozet(metin){ return '<span class="rozet on" style="margin-right:8px">' + Canli.esc(metin) + '</span>'; }
+  function profilCiz(o, liderlik, yetenekler){
+    document.getElementById('secimKutu').style.display = 'none';
+    document.getElementById('profil').style.display = 'block';
+    document.getElementById('baslik').textContent = o.ad || ad;
+    // rozetler: SADECE veriden turetilir, veri yoksa bolum gizlenir
+    var rozetler = [];
+    try{
+      var z = (liderlik && liderlik.zenginler) || [];
+      if(z.length && (z[0].ad === (o.ad || ad))) rozetler.push('En Zengin');
+      var s = (liderlik && liderlik.sureler) || [];
+      if(s.length && (s[0].ad === (o.ad || ad))) rozetler.push('En Aktif');
+    }catch(e){}
+    var rk = document.getElementById('rozetKutu');
+    rk.innerHTML = rozetler.length ? ('<div class="sec-head"><span class="bar"></span><h2>Rozetler</h2></div><p>' + rozetler.map(rozet).join('') + '</p>') : '';
+    var yk = document.getElementById('yetenekKutu');
+    var yl = (yetenekler && yetenekler.yetenekler) || [];
+    yl = yl.slice().sort(function(a, b){ return (b.seviye || 0) - (a.seviye || 0); }).slice(0, 3);
+    if(!yl.length){ yk.innerHTML = '<div class="empty">Yetenek verisi yok.</div>'; }
+    else {
+      yk.innerHTML = '';
+      yl.forEach(function(y){
+        var d = document.createElement('div');
+        d.className = 'okart';
+        d.innerHTML = '<h3 style="font-size:17px">' + Canli.esc(y.ad || y.id || '?') + '</h3>' +
+          '<div class="obilgi"><span>Seviye: <b>' + Canli.esc(y.seviye == null ? '–' : y.seviye) + '</b></span>' +
+          '<span>XP: <b>' + Canli.esc(y.xp == null ? '–' : y.xp) + '</b></span></div>';
+        yk.appendChild(d);
+      });
+    }
+    var oz = document.getElementById('ozetKutu');
+    oz.innerHTML =
+      '<div class="olcu"><small>Para</small><b class="para" style="font-size:19px">' + Canli.esc(o.para == null ? '–' : o.para) + '</b></div>' +
+      '<div class="olcu"><small>Oyun Süresi</small><b style="font-size:19px">' + Canli.esc(o.oyunSuresiDakika == null ? '–' : Canli.sureStr(o.oyunSuresiDakika)) + '</b></div>' +
+      '<div class="olcu"><small>Ping</small><b style="font-size:19px">' + Canli.esc(o.ping == null ? '–' : o.ping + ' ms') + '</b></div>' +
+      '<div class="olcu"><small>Konum</small><b style="font-size:16px">' + Canli.esc(o.x != null ? (o.x + ' / ' + o.y + ' / ' + o.z) : '–') + '</b></div>';
+  }
+  function secimEkrani(liste){
+    document.getElementById('profil').style.display = 'none';
+    document.getElementById('secimKutu').style.display = 'block';
+    document.getElementById('baslik').textContent = 'Oyuncu Seç';
+    var kutu = document.getElementById('adListe');
+    kutu.innerHTML = '';
+    (liste || []).forEach(function(o){
+      var nm = o.ad || o;
+      var a = document.createElement('a');
+      a.className = 'direct-item';
+      a.href = 'oyuncu.html?ad=' + encodeURIComponent(nm);
+      a.innerHTML = '<div><code>' + Canli.esc(nm) + '</code></div><span class="go">Git →</span>';
+      kutu.appendChild(a);
+    });
+    if(!liste || !liste.length) kutu.innerHTML = '<div class="empty">Oyuncu listesi alınamıyor, yukarıya ad yazıp Git de.</div>';
+    document.getElementById('adGit').onclick = function(){
+      var v = document.getElementById('adGirdi').value.trim();
+      if(v) location.href = 'oyuncu.html?ad=' + encodeURIComponent(v);
+    };
+  }
+  function yukle(){
+    if(!ad){
+      Canli.get('/api/oyuncular', 8000).then(function(r){
+        secimEkrani(r.ok && r.data ? r.data.oyuncular : []);
+        Canli.dot(r.ok ? 'on' : 'off', r.ok ? 'Canlı' : 'Çevrimdışı');
+      });
+      return;
+    }
+    var istekler = [
+      Canli.get('/api/oyuncular', 8000),
+      Canli.get('/api/liderlik', 8000),
+      Canli.get('/api/yetenekler?oyuncu=' + encodeURIComponent(ad), 8000)
+    ];
+    Promise.all(istekler).then(function(rs){
+      var o = null;
+      if(rs[0].ok && rs[0].data){
+        (rs[0].data.oyuncular || []).forEach(function(x){ if((x.ad || '').toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr')) o = x; });
+      }
+      if(!o){
+        var s = Canli.snapLoad('oyuncular');
+        if(s) s.data.forEach(function(x){ if((x.ad || '').toLocaleLowerCase('tr') === ad.toLocaleLowerCase('tr')) o = x; });
+      }
+      if(!o){ secimEkrani(rs[0].ok && rs[0].data ? rs[0].data.oyuncular : []); Canli.dot('orta', 'Oyuncu bulunamadı'); return; }
+      if(rs[1].ok) Canli.snapSave('liderlik', rs[1].data);
+      Canli.dot(rs[0].ok ? 'on' : 'orta', rs[0].ok ? 'Canlı' : 'Önbellek');
+      if(!rs[0].ok) document.getElementById('cevrimdisiBand').style.display = 'flex';
+      profilCiz(o, rs[1].ok ? rs[1].data : (Canli.snapLoad('liderlik') || {}).data, rs[2].ok ? rs[2].data : null);
+    });
+  }
+  yukle();
+})();
+</script>
+</body>
+</html>

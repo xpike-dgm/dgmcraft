@@ -1,0 +1,1 @@
+﻿Foto eklemek icin resmi bu klasore kopyala (png/jpg/gif/webp). Yükleme formu yok, site listeler.

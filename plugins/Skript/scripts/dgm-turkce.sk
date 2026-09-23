@@ -1,0 +1,41 @@
+# DGM Craft Turkce komutlar + mini eglence (Skript)
+# Tum oyuncular kullanabilir (ozel izin gerekmez).
+
+command /odul <player> <number>:
+	description: Bir oyuncunun başına ödül koyar (paran gider).
+	trigger:
+		if arg-2 < 50:
+			send "&cEn az 50 para ödül koyulur." to player
+			stop
+		if player's balance < arg-2:
+			send "&cParan yetmiyor. Paran: %player's balance%" to player
+			stop
+		if arg-1 is player:
+			send "&cKendine ödül koyamazsın." to player
+			stop
+		remove arg-2 from player's balance
+		broadcast "&6%player% &e%arg-1% adlı oyuncunun başına &6%arg-2% &epara ödül koydu!"
+
+command /cevrimici:
+	description: Kimlerin çevrimiçi olduğunu gösterir.
+	trigger:
+		send "&6Çevrimiçi (%size of all players%): &f%all players%" to player
+
+command /zar [<number>]:
+	description: Zar atar (varsayılan 100 yüzlü).
+	trigger:
+		set {_limit} to arg-1 if arg-1 is set, else 100
+		if {_limit} is less than 2 or {_limit} is greater than 1000:
+			send "&c1 ile 1000 arası bir sayı yaz." to player
+			stop
+		set {_n} to random integer between 1 and {_limit}
+		broadcast "&e%player% &7zar attı: &6%{_n}% &7(1-%{_limit}%)"
+
+command /yazitura:
+	description: Yazı tura atar.
+	trigger:
+		set {_n} to random integer between 1 and 2
+		if {_n} is 1:
+			broadcast "&e%player% &7yazı tura attı: &6YAZI"
+		else:
+			broadcast "&e%player% &7yazı tura attı: &6TURA"

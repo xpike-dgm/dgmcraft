@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canlı Durum • DgmCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo">DGM<span>CRAFT</span></div>
+<div class="nav-links"><a href="index.html">Komutlar</a><a href="log.html">Log</a><b>Durum</b><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a></div>
+<div class="nav-right">
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+<a class="btn" href="index.html">Ana sayfa</a>
+</div>
+</div></nav>
+<div class="wrap">
+<a class="back" href="index.html">← ana sayfaya dön</a>
+<div class="hero" style="padding-top:18px">
+<span class="kicker"><i></i> sunucu nabzı</span>
+<h1>Canlı Durum</h1>
+<p>TPS, RAM ve oyunda kimler var. Oyuncu bildirimleri için izin vermen yeterli.</p>
+</div>
+<div id="cevrimdisiBand" class="bant bilgi" style="display:none"><span id="cevrimdisiYazi">Canlı veri için uygulamadan Siteyi Aç.</span><button id="yenidenDene" class="copy btn2">Yeniden dene</button></div>
+<div class="ustbar">
+<div class="olcu"><small>TPS</small><b id="mTps">–</b></div>
+<div class="olcu"><small>MSPT</small><b id="mMspt">–</b></div>
+<div class="olcu"><small>RAM</small><b id="mRam" style="font-size:19px">–</b><div class="rambar"><i id="mRamBar" style="width:0%"></i></div></div>
+<div class="olcu"><small>Çevrimiçi</small><b id="mOn">–</b></div>
+</div>
+<div class="sec-head"><span class="bar"></span><h2>Oyuncular</h2></div>
+<p class="sub" id="oSayi">yükleniyor…</p>
+<div id="oListe"></div>
+</div>
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • Canlı veri için uygulamanın çalışıyor olması gerekir.</p></div></footer>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  Canli.initAdmin();
+  Canli.notifIste();
+  var oncekiler = null, timer = null, calisiyor = true;
+  var disBand = document.getElementById('cevrimdisiBand');
+
+  function pingRenk(p){
+    p = Number(p);
+    if(isNaN(p)) return '';
+    if(p < 80) return 'ping-yesil';
+    if(p < 200) return 'ping-sari';
+    return 'ping-kirmizi';
+  }
+  function tpsSinif(t){
+    t = Number(t);
+    if(isNaN(t)) return '';
+    if(t >= 20) return 'yesil';
+    if(t >= 18) return 'sari';
+    return 'kirmizi';
+  }
+  function durumCiz(d){
+    var tps = document.getElementById('mTps');
+    tps.textContent = (d.tps == null ? '–' : Number(d.tps).toFixed(1));
+    tps.className = tpsSinif(d.tps);
+    var ms = document.getElementById('mMspt');
+    ms.textContent = (d.mspt == null ? '–' : Number(d.mspt).toFixed(1));
+    ms.className = '';
+    var oran = (d.ramKullanimMB != null && d.ramMaxMB) ? Math.min(100, Math.round(d.ramKullanimMB / d.ramMaxMB * 100)) : 0;
+    document.getElementById('mRam').textContent = (d.ramKullanimMB == null ? '–' : d.ramKullanimMB + ' / ' + d.ramMaxMB + ' MB');
+    document.getElementById('mRamBar').style.width = oran + '%';
+    var cev = d.cevrimici || [];
+    document.getElementById('mOn').textContent = cev.length + (d.maxOyuncu ? ' / ' + d.maxOyuncu : '');
+  }
+  function oyuncuCiz(liste){
+    var kutu = document.getElementById('oListe');
+    document.getElementById('oSayi').textContent = liste.length ? liste.length + ' oyuncu oyunda' : '';
+    if(!liste.length){ kutu.innerHTML = '<div class="empty">Şu an kimse oyunda değil.</div>'; return; }
+    kutu.innerHTML = '';
+    liste.forEach(function(o){
+      var ad = o.ad || '?';
+      var d = document.createElement('div');
+      d.className = 'okart';
+      var koord = (o.x != null) ? (o.x + ' / ' + o.y + ' / ' + o.z) : '–';
+      d.innerHTML = '<h3><a href="oyuncu.html?ad=' + encodeURIComponent(ad) + '">' + Canli.esc(ad) + '</a> ' +
+        (o.cevrimici ? '<span class="rozet on">Çevrimiçi</span>' : '<span class="rozet off">Çevrimdışı</span>') + '</h3>' +
+        '<div class="obilgi"><span>Dünya: <b>' + Canli.esc(o.dunya || '–') + '</b></span>' +
+        '<span>Konum: <b>' + Canli.esc(koord) + '</b> <button class="copy" data-k="' + Canli.esc(koord) + '">Kopyala</button></span>' +
+        '<span>Para: <b class="para">' + (o.para == null ? '–' : Canli.esc(o.para)) + '</b></span>' +
+        '<span>Ping: <b class="' + pingRenk(o.ping) + '">' + (o.ping == null ? '–' : Canli.esc(o.ping) + ' ms') + '</b></span>' +
+        '<span>Oyun süresi: <b>' + (o.oyunSuresiDakika == null ? '–' : Canli.sureStr(o.oyunSuresiDakika)) + '</b></span></div>';
+      kutu.appendChild(d);
+    });
+    Array.prototype.forEach.call(kutu.querySelectorAll('.copy'), function(b){
+      b.onclick = function(){ var v = b.getAttribute('data-k'); try{ navigator.clipboard.writeText(v); }catch(e){} b.textContent = 'Kopyalandı!'; setTimeout(function(){ b.textContent = 'Kopyala'; }, 1200); };
+    });
+  }
+  function bildirimKontrol(liste){
+    var simdi = {};
+    liste.forEach(function(o){ if(o.cevrimici) simdi[o.ad] = 1; });
+    if(oncekiler){
+      Object.keys(simdi).forEach(function(ad){ if(!oncekiler[ad]) Canli.notif(ad + ' oyuna girdi', 'DgmCraft'); });
+      Object.keys(oncekiler).forEach(function(ad){ if(!simdi[ad]) Canli.notif(ad + ' oyundan çıktı', 'DgmCraft'); });
+    }
+    oncekiler = simdi;
+  }
+  function yokla(){
+    if(!calisiyor) return;
+    Canli.get('/api/durum', 8000).then(function(r){
+      if(r.ok && r.data){
+        Canli.snapSave('durum', r.data);
+        disBand.style.display = 'none';
+        Canli.dot('on', 'Canlı');
+        durumCiz(r.data);
+      } else {
+        var s = Canli.snapLoad('durum');
+        if(s){
+          document.getElementById('cevrimdisiYazi').textContent = 'Canlı veri alınamıyor, son bilinen durum (' + Canli.snapSaat(s.zaman) + '). Canlı veri için uygulamadan Siteyi Aç.';
+          disBand.style.display = 'flex';
+          Canli.dot('orta', 'Önbellek ' + Canli.snapSaat(s.zaman));
+          durumCiz(s.data);
+        } else {
+          document.getElementById('cevrimdisiYazi').textContent = 'Sunucuya ulaşılamıyor. Canlı veri için uygulamadan Siteyi Aç.';
+          disBand.style.display = 'flex';
+          Canli.dot('off', 'Çevrimdışı');
+        }
+        durdur();
+        return;
+      }
+      return Canli.get('/api/oyuncular', 8000);
+    }).then(function(r2){
+      if(!r2) return;
+      if(r2.ok && r2.data){
+        var liste = r2.data.oyuncular || [];
+        Canli.snapSave('oyuncular', liste);
+        bildirimKontrol(liste);
+        oyuncuCiz(liste);
+      } else {
+        var s = Canli.snapLoad('oyuncular');
+        if(s) oyuncuCiz(s.data);
+      }
+    });
+  }
+  function durdur(){ calisiyor = false; if(timer){ clearInterval(timer); timer = null; } }
+  function baslat(){
+    if(timer) return;
+    calisiyor = true; disBand.style.display = 'none';
+    yokla(); timer = setInterval(yokla, 5000);
+  }
+  document.getElementById('yenidenDene').onclick = baslat;
+  var s0 = Canli.snapLoad('durum');
+  if(s0){ durumCiz(s0.data); Canli.dot('orta', 'Önbellek ' + Canli.snapSaat(s0.zaman)); }
+  var o0 = Canli.snapLoad('oyuncular');
+  if(o0) oyuncuCiz(o0.data);
+  baslat();
+})();
+</script>
+</body>
+</html>

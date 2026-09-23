@@ -1,0 +1,52 @@
+# DGM Craft - git dışı: dünyalar, binaryler, sırlar, makine verileri
+
+# Dünya ve çalışma verisi (Syncthing ile taşınır)
+world/
+world_nether/
+world_the_end/
+backups/
+logs/
+**/logs/
+**/*.log
+cache/
+libraries/
+versions/
+.paper/
+.stversions/
+.stignore
+
+# Büyük binaryler (repo şişmesin; jarlar Syncthing ile gelir)
+*.jar
+*.msi
+*.zip
+runtime/
+!plugins/DgmGecmis-*.jar
+
+# Sırlar ve makineye özel dosyalar (ASLA commitlenmez)
+server.properties
+ops.json
+whitelist.json
+usercache.json
+banned-players.json
+banned-ips.json
+site-link.txt
+host.lock.json
+komut-gecmisi.json
+kurulum-anahtari.txt
+
+# Oyuncu ve plugin veritabanları
+plugins/Essentials/userdata/
+plugins/AuraSkills/userdata/
+plugins/LuckPerms/
+plugins/Plan/
+*.mv.db
+*.h2.db
+plugins/Skript/variables.csv
+plugins/Skript/variables.db
+
+# Python
+__pycache__/
+*.pyc
+
+# Site yedeği
+site/assets/data.js.bak

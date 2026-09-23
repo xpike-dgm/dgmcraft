@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kategori • DgmCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo">DGM<span>CRAFT</span></div>
+<div class="nav-links"><a href="index.html" style="color:#fff;font-weight:700">← Tüm kategoriler</a><a href="log.html">Log</a><a href="durum.html">Durum</a></div>
+<div class="nav-right">
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+<a class="btn" href="index.html">Ana sayfa</a>
+</div>
+</div></nav>
+<div class="wrap">
+<a class="back" href="index.html">← kategorilere dön</a>
+<div id="adminNote" style="display:none" class="admin-note">Bu kategori admin / OP yetkisi gerektirir. <button id="adminEnable" class="copy">Admin görünümünü aç</button></div>
+<div class="hero" style="padding-top:18px">
+<span class="kicker"><i></i> kategori detayı</span>
+<h1 id="ctitle">Yükleniyor...</h1>
+<p id="cdesc"></p>
+<div class="search"><span>🔎</span><input id="cq" placeholder="Bu kategoride komut ara..."></div>
+</div>
+<div id="cmdlist" style="margin:22px 0 60px"></div>
+</div>
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • Veriler docs/kilavuz.md dosyasından üretilir.</p></div></footer>
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  function yokla(){
+    Canli.get('/api/durum', 8000).then(function(r){
+      if(r.ok){ Canli.dot('on', 'Canlı'); return; }
+      var s = Canli.snapLoad('durum');
+      Canli.dot(s ? 'orta' : 'off', s ? ('Önbellek ' + Canli.snapSaat(s.zaman)) : 'Çevrimdışı');
+    });
+  }
+  yokla(); setInterval(yokla, 30000);
+})();
+</script>
+</body>
+</html>

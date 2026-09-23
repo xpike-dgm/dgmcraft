@@ -1,0 +1,22 @@
+# v* etiketi itilince Windows exe derler ve Release'e ekler.
+# Örnek: git tag v0.21.0; git push origin v0.21.0
+name: build
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyinstaller
+      - run: python -m PyInstaller --noconfirm --windowed --name DgmCraft --paths launcher launcher/app.py
+      - run: Compress-Archive -Path dist/DgmCraft/* -DestinationPath DgmCraft-windows.zip
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: DgmCraft-windows.zip
+          generate_release_notes: true

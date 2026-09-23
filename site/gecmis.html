@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Komut Geçmişi • DgmCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo">DGM<span>CRAFT</span></div>
+<div class="nav-links"><a href="index.html">Komutlar</a><a href="log.html">Log</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a></div>
+<div class="nav-right">
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+<a class="btn" href="index.html">Ana sayfa</a>
+</div>
+</div></nav>
+<div class="wrap">
+<a class="back" href="index.html">← ana sayfaya dön</a>
+<div class="hero" style="padding-top:18px">
+<span class="kicker"><i></i> salt okunur kayıt</span>
+<h1>Komut Geçmişi</h1>
+<p>Siteden çalıştırılan komutların kaydı. Buradan komut çalıştırılmaz, çalıştırmak için Log sayfasındaki kutu kullanılır.</p>
+</div>
+<div id="cevrimdisiBand" class="bant bilgi" style="display:none"><span id="cevrimdisiYazi">Canlı veri için uygulamadan Siteyi Aç.</span><button id="yenidenDene" class="copy btn2">Yeniden dene</button></div>
+<div class="search"><span>🔎</span><input id="q" placeholder="Komut içinde ara..."></div>
+<div id="liste" style="margin:18px 0 60px"><div class="empty">Yükleniyor…</div></div>
+</div>
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • Canlı veri için uygulamanın çalışıyor olması gerekir.</p></div></footer>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  Canli.initAdmin();
+  var disBand = document.getElementById('cevrimdisiBand');
+  var kayitlar = [], timer = null, calisiyor = true;
+  function ciz(f){
+    f = (f || '').toLocaleLowerCase('tr');
+    var kutu = document.getElementById('liste');
+    var gor = kayitlar.filter(function(k){
+      return !f || ((k.komut || '').toLocaleLowerCase('tr').indexOf(f) >= 0);
+    }).slice(0, 200);
+    if(!gor.length){ kutu.innerHTML = '<div class="empty">Kayıt yok.</div>'; return; }
+    kutu.innerHTML = '';
+    gor.forEach(function(k){
+      var d = document.createElement('div');
+      d.className = 'cmd';
+      d.innerHTML = '<div class="cmd-top"><code>' + Canli.esc(k.komut || '') + '</code><span class="rozet off">' + Canli.esc(k.calistiran || 'site') + '</span></div>' +
+        '<div class="meta"><div><b>Zaman:</b> ' + Canli.esc(Canli.saatStr(k.zaman)) + '</div></div>';
+      kutu.appendChild(d);
+    });
+  }
+  function yokla(){
+    if(!calisiyor) return;
+    Canli.get('/api/komutlar', 8000).then(function(r){
+      if(r.ok && r.data){
+        kayitlar = (r.data.komutlar || []).slice(0, 200);
+        Canli.snapSave('komutlar', kayitlar);
+        disBand.style.display = 'none';
+        Canli.dot('on', 'Canlı');
+        ciz(document.getElementById('q').value);
+      } else {
+        var s = Canli.snapLoad('komutlar');
+        if(s){
+          kayitlar = s.data;
+          document.getElementById('cevrimdisiYazi').textContent = 'Canlı veri alınamıyor, son bilinen kayıt (' + Canli.snapSaat(s.zaman) + ').';
+          disBand.style.display = 'flex';
+          Canli.dot('orta', 'Önbellek ' + Canli.snapSaat(s.zaman));
+        } else {
+          document.getElementById('cevrimdisiYazi').textContent = 'Sunucuya ulaşılamıyor. Canlı veri için uygulamadan Siteyi Aç.';
+          disBand.style.display = 'flex';
+          Canli.dot('off', 'Çevrimdışı');
+        }
+        ciz(document.getElementById('q').value);
+        durdur();
+      }
+    });
+  }
+  function durdur(){ calisiyor = false; if(timer){ clearInterval(timer); timer = null; } }
+  function baslat(){
+    if(timer) return;
+    calisiyor = true; disBand.style.display = 'none';
+    yokla(); timer = setInterval(yokla, 15000);
+  }
+  document.getElementById('yenidenDene').onclick = baslat;
+  document.getElementById('q').addEventListener('input', function(e){ ciz(e.target.value); });
+  var s0 = Canli.snapLoad('komutlar');
+  if(s0){ kayitlar = s0.data; ciz(''); Canli.dot('orta', 'Önbellek ' + Canli.snapSaat(s0.zaman)); }
+  baslat();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canlı Log • DgmCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav><div class="nav-in">
+<div class="logo">DGM<span>CRAFT</span></div>
+<div class="nav-links"><a href="index.html">Komutlar</a><b>Log</b><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a></div>
+<div class="nav-right">
+<label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
+<a class="btn" href="index.html">Ana sayfa</a>
+</div>
+</div></nav>
+<div class="wrap">
+<a class="back" href="index.html">← ana sayfaya dön</a>
+<div class="hero" style="padding-top:18px">
+<span class="kicker"><i></i> canlı sunucu günlüğü</span>
+<h1>Canlı Log</h1>
+<p>Sunucu günlüğünün son 200 satırı. Komut çalıştırmak için aşağıdaki kutuyu kullan.</p>
+</div>
+<div id="kapaliBand" class="bant uyari" style="display:none">Sunucu çevrimdışı, dosya sonu gösteriliyor.</div>
+<div id="cevrimdisiBand" class="bant bilgi" style="display:none"><span id="cevrimdisiYazi">Canlı veri için uygulamadan Siteyi Aç.</span><button id="yenidenDene" class="copy btn2">Yeniden dene</button></div>
+<div class="logbar">
+<button class="filtre aktif" data-f="tum">Tümü</button>
+<button class="filtre" data-f="hata">Hata</button>
+<button class="filtre" data-f="giris">Giriş-çıkış</button>
+<button class="filtre" data-f="sohbet">Sohbet</button>
+<label class="ac-kapa"><input type="checkbox" id="otoKaydir" checked> Otomatik kaydır</label>
+</div>
+<div class="cmdcevap" id="cmdCevap"></div>
+<div id="onayKutusu" class="onaykutusu" style="display:none">
+<span id="onayYazi">Bu komut tehlikeli görünüyor, emin misin?</span>
+<div class="row"><button id="onayEvet" class="btn-tehlike">Evet, çalıştır</button><button id="onayVazgec" class="btn-iptal">Vazgeç</button></div>
+</div>
+<div class="cmdsatir">
+<input id="cmdGirdi" placeholder="Komut yaz (ör: say selam) — başına / koyma" autocomplete="off" spellcheck="false">
+<button id="cmdGonder" class="btn">Gönder</button>
+</div>
+<div class="logkutu" id="logKutu"><span style="color:var(--muted)">Yükleniyor…</span></div>
+</div>
+<footer><div class="wrap">
+<div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
+<p style="margin-top:12px">DgmCraft rehber • Canlı veri için uygulamanın çalışıyor olması gerekir.</p></div></footer>
+<script src="assets/canli.js"></script>
+<script>
+(function(){
+  Canli.initAdmin();
+  var kutu = document.getElementById('logKutu');
+  var filtre = 'tum', satirlar = [], timer = null, calisiyor = true;
+  var kapaliBand = document.getElementById('kapaliBand');
+  var disBand = document.getElementById('cevrimdisiBand');
+  var disYazi = document.getElementById('cevrimdisiYazi');
+
+  function sinif(s){
+    if(/ERROR|Exception|SEVERE/i.test(s)) return 'lhata';
+    if(/joined|left the game|lost connection/i.test(s)) return 'lgiris';
+    if(/<[A-Za-z0-9_]{3,16}>/.test(s)) return 'lsohbet';
+    return '';
+  }
+  function uygun(s){
+    if(filtre === 'tum') return true;
+    if(filtre === 'hata') return /ERROR|Exception|SEVERE/i.test(s);
+    if(filtre === 'giris') return /joined|left the game|lost connection/i.test(s);
+    if(filtre === 'sohbet') return /<[A-Za-z0-9_]{3,16}>/.test(s);
+    return true;
+  }
+  function zamanAyikla(s){
+    var m = s.match(/\[(\d{2}:\d{2}:\d{2})\]/);
+    return m ? m[1] : '';
+  }
+  function ciz(){
+    var gor = satirlar.filter(uygun).slice(-200);
+    if(!gor.length){ kutu.innerHTML = '<span style="color:var(--muted)">Bu filtrede satır yok.</span>'; return; }
+    kutu.innerHTML = gor.map(function(s){
+      return '<div class="' + sinif(s) + '"><span class="lzaman">' + Canli.esc(zamanAyikla(s)) + '</span> ' + Canli.esc(s) + '</div>';
+    }).join('');
+    if(document.getElementById('otoKaydir').checked) kutu.scrollTop = kutu.scrollHeight;
+  }
+  function yokla(){
+    if(!calisiyor) return;
+    Canli.get('/api/log?son=200', 8000).then(function(r){
+      if(r.ok && r.data){
+        satirlar = (r.data.satirlar || []).slice(-200);
+        Canli.snapSave('log', { satirlar: satirlar, sunucuAcik: !!r.data.sunucuAcik });
+        kapaliBand.style.display = r.data.sunucuAcik ? 'none' : 'flex';
+        disBand.style.display = 'none';
+        Canli.dot('on', 'Canlı');
+        ciz();
+      } else {
+        var s = Canli.snapLoad('log');
+        if(s){
+          satirlar = (s.data.satirlar || []).slice(-200);
+          disYazi.textContent = 'Canlı veri alınamıyor, son bilinen kayıt (' + Canli.snapSaat(s.zaman) + ') gösteriliyor. Canlı veri için uygulamadan Siteyi Aç.';
+          disBand.style.display = 'flex';
+          Canli.dot('orta', 'Önbellek ' + Canli.snapSaat(s.zaman));
+          ciz();
+        } else {
+          disYazi.textContent = 'Sunucuya ulaşılamıyor. Canlı veri için uygulamadan Siteyi Aç.';
+          disBand.style.display = 'flex';
+          Canli.dot('off', 'Çevrimdışı');
+          kutu.innerHTML = '<span style="color:var(--muted)">Kayıt yok.</span>';
+        }
+        durdur();
+      }
+    });
+  }
+  function durdur(){
+    calisiyor = false;
+    if(timer){ clearInterval(timer); timer = null; }
+  }
+  function baslat(){
+    if(timer) return;
+    calisiyor = true;
+    disBand.style.display = 'none';
+    yokla();
+    timer = setInterval(yokla, 4000);
+  }
+  document.getElementById('yenidenDene').onclick = baslat;
+  Array.prototype.forEach.call(document.querySelectorAll('.filtre'), function(b){
+    b.onclick = function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.filtre'), function(x){ x.classList.remove('aktif'); });
+      b.classList.add('aktif'); filtre = b.getAttribute('data-f'); ciz();
+    };
+  });
+
+  // --- komut kutusu ---
+  var girdi = document.getElementById('cmdGirdi');
+  var cevap = document.getElementById('cmdCevap');
+  var onayKutusu = document.getElementById('onayKutusu');
+  var bekleyen = null, histIdx = -1;
+  function gecmisAl(){ try{ return JSON.parse(localStorage.getItem('dgm_cmd_gecmis') || '[]'); }catch(e){ return []; } }
+  function gecmisEkle(k){
+    var g = gecmisAl().filter(function(x){ return x !== k; });
+    g.push(k); if(g.length > 20) g = g.slice(-20);
+    try{ localStorage.setItem('dgm_cmd_gecmis', JSON.stringify(g)); }catch(e){}
+  }
+  function gonder(komut, onayKodu){
+    komut = (komut || '').trim().replace(/^\//, '');
+    if(!komut) return;
+    Canli.post('/api/cmd', onayKodu ? { komut: komut, onayKodu: onayKodu } : { komut: komut }, 8000).then(function(r){
+      if(!r.ok){ cevap.textContent = 'Gönderilemedi: ' + (r.error || 'bağlantı yok'); return; }
+      var d = r.data || {};
+      if(d.onayGerekli){
+        bekleyen = { komut: komut, kod: d.onayKodu };
+        document.getElementById('onayYazi').textContent = '“' + komut + '” tehlikeli görünüyor, emin misin?';
+        onayKutusu.style.display = 'block';
+      } else {
+        cevap.textContent = (d.cevap == null || d.cevap === '') ? '(cevap boş)' : String(d.cevap);
+      }
+    });
+  }
+  document.getElementById('cmdGonder').onclick = function(){
+    var k = girdi.value; if(!k.trim()) return;
+    onayKutusu.style.display = 'none'; bekleyen = null;
+    gecmisEkle(k.trim()); histIdx = -1;
+    gonder(k); girdi.value = ''; girdi.focus();
+  };
+  document.getElementById('onayEvet').onclick = function(){
+    if(!bekleyen) return;
+    gonder(bekleyen.komut, bekleyen.kod);
+    bekleyen = null; onayKutusu.style.display = 'none'; girdi.focus();
+  };
+  document.getElementById('onayVazgec').onclick = function(){ bekleyen = null; onayKutusu.style.display = 'none'; girdi.focus(); };
+  girdi.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ document.getElementById('cmdGonder').click(); return; }
+    if(e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    var g = gecmisAl(); if(!g.length) return;
+    e.preventDefault();
+    if(e.key === 'ArrowUp') histIdx = Math.min(histIdx + 1, g.length - 1);
+    else histIdx = Math.max(histIdx - 1, -1);
+    girdi.value = histIdx === -1 ? '' : g[g.length - 1 - histIdx];
+  });
+
+  var snap = Canli.snapLoad('log');
+  if(snap){ satirlar = (snap.data.satirlar || []).slice(-200); ciz(); Canli.dot('orta', 'Önbellek ' + Canli.snapSaat(snap.zaman)); }
+  else Canli.dot('off', 'Bağlanıyor…');
+  baslat();
+})();
+</script>
+</body>
+</html>
