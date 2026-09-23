@@ -617,9 +617,24 @@ class AnaPencere(tk.Tk):
             return
         self._ui(self._guncelleme_sor, sonuc)
 
+    @staticmethod
+    def _notlari_temizle(notlar):
+        satirlar = []
+        for s in (notlar or "").splitlines():
+            t = s.strip()
+            if not t:
+                continue
+            if t.startswith("**Full Changelog**"):
+                continue
+            if t.startswith("https://github.com/") and "compare" in t:
+                continue
+            satirlar.append(s)
+        temiz = "\n".join(satirlar).strip()
+        return temiz[:800] if temiz else "Not yok."
+
     def _guncelleme_sor(self, sonuc):
         metin = "Yeni launcher sürümü: %s (sende %s).\n\n%s\n\nİndirip uygulansın mı? (Uygulamayı kapatıp açman gerekir.)" % (
-            sonuc.get("son", "?"), sonuc.get("mevcut", "?"), (sonuc.get("notlar") or "Not yok.")[:800])
+            sonuc.get("son", "?"), sonuc.get("mevcut", "?"), self._notlari_temizle(sonuc.get("notlar")))
         if not messagebox.askyesno("Güncelleme var", metin):
             return
         if self.sunucu.proc and self.sunucu.proc.poll() is None:

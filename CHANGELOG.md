@@ -353,11 +353,13 @@ Güncelleme denetimi düzeltmesi.
 
 ## [0.22.2] - 2026-09-24
 
-Ayarlar penceresi taşması.
+Ayarlar penceresi taşması + exe güncelleyici düzeltmesi.
 
 ### Fixed
 - Ayarlar artık kaydırmalı (fare tekerleği destekli); alanlar alta kesilmiyor.
 - Üst barda "Kapalı" iki kez yazıyordu; rozet nokta göstergesine indi.
+- Exe ile çalışanda güncelleyici yanlış klasöre (AppData) yazıyordu; yeni klasöre açılıyor.
+- Güncelleme notlarındaki ham "**Full Changelog**" satırı temizleniyor.
 
 ### Notlar
 - Kilit `version.json` + Syncthing ile yayilir; sahibin Yayınla/Bitir akışını kullanması gerekir (doğrudan dosya değiştirmede kilit devreye girmez).
