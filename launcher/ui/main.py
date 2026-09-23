@@ -683,7 +683,7 @@ class AnaPencere(tk.Tk):
 
     def _guncelleme_uygula_thread(self, sonuc):
         try:
-            hedef, exe_mi = guncelleme.uygula(self.kok, sonuc, durum_yaz=self._yaz)
+            bilgi = guncelleme.uygula(self.kok, sonuc, durum_yaz=self._yaz)
         except Exception as e:
             self._ui(messagebox.showerror, "Güncelleme hatası", str(e)[:400])
             return
@@ -692,16 +692,32 @@ class AnaPencere(tk.Tk):
             store.kaydet(self.ayar)
         except Exception:
             pass
-        if exe_mi:
-            self._ui(messagebox.showinfo, "Güncelleme",
-                     "Yeni sürüm şuraya açıldı:\n%s\n\nEski uygulamayı kapatıp yeni klasördeki exe'yi çalıştır." % hedef)
-            try:
-                import subprocess as _sp
-                _sp.Popen(["explorer", hedef])
-            except Exception:
-                pass
-        else:
+        if not bilgi.get("exe"):
             self._ui(messagebox.showinfo, "Güncelleme", "Güncelleme uygulandı. Değişiklikler için uygulamayı kapatıp aç.")
+            return
+        self._ui(self._exe_yeniden_sor, bilgi)
+
+    def _exe_yeniden_sor(self, bilgi):
+        if not messagebox.askyesno("Hazır", "Güncelleme indirildi. Şimdi uygulayıp yeniden başlatılsın mı?\n(Eski sürüm klasörleri temizlenecek.)"):
+            return
+        try:
+            subprocess.Popen([bilgi["bat"], str(bilgi["pid"]), bilgi["hedef"], bilgi["kaynak"]],
+                             creationflags=0x08000000)
+        except Exception as e:
+            messagebox.showerror("Başlatılamadı", "Güncelleyici çalışmadı: %s" % str(e)[:300])
+            return
+        try:
+            self.site_srv.durdur()
+        except Exception:
+            pass
+        try:
+            self.kalp.durdur()
+        except Exception:
+            pass
+        try:
+            self.destroy()
+        except Exception:
+            pass
 
     def _sihirbaz_ac(self):
         try:

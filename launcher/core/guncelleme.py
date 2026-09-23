@@ -93,12 +93,12 @@ def _indir(url, hedef, timeout=120):
 
 def uygula(kok, sonuc, durum_yaz=None, timeout=120):
     """Paketi indirip uygular. Sunucu çalışırken çağrılmamalı (UI kontrol eder).
-    Kaynaktan çalışıyorsa dosyaların üstüne yazar; exe ile çalışıyorsa yeni
-    klasöre çıkarır (çalışan exe'nin üstüne yazılamaz). (hedef, exe_mi) döndürür."""
+    Kaynaktan çalışıyorsa dosyaların üstüne yazar (hedef, exe_mi=False).
+    Exe ile çalışıyorsa staging + kapatınca-uygula scripti hazırlar
+    (bilgi sözlüğü, exe_mi=True)."""
     import sys
-    exe_mi = bool(getattr(sys, "frozen", False))
-    if exe_mi:
-        return _uygula_exe(sonuc, durum_yaz, timeout), True
+    if bool(getattr(sys, "frozen", False)):
+        return _uygula_exe_hazirla(sonuc, durum_yaz, timeout)
 
     def _yaz(m):
         try:
@@ -150,11 +150,14 @@ def uygula(kok, sonuc, durum_yaz=None, timeout=120):
     except Exception:
         pass
     _yaz("Güncelleme uygulandı. Değişikliklerin geçmesi için uygulamayı kapatıp aç.")
-    return kok, False
+    return {"exe": False, "hedef": kok}
 
 
-def _uygula_exe(sonuc, durum_yaz=None, timeout=120):
-    """Exe ile çalışanlar için: Release zipini exe yanına yeni klasöre çıkarır."""
+def _uygula_exe_hazirla(sonuc, durum_yaz=None, timeout=120):
+    """Exe yerinde güncelleme: paket tempe açılır, kapatınca-uygula scripti
+    exe yanına yazılır. UI scripti çalıştırıp uygulamayı kapatır; script
+    işlem bitene kadar bekler, dosyaları üstüne yazar, exe'yi başlatır,
+    eski sürüm klasörlerini ve kendini temizler."""
     import sys
 
     def _yaz(m):
@@ -168,20 +171,38 @@ def _uygula_exe(sonuc, durum_yaz=None, timeout=120):
         raise ValueError("Exe paketi bu sürümde yok.")
     exe_dizini = os.path.dirname(sys.executable)
     tag = (sonuc.get("son") or "yeni").strip().replace("/", "-")
-    hedef = os.path.join(exe_dizini, "DgmCraft-%s" % tag)
+    staging = os.path.join(tempfile.gettempdir(), "dgm-upd-%s" % tag)
     _yaz("Exe paketi indiriliyor...")
-    tmp = tempfile.mkdtemp(prefix="dgm-upd-")
-    zip_yolu = os.path.join(tmp, "paket.zip")
+    if os.path.isdir(staging):
+        shutil.rmtree(staging, ignore_errors=True)
+    os.makedirs(staging, exist_ok=True)
+    zip_yolu = os.path.join(staging, "paket.zip")
     _indir(asset_url, zip_yolu, timeout)
     _yaz("Paket açılıyor...")
-    if os.path.isdir(hedef):
-        shutil.rmtree(hedef, ignore_errors=True)
-    os.makedirs(hedef, exist_ok=True)
     with zipfile.ZipFile(zip_yolu, "r") as z:
-        z.extractall(hedef)
+        z.extractall(staging)
     try:
-        shutil.rmtree(tmp, ignore_errors=True)
+        os.remove(zip_yolu)
     except Exception:
         pass
-    _yaz("Yeni sürüm klasöre açıldı.")
-    return hedef
+    bat = os.path.join(exe_dizini, "guncelle-beni.bat")
+    satirlar = [
+        "@echo off",
+        "set PID=%~1",
+        'set HEDEF=%~2',
+        'set KAYNAK=%~3',
+        ":bekle",
+        'tasklist /fi "PID eq %PID%" 2>nul | find "%PID%" >nul',
+        "if %errorlevel%==0 (timeout /t 1 /nobreak >nul & goto bekle)",
+        "timeout /t 2 /nobreak >nul",
+        'xcopy "%KAYNAK%\\*" "%HEDEF%\\" /e /i /y /q >nul 2>&1',
+        'rmdir /s /q "%KAYNAK%" 2>nul',
+        'for /d %%D in ("%HEDEF%\\..\\DgmCraft-v*") do if /i not "%%~fD"=="%HEDEF%" rd /s /q "%%D" 2>nul',
+        'start "" "%HEDEF%\\DgmCraft.exe"',
+        'del "%~f0"',
+    ]
+    with open(bat, "w", encoding="utf-8") as f:
+        f.write("\r\n".join(satirlar) + "\r\n")
+    _yaz("Güncelleme hazır. Uygulanması için yeniden başlatılacak.")
+    return {"exe": True, "bat": bat, "hedef": exe_dizini, "kaynak": staging,
+            "pid": os.getpid(), "surum": tag}

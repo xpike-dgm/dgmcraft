@@ -359,6 +359,14 @@ Ayarlar penceresi taşması + exe güncelleyici düzeltmesi.
 - Ayarlar artık kaydırmalı (fare tekerleği destekli); alanlar alta kesilmiyor.
 - Üst barda "Kapalı" iki kez yazıyordu; rozet nokta göstergesine indi.
 
+## [0.22.4] - 2026-09-24
+
+Exe yerinde güncelleme (klasör çöplüğü bitti).
+
+### Changed
+- Exe güncellemesi yeni klasör açmıyor: paket tempe iniyor, "Uygula ve Yeniden Başlat" ile eski dosyaların üstüne yazılıyor, exe kaldığı yerden açılıyor.
+- Eski `DgmCraft-v*` klasörleri güncelleme sırasında temizleniyor.
+
 ## [0.22.3] - 2026-09-24
 
 Pencere boyutları + Ayarlar yenileme.
