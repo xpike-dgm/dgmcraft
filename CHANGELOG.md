@@ -351,6 +351,15 @@ Güncelleme denetimi düzeltmesi.
 - Etiket ile sabit sayı hiç eşitlenemiyordu (her zaman "güncelleme var" ya da hiç yok). Uygulanan sürüm kaydediliyor, karşılaştırma ona göre.
 - Exe ile çalışanlarda güncelleme yeni klasöre açılıyor (çalışan exe'nin üstüne yazılamazdı).
 
+## [0.23.0] - 2026-09-24
+
+Tek seferlik AppData kurulumu.
+
+### Added
+- Exe ilk açılışta "DgmCraft kuruluyor" ekranı: gerçek ilerlemeli kopya, Masaüstü + Başlat menüsü kısayolu, kurulu yerden otomatik başlama.
+- "Taşınabilir Kullan" seçeneği (kurulum sorulmaz).
+- Ayarlar > Kaldır: uygulamayı ve kısayolları siler, sunucu verilerine dokunmaz.
+
 ## [0.22.2] - 2026-09-24
 
 Ayarlar penceresi taşması + exe güncelleyici düzeltmesi.

@@ -606,6 +606,7 @@ class AnaPencere(tk.Tk):
         ttk.Button(satir3, text="Klasörü Aç", command=self._klasor_ac, style="Secondary.TButton").pack(side="left", padx=(0, 8))
         ttk.Button(satir3, text="Güncelleme Yayınla", command=self._guncelleme_yayinla, style="Secondary.TButton").pack(side="left", padx=(0, 8))
         ttk.Button(satir3, text="Bitir", command=self._guncelleme_bitir, style="Secondary.TButton").pack(side="left")
+        ttk.Button(satir3, text="Kaldır (uygulama)", command=self._kaldir, style="Danger.TButton").pack(side="left", padx=(8, 0))
 
         def kaydet_kapat():
             try:
@@ -633,6 +634,43 @@ class AnaPencere(tk.Tk):
             subprocess.Popen(["explorer", self.kok])
         except Exception as e:
             messagebox.showerror("Hata", str(e)[:300])
+
+    def _kaldir(self):
+        if self.sunucu.proc and self.sunucu.proc.poll() is None:
+            messagebox.showwarning("Önce kapat", "Kaldırmadan önce sunucuyu Güvenli Kapat ile kapatmalısın.")
+            return
+        try:
+            from core import kurulum as _K
+        except Exception:
+            messagebox.showerror("Hata", "Kaldırma modülü yüklenemedi.")
+            return
+        if not _K.kurulu_mu():
+            messagebox.showinfo("Kaldır", "Uygulama kurulu modda değil (taşınabilir çalışıyor). Klasörü silmen yeterli.")
+            return
+        if not messagebox.askyesno("Kaldır", "Uygulama ve kısayollar silinecek.\nSunucu verilerin (dünya, ayarlar) DURACAK.\nDevam edilsin mi?"):
+            return
+        try:
+            bat, pid, dizin = _K.kaldir_hazirla()
+        except Exception as e:
+            messagebox.showerror("Hata", str(e)[:300])
+            return
+        try:
+            subprocess.Popen([bat, str(pid), dizin], creationflags=0x08000000)
+        except Exception as e:
+            messagebox.showerror("Başlatılamadı", str(e)[:300])
+            return
+        try:
+            self.site_srv.durdur()
+        except Exception:
+            pass
+        try:
+            self.kalp.durdur()
+        except Exception:
+            pass
+        try:
+            self.destroy()
+        except Exception:
+            pass
 
     def _guncelleme_denetle(self):
         try:

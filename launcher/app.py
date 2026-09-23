@@ -11,6 +11,17 @@ from ui.main import AnaPencere
 
 
 def main():
+    # Exe ile çalışıyorsa tek seferlik AppData kurulumu önce gelir.
+    if getattr(sys, "frozen", False):
+        try:
+            from core import kurulum as _K
+            if _K.gerekli():
+                from ui.kurulum import KurulumPenceresi
+                w = KurulumPenceresi()
+                w.mainloop()
+                return
+        except Exception:
+            pass
     # Çalışma klasörünü hazırla (gömülü dosyalar + version tohumu + RCON güvencesi).
     try:
         bootstrap.version_tohumla()
