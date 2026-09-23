@@ -338,5 +338,20 @@ Zorunlu guncelleme kilidi (sahip yayinlar, arkadas guncellemeden giremez).
 - Kilit `version.json` + Syncthing ile yayilir; sahibin Yayınla/Bitir akışını kullanması gerekir (doğrudan dosya değiştirmede kilit devreye girmez).
 - Durum makinesi test edildi: yayinlaniyor -> bekliyor -> yok.
 
+## [0.21.0] - 2026-09-23
+
+GitHub dagitimi: repo + webinstaller + launcher guncelleme denetimi.
+
+### Added
+- Public repo: `xpike-dgm/dgmcraft` (kod + site + configler; dunya/jar/sirlar haric).
+- `webinstaller/Kur.ps1` + `TEK-SATIR.txt`: arkadasa tek satirlik kurulum komutu.
+- `.github/workflows/build.yml`: `v*` etiketinde Windows exe derleyip Release'e ekler.
+- Ayarlar > GitHub repo + Guncellemeleri Denetle: yeni launcher surumu varsa indirip uygular (sunucu kapaliyken).
+- `server.properties.example` + ilk acilista RCON guvencesi (sifre uretilir, mevcut ayarlara dokunulmaz).
+
+### Notlar
+- Sırlar repoda YOK: `server.properties`, `*.key`, anahtar dosyalari, dunya, yedekler `.gitignore` ile disarida.
+- Jar/config ayrimi: launcher+kod GitHub'dan, dunya/plugin jarlari Syncthing ile gelir.
+
 ### Fixed
 - Ayarlar VPN dugmesi artik arayuzu dondurmuyor (thread + kuyruk).
