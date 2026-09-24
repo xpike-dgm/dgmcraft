@@ -235,11 +235,17 @@ class Wizard(tk.Toplevel):
 
     def _adim_sync(self):
         self._govde(T.SYNC_ACIKLAMA)
+        self._not(T.OTOMATIK_KUR_ACIKLAMA)
+        ttk.Button(self.icerik, text=T.OTOMATIK_KUR, command=self._otomatik_sync_thread,
+                   style="Secondary.TButton").pack(anchor="w", pady=(6, 0))
         self._not(T.SYNC_KONTROL)
         self.sync_durum_var, self.sync_durum_lbl = self._durum()
 
     def _adim_vpn(self):
         self._govde(T.VPN_ACIKLAMA)
+        self._not(T.OTOMATIK_KUR_ACIKLAMA)
+        ttk.Button(self.icerik, text=T.OTOMATIK_KUR, command=self._otomatik_vpn_thread,
+                   style="Secondary.TButton").pack(anchor="w", pady=(6, 0))
         self.vpn_durum_var, self.vpn_durum_lbl = self._durum()
         if not self.vpn_kurulu:
             self._durum_boya(self.vpn_durum_var, self.vpn_durum_lbl, "Henüz kontrol edilmedi.", "amber")
@@ -426,6 +432,59 @@ class Wizard(tk.Toplevel):
         except Exception:
             pass
         self._birincil_yenile()
+
+    def _otomatik_sync_thread(self):
+        if self._mesgul:
+            return
+        self._mesgul_ac(None)
+        if self.adim == 3:
+            self._durum_boya(self.sync_durum_var, self.sync_durum_lbl, "İndiriliyor... (Windows onayı gelirse Evet de)", "amber")
+        threading.Thread(target=self._otomatik_sync, daemon=True).start()
+
+    def _otomatik_sync(self):
+        try:
+            if not esitleme.syncthing_exe():
+                def _ilerleme(oran):
+                    try:
+                        pct = int(oran * 100)
+                        if pct % 10 == 0 or pct >= 99:
+                            self._ui(self._durum_boya, self.sync_durum_var, self.sync_durum_lbl,
+                                     "İndiriliyor: %%%d (Windows onayı gelirse Evet de)" % pct, "amber")
+                    except Exception:
+                        pass
+                esitleme.zip_indir(esitleme.bin_dizini(), ilerleme=_ilerleme)
+            self._kontrol_sync()
+        except Exception as e:
+            self.sync_ok = False
+            self._ui(self._durum_boya, self.sync_durum_var, self.sync_durum_lbl,
+                     "Otomatik kurulum başarısız: %s. Kendin kurup Kontrol Et'e bas." % str(e)[:200], "kirmizi")
+            self._mesgul_kapat()
+
+    def _otomatik_vpn_thread(self):
+        if self._mesgul:
+            return
+        self._mesgul_ac(None)
+        if self.adim == 4:
+            self._durum_boya(self.vpn_durum_var, self.vpn_durum_lbl, "Hazırlanıyor... (Windows onayı gelirse Evet de)", "amber")
+        threading.Thread(target=self._otomatik_vpn, daemon=True).start()
+
+    def _otomatik_vpn(self):
+        try:
+            if not vpn.kurulu_mu():
+                self._ui(self._durum_boya, self.vpn_durum_var, self.vpn_durum_lbl,
+                         "İndiriliyor...", "amber")
+                msi = vpn.msi_indir(esitleme.bin_dizini())
+                self._ui(self._durum_boya, self.vpn_durum_var, self.vpn_durum_lbl,
+                         "Kuruluyor... (Windows onayı gelirse Evet de)", "amber")
+                if not vpn.sessiz_kur(msi):
+                    raise RuntimeError("Sessiz kurulum başarısız (UAC reddedilmiş olabilir).")
+                vpn.otomatik_baslat_ayarla()
+            self._kontrol_vpn()
+        except Exception as e:
+            self.vpn_kurulu = False
+            self._ui(self._durum_boya, self.vpn_durum_var, self.vpn_durum_lbl,
+                     "Otomatik kurulum başarısız: %s. Kendin kurup Kontrol Et'e bas." % str(e)[:200], "kirmizi")
+            self._mesgul_kapat()
 
     def _kontrol_sync_thread(self, sessiz=False):
         if self._mesgul:

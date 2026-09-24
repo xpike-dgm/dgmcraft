@@ -377,6 +377,13 @@ Bootstrapper: tek dosyalık kurulum exe'si.
 - Release'te artık 3 dosya: zip + `.sha256` + kurulum exe'si.
 - Bozuk/yarım indirme çalıştırılmaz; eski sürümlerde sha yoksa kurulum reddedilir.
 
+## [0.25.2] - 2026-09-24
+
+Otomatik kurulum geri geldi.
+
+### Added
+- Sihirbaz 4. ve 5. adımda "Otomatik Kur" düğmesi: Syncthing/Tailscale indirilir + kurulur (tek Windows onayı), sonra otomatik doğrulanır. Manuel yol duruyor.
+
 ## [0.25.1] - 2026-09-24
 
 Kurulum stub düzeltmeleri.
