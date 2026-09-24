@@ -5,7 +5,7 @@ from PySide6.QtCore import QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import (QBrush, QColor, QLinearGradient, QPainter, QPen, QPixmap,
                            QRadialGradient)
 from PySide6.QtWidgets import (QFrame, QGraphicsDropShadowEffect, QHBoxLayout, QLabel,
-                               QPushButton, QWidget)
+                               QPushButton, QVBoxLayout, QWidget)
 
 from . import ikonlar
 from . import tema as T
@@ -208,7 +208,8 @@ class BaslikDugmesi(QPushButton):
     def mousePressEvent(self, olay):
         super().mousePressEvent(olay)
         if self.tur == "kapat":
-            self.close()
+            # self.close() butonu kapatır; pencere için window().close() şart.
+            self.window().close()
 
 
 class BaslikCubugu(QFrame):
@@ -331,6 +332,40 @@ class BellekKaydirici(QWidget):
                 boya.setPen(QColor("#6E7F76"))
             boya.drawText(kutu, Qt.AlignCenter, metin)
         boya.end()
+
+
+def onay_sor(baba, baslik, metin, tamam="Çalıştır", iptal="Vazgeç"):
+    """Koyu temalı onay penceresi. True dönerse tamamlandı."""
+    try:
+        from PySide6.QtWidgets import QDialog, QDialogButtonBox
+        pencere = QDialog(baba)
+        pencere.setWindowTitle(T.UYGULAMA)
+        pencere.setModal(True)
+        pencere.setStyleSheet("QDialog { background: %s; }" % T.KART)
+        govde = QVBoxLayout(pencere)
+        govde.setContentsMargins(20, 18, 20, 16)
+        govde.setSpacing(10)
+        b = QLabel(baslik)
+        b.setObjectName("metin")
+        govde.addWidget(b)
+        a = QLabel(metin)
+        a.setObjectName("ikincil")
+        a.setWordWrap(True)
+        a.setMaximumWidth(360)
+        govde.addWidget(a)
+        govde.addSpacing(6)
+        kutu = QDialogButtonBox()
+        evet = kutu.addButton(tamam, QDialogButtonBox.AcceptRole)
+        hayir = kutu.addButton(iptal, QDialogButtonBox.RejectRole)
+        for dugme in (evet, hayir):
+            dugme.setCursor(Qt.PointingHandCursor)
+            dugme.setObjectName("anaDugme" if dugme is evet else "hayaletDugme")
+        kutu.accepted.connect(pencere.accept)
+        kutu.rejected.connect(pencere.reject)
+        govde.addWidget(kutu)
+        return bool(pencere.exec())
+    except Exception:
+        return False
 
 
 def rozet(ebeveyn, metin, renk, nokta=True):

@@ -422,6 +422,20 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-24
 
+F2 — Konsol sayfası (PySide6) + kapatma düzeltmesi.
+
+### Added
+- Konsol sayfası: canlı sunucu çıktısı (INFO soluk, WARN sarı, ERROR kırmızı, komutlar turuncu, RCON cevabı mavi), komut satırı + Gönder, Temizle.
+- Komut geçmişi: yukarı/aşağı ok ile son 50 komut gezilir.
+- Tehlikeli komutlar (stop, op, deop, restart, reload, save-off) koyu onay penceresi ister; iptal edilirse komut çalışmaz.
+- Çıktı 3000 satırda sınırlı; sayfa gizliyken satırlar tamponlanır (kayıt kaybolmaz), görünürken sefer başına en fazla 200 satır basılır (arayüz donmaz).
+
+### Fixed
+- Başlık çubuğundaki çarpı butonu yalnızca kendini gizletiyordu, uygulama kapanmıyordu (buton yerine pencere kapatılıyor).
+- Hub'daki "Güvenli Kapat" eksik parametre yüzünden hata veriyordu; ilerleme mesajları artık konsol kuyruğuna yazılıyor.
+
+## [etiketsiz] - 2026-09-24
+
 Bellek seçici düzeltmesi.
 
 ### Fixed

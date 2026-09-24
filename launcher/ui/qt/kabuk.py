@@ -11,7 +11,10 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QHBoxLayout,
 from . import ikonlar
 from . import tema as T
 from . import yardimci as Y
-from .sayfalar import hub
+from .sayfalar import hub, konsol
+
+SAYFA_SINIFI = {"hub": "HubSayfasi", "konsol": "KonsolSayfasi"}
+SAYFA_MODUL = {"HubSayfasi": hub, "KonsolSayfasi": konsol}
 
 RAY_IKON = {
     "hub": "hub", "komutlar": "komutlar", "durum": "durum", "konsol": "konsol",
@@ -33,7 +36,6 @@ SAYFALAR = [
 TAHIMAT = {
     "komutlar": "Tüm Türkçe komutlar, arama ve kategori detayı.",
     "durum": "Canlı sunucu verileri: RAM, TPS, çevrimiçi.",
-    "konsol": "Canlı sunucu çıktısı ve komut satırı.",
     "gorevler": "Görev ağacı ve ilerleme.",
     "yetenekler": "Yetenek seviyeleri ve sonraki ödüller.",
     "siralama": "Podyum ve sıralama tabloları.",
@@ -120,8 +122,9 @@ class Kabuk(QMainWindow):
         govde.addLayout(alt, 1)
 
         for kimlik, baslik, _ikon in SAYFALAR:
-            if kimlik == "hub":
-                sayfa = hub.HaberSayfasi(self.hizmetler)
+            sinif_adi = SAYFA_SINIFI.get(kimlik)
+            if sinif_adi:
+                sayfa = getattr(SAYFA_MODUL[sinif_adi], sinif_adi)(self.hizmetler)
             else:
                 sayfa = TahimatSayfasi(baslik, TAHIMAT.get(kimlik, ""))
             self.yigin.addWidget(sayfa)

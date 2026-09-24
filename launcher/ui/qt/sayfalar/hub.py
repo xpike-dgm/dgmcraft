@@ -20,7 +20,7 @@ def _kisalt(metin, sinir):
     return metin[:sinir].rsplit(" ", 1)[0] + "…"
 
 
-class HaberSayfasi(QWidget):
+class HubSayfasi(QWidget):
     """Durum + RAM + oyuncu listesi. UI dışı işler arka plan iş parçacığında."""
 
     durum_hazir = Signal(str)          # HAZIR | YAYINDA | MİSAFİR | BAKIMDA
@@ -468,7 +468,9 @@ class HaberSayfasi(QWidget):
     def _kapat_is(self):
         hata = ""
         try:
-            self.h.sunucu_al().guvenli_kapat()
+            def ilerleme(metin):
+                self.h.log_kuyrugu.put("[konsol] " + str(metin))
+            self.h.sunucu_al().guvenli_kapat(ilerleme)
         except Exception as e:
             hata = str(e)
         self.kapat_sonuc.emit(hata)
