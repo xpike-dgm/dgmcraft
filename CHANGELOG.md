@@ -388,6 +388,16 @@ Otomatik kurulum geri geldi.
 
 Sihirbaz tek yola indi + Tailscale teşhisi.
 
+## [etiketsiz] - 2026-09-24
+
+Tasarım turu 2 (mühendis puanları: 625, 587).
+
+### Fixed
+- Beyaz sistem onayları kalktı; koyu tema onay penceresi (fiilli düğmeler).
+- Adım 6 tek ekrana indi: mini görsel, kod kartı + Kopyala, yan yana kod girişleri (399/450px, kaydırmasız).
+- Kaydırma çubuğu varsayılan gizli, taşınca açılıyor; erken-ölçüm исправı.
+- IP maskeli + IP'yi göster düğmesi; kayıtta ad varsa bilgi notu.
+
 ### Changed
 - Elle kurulum yazıları ekrandan kalktı; birincil düğme duruma göre Otomatik Kur / Kontrol Et / Bağlan oluyor. Başarısızlıkta mini elle-kurulum yolu hata mesajının içinde.
 - `vpn.sessiz_kur` msiexec kodunu Türkçe'ye çeviriyor (1603/1625/1618/1601).
