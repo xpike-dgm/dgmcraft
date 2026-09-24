@@ -2,7 +2,7 @@
 import threading
 
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QPushButton, QSlider,
+from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QPushButton,
                                QVBoxLayout, QWidget)
 
 from .. import tema as T
@@ -138,41 +138,26 @@ class HaberSayfasi(QWidget):
         govde.addWidget(ipucu)
         govde.addSpacing(10)
 
-        satir = QHBoxLayout()
-        satir.setContentsMargins(0, 0, 0, 0)
-        satir.setSpacing(14)
-        self.bellekKaydirici = QSlider(Qt.Horizontal)
-        self.bellekKaydirici.setFixedHeight(18)
-        self.bellekKaydirici.setRange(0, len(HEAP_SECENEKLERI) - 1)
-        self.bellekKaydirici.setSingleStep(1)
-        self.bellekKaydirici.setPageStep(1)
-        self.bellekKaydirici.setCursor(Qt.PointingHandCursor)
-        self.bellekKaydirici.valueChanged.connect(self._bellek_degisti)
-        satir.addWidget(self.bellekKaydirici, 1)
-        govde.addLayout(satir)
-
-        olcek = QHBoxLayout()
-        olcek.setContentsMargins(4, 0, 4, 0)
-        self.bellekEtiketler = []
-        hizalamalar = [Qt.AlignLeft, Qt.AlignCenter, Qt.AlignCenter, Qt.AlignRight]
-        for i, gb in enumerate(HEAP_SECENEKLERI):
-            lb = QLabel("%dG" % gb)
-            lb.setAlignment(hizalamalar[i % len(hizalamalar)] | Qt.AlignVCenter)
-            lb.setObjectName("kucuk")
-            self.bellekEtiketler.append(lb)
-            olcek.addWidget(lb, 1)
-        govde.addLayout(olcek)
-        govde.addSpacing(4)
+        self.bellekKaydirici = Y.BellekKaydirici(
+            ["%dG" % gb for gb in HEAP_SECENEKLERI],
+            HEAP_SECENEKLERI.index(self.h.heap_al())
+            if self.h.heap_al() in HEAP_SECENEKLERI else 1)
+        self.bellekKaydirici.deger_degisti.connect(self._bellek_degisti)
+        govde.addWidget(self.bellekKaydirici)
+        govde.addSpacing(2)
 
         not_ = QLabel("Sonraki başlatmada geçerli olur.")
         not_.setObjectName("minik")
         govde.addWidget(not_)
-
-        secili = self.h.heap_al()
-        if secili in HEAP_SECENEKLERI:
-            self.bellekKaydirici.setValue(HEAP_SECENEKLERI.index(secili))
-        self._bellek_etiket_guncelle(self.bellekKaydirici.value())
         return kart
+
+    def _bellek_degisti(self, deger):
+        deger = max(0, min(len(HEAP_SECENEKLERI) - 1, int(deger)))
+        self.bellekRozet.setText("%dG" % HEAP_SECENEKLERI[deger])
+        try:
+            self.h.heap_kaydet(HEAP_SECENEKLERI[deger])
+        except Exception:
+            pass
 
     def _bilgi_kart(self):
         kart = self._kart()
@@ -213,16 +198,10 @@ class HaberSayfasi(QWidget):
     def _bellek_degisti(self, deger):
         deger = max(0, min(len(HEAP_SECENEKLERI) - 1, int(deger)))
         self.bellekRozet.setText("%dG" % HEAP_SECENEKLERI[deger])
-        self._bellek_etiket_guncelle(deger)
         try:
             self.h.heap_kaydet(HEAP_SECENEKLERI[deger])
         except Exception:
             pass
-
-    def _bellek_etiket_guncelle(self, deger):
-        for i, lb in enumerate(self.bellekEtiketler):
-            lb.setStyleSheet("color: %s; font-size: 11px;" % (
-                T.YAZI if i == deger else T.SILIK))
 
     # ---------- haber kartı ----------
     def _haber_kart(self):

@@ -1,11 +1,11 @@
 """PySide6 yardımcı parçaları: pixmap yükleme, gölge, gradyan çerçeve, rozet."""
 import os
 
-from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtCore import QPointF, QRectF, Qt, Signal
 from PySide6.QtGui import (QBrush, QColor, QLinearGradient, QPainter, QPen, QPixmap,
                            QRadialGradient)
 from PySide6.QtWidgets import (QFrame, QGraphicsDropShadowEffect, QHBoxLayout, QLabel,
-                               QPushButton)
+                               QPushButton, QWidget)
 
 from . import ikonlar
 from . import tema as T
@@ -257,6 +257,80 @@ class BaslikCubugu(QFrame):
 
     def mouseDoubleClickEvent(self, olay):
         self.window().showMinimized()
+
+
+class BellekKaydirici(QWidget):
+    """Duraklı seçim (2G/3G/4G/6G). Groove, tutamak ve etiketler birlikte
+    çizilir; böylece etiket her zaman tutamacın tam altında durur.
+    Qt stil motorunun ölçümlerine bağlı kalmaz."""
+
+    deger_degisti = Signal(int)
+
+    def __init__(self, degerler, baslangic=0, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.degerler = list(degerler)
+        self._adet = len(self.degerler)
+        self._secil = max(0, min(self._adet - 1, int(baslangic)))
+        self.setFixedHeight(42)
+        self.setMouseTracking(True)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setMinimumWidth(180)
+
+    def value(self):
+        return self._secil
+
+    def set_value(self, v, bildir=True):
+        v = max(0, min(self._adet - 1, int(v)))
+        if v == self._secil:
+            return
+        self._secil = v
+        self.update()
+        if bildir:
+            self.deger_degisti.emit(v)
+
+    def _nokta(self, i):
+        if self._adet <= 1:
+            return self.width() / 2.0
+        return 9.0 + i * ((self.width() - 18.0) / (self._adet - 1))
+
+    def _en_yakin(self, x):
+        if self._adet <= 1:
+            return 0
+        adim = (self.width() - 18.0) / (self._adet - 1)
+        return max(0, min(self._adet - 1, int(round((x - 9.0) / adim))))
+
+    def mousePressEvent(self, olay):
+        if olay.button() == Qt.LeftButton:
+            self.set_value(self._en_yakin(olay.position().x()))
+
+    def mouseMoveEvent(self, olay):
+        if olay.buttons() & Qt.LeftButton:
+            self.set_value(self._en_yakin(olay.position().x()))
+
+    def paintEvent(self, _olay):
+        boya = QPainter(self)
+        boya.setRenderHint(QPainter.Antialiasing, True)
+        y = 9.0
+        sol, sag = self._nokta(0), self._nokta(self._adet - 1)
+        boya.setPen(Qt.NoPen)
+        boya.setBrush(QColor("#2A3530"))
+        boya.drawRoundedRect(QRectF(sol - 1, y - 2, (sag - sol) + 2, 4), 2, 2)
+        if self._secil > 0:
+            boya.setBrush(QColor(T.VURGU))
+            boya.drawRoundedRect(
+                QRectF(sol - 1, y - 2, self._nokta(self._secil) - sol + 1, 4), 2, 2)
+        boya.setFont(self.font())
+        for i, metin in enumerate(self.degerler):
+            x = self._nokta(i)
+            kutu = QRectF(x - 28, y + 10, 56, 16)
+            if i == self._secil:
+                boya.setBrush(QColor(T.VURGU_HOVER if self.underMouse() else T.VURGU))
+                boya.drawEllipse(QPointF(x, y), 8, 8)
+                boya.setPen(QColor("#EDF2F0"))
+            else:
+                boya.setPen(QColor("#6E7F76"))
+            boya.drawText(kutu, Qt.AlignCenter, metin)
+        boya.end()
 
 
 def rozet(ebeveyn, metin, renk, nokta=True):

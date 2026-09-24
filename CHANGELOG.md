@@ -422,6 +422,15 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-24
 
+Bellek seçici düzeltmesi.
+
+### Fixed
+- RAM seçicisinde etiketler (2G/3G/4G/6G) tutamacın tam altında durmuyordu; tutamak görünür oyunda tam genişlikte gezinmediği için kayma oluyordu.
+- Seçici artık groove, tutamak ve etiketleri birlikte çiziyor (Qt stil ölçümlerine bağlı değil), hizalama birebir.
+- Seçili değerin etiketi beyaz, diğerleri soluk; sürükleme de her durakta duruyor.
+
+## [etiketsiz] - 2026-09-24
+
 PySide6 kabuk: kendi başlık çubuğu + yeni ray tasarımı.
 
 ### Added
