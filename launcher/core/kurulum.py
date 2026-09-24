@@ -133,7 +133,12 @@ def kopyala(kaynak, hedef, ilerleme=None):
 
 
 def kisayol_olustur(hedef_exe):
-    """Masaüstü + Başlat menüsü kısayolu. Dönen: oluşturulan sayısı."""
+    """Masaüstü + Başlat menüsü kısayolu (uygulama ikonlu). Dönen: oluşturulan sayısı."""
+    try:
+        from core import assets as _A
+        ikon = _A.sabit_ikon_yolu(os.path.dirname(hedef_exe))
+    except Exception:
+        ikon = ""
     ok = 0
     for klasor in (os.path.join(os.path.expanduser("~"), "Desktop"),
                    os.path.join(os.environ.get("APPDATA", ""), "Microsoft", "Windows", "Start Menu", "Programs")):
@@ -141,13 +146,15 @@ def kisayol_olustur(hedef_exe):
         try:
             if not os.path.isdir(klasor):
                 continue
-            komut = (
-                "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('%s');"
-                "$s.TargetPath='%s';$s.WorkingDirectory='%s';$s.Save()"
-                % (lnk.replace("'", "''"), hedef_exe.replace("'", "''"),
-                   os.path.dirname(hedef_exe).replace("'", "''"))
-            )
-            pr = subprocess.run(["powershell", "-NoProfile", "-Command", komut],
+            parcalar = [
+                "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('%s');" % lnk.replace("'", "''"),
+                "$s.TargetPath='%s';" % hedef_exe.replace("'", "''"),
+                "$s.WorkingDirectory='%s';" % os.path.dirname(hedef_exe).replace("'", "''"),
+            ]
+            if ikon and os.path.isfile(ikon):
+                parcalar.append("$s.IconLocation='%s';" % ikon.replace("'", "''"))
+            parcalar.append("$s.Save()")
+            pr = subprocess.run(["powershell", "-NoProfile", "-Command", "".join(parcalar)],
                                 capture_output=True, timeout=60)
             if pr.returncode == 0 and os.path.isfile(lnk):
                 ok += 1

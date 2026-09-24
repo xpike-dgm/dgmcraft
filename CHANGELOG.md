@@ -368,6 +368,18 @@ Ayarlar penceresi taşması + exe güncelleyici düzeltmesi.
 - Ayarlar artık kaydırmalı (fare tekerleği destekli); alanlar alta kesilmiyor.
 - Üst barda "Kapalı" iki kez yazıyordu; rozet nokta göstergesine indi.
 
+## [0.24.0] - 2026-09-24
+
+Görsel asset güncellemesi (marka paketi).
+
+### Added
+- `launcher/assets/` (20 dosya, 1.6 MB): logo, ikon, splash, sihirbaz adımları, durum illüstrasyonları (`scripts/uret-launcher-asset.py` ile yeniden üretilebilir).
+- Splash ekranı (logo + ilerleme + sürüm), header logosu, çalıştı/durdu görseli, pencere ikonları (ICO).
+- Sihirbaz adım görselleri, güncelleme dialogu illüstrasyonu, kurulum ikonu.
+- Kısayollar artık uygulama ikonunu taşıyor.
+- Exe ikonu + asset paketi derlemeye dahil (build scriptleri güncellendi).
+- Site tarafı için `DgmCraft-Site-Drop/` (74 dosya + MANIFEST, repo dışı).
+
 ## [0.22.4] - 2026-09-24
 
 Exe yerinde güncelleme (klasör çöplüğü bitti).

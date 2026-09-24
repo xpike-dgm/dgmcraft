@@ -7,6 +7,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
 from core import kurulum as K
+from core import assets
 from ui import theme as TEMA
 
 
@@ -23,12 +24,17 @@ class KurulumPenceresi(tk.Tk):
             self.geometry("560x560")
         self.resizable(False, False)
         TEMA.uygula(self)
+        assets.ikon_pencere(self)
         self.sonuc = "vazgecti"
         self._kuyruk = queue.Queue()
         self._mesgul = False
         dis = tk.Frame(self, bg=TEMA.BG)
         dis.pack(fill="both", expand=True, padx=36, pady=28)
-        tk.Label(dis, text="📦", font=("Segoe UI", 44), bg=TEMA.BG).pack(pady=(6, 4))
+        self._ikon_img = assets.foto("brand", "app-icon-128.png")
+        if self._ikon_img:
+            tk.Label(dis, image=self._ikon_img, bg=TEMA.BG).pack(pady=(6, 4))
+        else:
+            tk.Label(dis, text="📦", font=("Segoe UI", 44), bg=TEMA.BG).pack(pady=(6, 4))
         tk.Label(dis, text="DgmCraft kuruluyor", font=("Segoe UI", 22, "bold"),
                  bg=TEMA.BG, fg=TEMA.YAZI).pack()
         tk.Label(dis, text="Tek seferlik. Dosyalar AppData'ya kopyalanıyor, Masaüstüne kısayol konuyor.",

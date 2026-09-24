@@ -4,7 +4,7 @@ import queue
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
-from core import store, vpn, esitleme
+from core import store, vpn, esitleme, assets
 from ui import texts as T
 from ui import theme as TEMA
 
@@ -20,6 +20,7 @@ class Wizard(tk.Toplevel):
         self.geometry("640x660")
         self.resizable(False, False)
         TEMA.uygula(self)
+        assets.ikon_pencere(self)
         self.kok = sunucu_koku
         self.ayar = ayar
         self.sync = sync_yoneticisi
@@ -55,20 +56,28 @@ class Wizard(tk.Toplevel):
         self.adim_sayisi_var = tk.StringVar(value="")
         tk.Label(ust, textvariable=self.adim_sayisi_var, font=TEMA.FONT_KUCUK,
                  bg=TEMA.BG, fg=TEMA.SOLUK).pack(anchor="w")
-        baslik_satir = tk.Frame(ust, bg=TEMA.BG)
-        baslik_satir.pack(fill="x", pady=(2, 10))
-        self.hero_var = tk.StringVar(value="")
-        tk.Label(baslik_satir, textvariable=self.hero_var, font=("Segoe UI", 34),
-                 bg=TEMA.BG).pack(side="left", padx=(0, 12))
         self.adim_baslik_var = tk.StringVar(value="")
-        tk.Label(baslik_satir, textvariable=self.adim_baslik_var, font=FONT_ADIM_BASLIK,
-                 bg=TEMA.BG, fg=TEMA.YAZI).pack(side="left")
+        tk.Label(ust, textvariable=self.adim_baslik_var, font=FONT_ADIM_BASLIK,
+                 bg=TEMA.BG, fg=TEMA.YAZI).pack(anchor="w", pady=(2, 10))
+        self.adim_artlar = ["step-welcome", "step-name", "step-key", "step-sync",
+                            "step-vpn", "step-friends", "step-ready"]
         self.bar = ttk.Progressbar(ust, maximum=100, length=560,
                                    style="Amber.Horizontal.TProgressbar")
         self.bar.pack(fill="x", pady=(0, 6))
-        # Orta: adım içeriği
-        self.icerik = tk.Frame(self, bg=TEMA.BG)
-        self.icerik.pack(fill="both", expand=True, padx=32, pady=12)
+        # Orta: adım içeriği (kaydırmalı, uzun adımlar taşmaz)
+        self.icerik_kutu = tk.Frame(self, bg=TEMA.BG)
+        self.icerik_kutu.pack(fill="both", expand=True, padx=32, pady=12)
+        self._icerik_canvas = tk.Canvas(self.icerik_kutu, bg=TEMA.BG, highlightthickness=0)
+        self._icerik_kaydir = ttk.Scrollbar(self.icerik_kutu, orient="vertical",
+                                            command=self._icerik_canvas.yview)
+        self._icerik_canvas.configure(yscrollcommand=self._icerik_kaydir.set)
+        self.icerik = tk.Frame(self._icerik_canvas, bg=TEMA.BG)
+        self._icerik_pencere = self._icerik_canvas.create_window((0, 0), window=self.icerik, anchor="nw")
+        self.icerik.bind("<Configure>", lambda e: self._icerik_canvas.configure(scrollregion=self._icerik_canvas.bbox("all")))
+        self._icerik_canvas.bind("<Configure>", lambda e: self._icerik_canvas.itemconfigure(self._icerik_pencere, width=e.width))
+        self._icerik_canvas.pack(side="left", fill="both", expand=True)
+        self._icerik_kaydir.pack(side="right", fill="y")
+        self.bind_all("<MouseWheel>", self._icerik_tekerlek, add="+")
         # Alt: gezinme
         alt = tk.Frame(self, bg=TEMA.BG)
         alt.pack(fill="x", padx=32, pady=(0, 24))
@@ -77,7 +86,6 @@ class Wizard(tk.Toplevel):
         self.birincil_btn = ttk.Button(alt, text="Başla →", command=self._birincil_bas, style="Primary.TButton")
         self.birincil_btn.pack(side="right")
         self.mesgul_bar = ttk.Progressbar(self, mode="indeterminate", style="Amber.Horizontal.TProgressbar")
-        self.hero_ikonlar = ["👋", "🏷️", "🔑", "📁", "🛡️", "👥", "🚀"]
         self.after(150, self._ui_pompa)
         # Çarpı her zaman çalışır: ilk kurulumda sessiz çıkış (bir dahaki
         # açılışta sihirbaz yine gelir), sonradan açıldıysa bir şey kaydedilmez.
@@ -109,7 +117,20 @@ class Wizard(tk.Toplevel):
         except Exception:
             pass
 
+    def _icerik_tekerlek(self, event):
+        try:
+            self._icerik_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        except Exception:
+            pass
+
+    def _tekerlek_temizle(self):
+        try:
+            self.unbind_all("<MouseWheel>")
+        except Exception:
+            pass
+
     def _vazgec_kapat(self):
+        self._tekerlek_temizle()
         try:
             self.destroy()
         except Exception:
@@ -125,6 +146,14 @@ class Wizard(tk.Toplevel):
                 w.destroy()
             except Exception:
                 pass
+        # Adım görseli (yoksa sessiz geçilir, düzen bozulmaz).
+        try:
+            art = self.adim_artlar[self.adim % len(self.adim_artlar)]
+            self._art_img = assets.foto("wizard", art + ".png")
+            if self._art_img:
+                tk.Label(self.icerik, image=self._art_img, bg=TEMA.BG).pack(anchor="w", pady=(0, 8))
+        except Exception:
+            pass
 
     def _govde(self, metin):
         tk.Label(self.icerik, text=metin, font=FONT_GOVDE, bg=TEMA.BG,
@@ -153,10 +182,6 @@ class Wizard(tk.Toplevel):
         baslik, kurucu = self.adimlar[self.adim]
         self.adim_sayisi_var.set("ADIM %d / %d" % (self.adim + 1, len(self.adimlar)))
         self.adim_baslik_var.set(baslik)
-        try:
-            self.hero_var.set(self.hero_ikonlar[self.adim % len(self.hero_ikonlar)])
-        except Exception:
-            pass
         try:
             self.bar.configure(value=100 * (self.adim + 1) / len(self.adimlar))
         except Exception:
@@ -595,6 +620,7 @@ class Wizard(tk.Toplevel):
             yeni_kok = store.sunucu_kokunu_bul()
         except Exception:
             yeni_kok = self.kok
+        self._tekerlek_temizle()
         self.destroy()
         try:
             self.bitince(yeni_kok)

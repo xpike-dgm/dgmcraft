@@ -7,7 +7,7 @@ from tkinter import ttk, messagebox, simpledialog
 import webbrowser
 import os
 import subprocess
-from core import store, sunucu, kilit, esitleme, vpn, site, version, bootstrap, guncelleme
+from core import store, sunucu, kilit, esitleme, vpn, site, version, bootstrap, guncelleme, assets
 from core import ai as YARDIMCI
 from core import constants as C
 from core import paths as P
@@ -19,6 +19,7 @@ class AnaPencere(tk.Tk):
     def __init__(self, sunucu_koku, ayar):
         super().__init__()
         self.title("DgmCraft Sunucu Başlatıcı")
+        assets.ikon_pencere(self)
         try:
             w, h = 980, 700
             x = (self.winfo_screenwidth() - w) // 2
@@ -60,14 +61,27 @@ class AnaPencere(tk.Tk):
         sol.pack(side="left", padx=16, pady=12)
         logo = tk.Frame(sol, bg=TEMA.PANEL)
         logo.pack(anchor="w")
-        tk.Label(logo, text="DGM", font=TEMA.FONT_BASLIK, bg=TEMA.PANEL, fg=TEMA.YAZI).pack(side="left")
-        tk.Label(logo, text="CRAFT", font=TEMA.FONT_BASLIK, bg=TEMA.PANEL, fg=TEMA.AMBER).pack(side="left")
+        self._logo_img = assets.foto("brand", "logo-horizontal-h40.png")
+        if self._logo_img:
+            tk.Label(logo, image=self._logo_img, bg=TEMA.PANEL).pack(side="left")
+        else:
+            tk.Label(logo, text="DGM", font=TEMA.FONT_BASLIK, bg=TEMA.PANEL, fg=TEMA.YAZI).pack(side="left")
+            tk.Label(logo, text="CRAFT", font=TEMA.FONT_BASLIK, bg=TEMA.PANEL, fg=TEMA.AMBER).pack(side="left")
         tk.Label(sol, text="Sunucu Başlatıcı", font=TEMA.FONT_KUCUK, bg=TEMA.PANEL, fg=TEMA.SOLUK).pack(anchor="w")
+        self._img_running = assets.foto("illustrations", "server-running-40.png")
+        self._img_stopped = assets.foto("illustrations", "server-stopped-40.png")
         sag = tk.Frame(head, bg=TEMA.PANEL)
         sag.pack(side="right", padx=16, pady=12)
         self.nokta_lbl = tk.Label(sag, text="●", font=("Segoe UI", 16), bg=TEMA.PANEL, fg=TEMA.SOLUK2)
         self.nokta_lbl.pack(side="left", padx=(0, 6))
         self._nokta_acik = True
+        self.durum_img = tk.Label(sag, bg=TEMA.PANEL)
+        self.durum_img.pack(side="left", padx=(0, 6))
+        try:
+            if self._img_stopped:
+                self.durum_img.configure(image=self._img_stopped)
+        except Exception:
+            pass
         self.durum_lbl = tk.Label(sag, textvariable=self.durum_var, font=TEMA.FONT_ROZET, bg=TEMA.PANEL, fg=TEMA.YAZI)
         self.durum_lbl.pack(side="left", padx=(10, 0))
         tk.Label(sag, textvariable=self.vpn_var, font=TEMA.FONT_KUCUK, bg=TEMA.PANEL, fg=TEMA.SOLUK).pack(side="left", padx=(12, 0))
@@ -145,6 +159,14 @@ class AnaPencere(tk.Tk):
                  font=TEMA.FONT_KUCUK, bg=TEMA.BG, fg=TEMA.SOLUK2).pack(pady=(0, 10))
         self.bind("<Return>", lambda e: self._komut())
 
+    def _durum_gorsel(self, calisiyor):
+        try:
+            img = self._img_running if calisiyor else self._img_stopped
+            if img:
+                self.durum_img.configure(image=img)
+        except Exception:
+            pass
+
     def _log_temizle(self):
         try:
             self.log_alani.configure(state="normal")
@@ -152,7 +174,6 @@ class AnaPencere(tk.Tk):
             self.log_alani.configure(state="disabled")
         except Exception:
             pass
-        self.bind("<Return>", lambda e: self._komut())
 
     def _ui(self, fn, *args):
         try:
@@ -327,6 +348,7 @@ class AnaPencere(tk.Tk):
             self.baslat_btn.configure(state="disabled")
             try:
                 self.kart_durum_var.set("Bakım")
+                self._durum_gorsel(False)
             except Exception:
                 pass
             return
@@ -336,6 +358,7 @@ class AnaPencere(tk.Tk):
             self.baslat_btn.configure(state="disabled")
             try:
                 self.kart_durum_var.set("Bakım")
+                self._durum_gorsel(False)
             except Exception:
                 pass
             if surum != self._otomatik_acilan_surum:
@@ -348,6 +371,7 @@ class AnaPencere(tk.Tk):
             self.baslat_btn.configure(state="disabled")
             try:
                 self.kart_durum_var.set("Bakım")
+                self._durum_gorsel(False)
             except Exception:
                 pass
             return
@@ -360,6 +384,7 @@ class AnaPencere(tk.Tk):
             self._rozet_renk("mavi")
             try:
                 self.kart_durum_var.set("Misafir")
+                self._durum_gorsel(True)
             except Exception:
                 pass
             self.katil_var.set(T.KATIL_ADRESI.format(adres="%s:%s" % (ip, k.get("port", 25565))))
@@ -375,6 +400,7 @@ class AnaPencere(tk.Tk):
             self.baslat_btn.configure(state="normal")
             try:
                 self.kart_durum_var.set("Kapalı")
+                self._durum_gorsel(False)
             except Exception:
                 pass
         elif calisiyor:
@@ -383,6 +409,7 @@ class AnaPencere(tk.Tk):
             self.baslat_btn.configure(state="disabled")
             try:
                 self.kart_durum_var.set("Açık")
+                self._durum_gorsel(True)
             except Exception:
                 pass
 
@@ -489,6 +516,7 @@ class AnaPencere(tk.Tk):
     def _ayarlar(self):
         win = tk.Toplevel(self)
         win.title("Ayarlar")
+        assets.ikon_pencere(win)
         try:
             w, h = 600, 700
             x = (win.winfo_screenwidth() - w) // 2
@@ -784,11 +812,16 @@ class AnaPencere(tk.Tk):
             return
         win = tk.Toplevel(self)
         win.title("Güncelleme")
-        win.geometry("520x420")
+        win.geometry("520x640")
+        win.resizable(False, False)
         win.configure(bg=TEMA.BG)
         self._guncelle_penceresi = win
+        assets.ikon_pencere(win)
         ic = tk.Frame(win, bg=TEMA.BG)
         ic.pack(fill="both", expand=True, padx=24, pady=18)
+        self._img_update = assets.foto("illustrations", "update-460.png")
+        if self._img_update:
+            tk.Label(ic, image=self._img_update, bg=TEMA.BG).pack(anchor="w", pady=(0, 10))
         tk.Label(ic, text="GÜNCELLEME VAR", font=("Segoe UI", 9, "bold"), bg=TEMA.BG, fg=TEMA.AMBER_HI).pack(anchor="w")
         tk.Label(ic, text="Sürüm %s" % surum, font=("Segoe UI", 18, "bold"), bg=TEMA.BG, fg=TEMA.YAZI).pack(anchor="w", pady=(4, 8))
         if notlar:
@@ -953,6 +986,7 @@ class AnaPencere(tk.Tk):
     def _ai_yardim(self):
         win = tk.Toplevel(self)
         win.title("AI Yardım")
+        assets.ikon_pencere(win)
         win.geometry("580x540")
         win.configure(bg=TEMA.BG)
         ic = tk.Frame(win, bg=TEMA.BG)
