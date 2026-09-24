@@ -147,7 +147,7 @@ class SunucuYoneticisi:
         except queue.Full:
             pass
 
-    def baslat(self):
+    def baslat(self, heap_gb=3):
         if self.proc and self.proc.poll() is None:
             return False, "Sunucu zaten çalışıyor."
         if port_dolu_mu(C.OYUN_PORT):
@@ -161,7 +161,11 @@ class SunucuYoneticisi:
         major, _ham = java_surumu(java_yolu)
         if major != -1 and major != C.BEKLENEN_JAVA_MAJOR:
             self._yaz("[UYARI] Java sürümü %s, beklenen 25. Devam ediliyor.\n" % major)
-        cmd = [java_yolu] + C.JVM_SABIT_BAYRAKLAR + C.HEAP_BAYRAKLARI + ["-jar", "purpur.jar", C.NOGUI_BAYRAGI]
+        try:
+            heap_gb = max(1, min(16, int(heap_gb)))
+        except Exception:
+            heap_gb = 3
+        cmd = [java_yolu] + C.JVM_SABIT_BAYRAKLAR + ["-Xms%dG" % heap_gb, "-Xmx%dG" % heap_gb] + ["-jar", "purpur.jar", C.NOGUI_BAYRAGI]
         self._yaz("Çalıştırılıyor: " + " ".join(cmd) + "\n")
         try:
             self.proc = subprocess.Popen(

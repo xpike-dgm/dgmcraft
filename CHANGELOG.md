@@ -422,6 +422,16 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-24
 
+v2 F1: Hub + v2 asset paketi.
+
+### Added
+- `launcher/assets/v2/`: ray ikonları, hub hero, kategori kartları, madalyalar, boş durumlar, yetenek ikonları (45 dosya).
+- Hub: hero + başlat/kilit adı, bellek seçimi (2/3/4/6G, heap artık ayar), çevrimiçi paneli + davet kopyalama, haber akışı.
+- Ray ikonları PNG oldu (yoksa çizgi ikon).
+- Heap sabiti kalktı (`baslat(heap_gb=3)` uyumlu).
+
+## [etiketsiz] - 2026-09-24
+
 v2 kabuk cilası (ekran görüntülü tur).
 
 ### Fixed
