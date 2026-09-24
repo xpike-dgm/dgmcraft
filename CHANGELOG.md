@@ -384,6 +384,14 @@ Otomatik kurulum geri geldi.
 ### Added
 - Sihirbaz 4. ve 5. adımda "Otomatik Kur" düğmesi: Syncthing/Tailscale indirilir + kurulur (tek Windows onayı), sonra otomatik doğrulanır. Manuel yol duruyor.
 
+## [etiketsiz] - 2026-09-24
+
+Sihirbaz tek yola indi + Tailscale teşhisi.
+
+### Changed
+- Elle kurulum yazıları ekrandan kalktı; birincil düğme duruma göre Otomatik Kur / Kontrol Et / Bağlan oluyor. Başarısızlıkta mini elle-kurulum yolu hata mesajının içinde.
+- `vpn.sessiz_kur` msiexec kodunu Türkçe'ye çeviriyor (1603/1625/1618/1601).
+
 ## [0.25.1] - 2026-09-24
 
 Kurulum stub düzeltmeleri.

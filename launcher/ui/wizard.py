@@ -235,17 +235,13 @@ class Wizard(tk.Toplevel):
 
     def _adim_sync(self):
         self._govde(T.SYNC_ACIKLAMA)
-        self._not(T.OTOMATIK_KUR_ACIKLAMA)
-        ttk.Button(self.icerik, text=T.OTOMATIK_KUR, command=self._otomatik_sync_thread,
-                   style="Secondary.TButton").pack(anchor="w", pady=(6, 0))
+        self._not(T.SYNC_KURULUYOR)
         self._not(T.SYNC_KONTROL)
         self.sync_durum_var, self.sync_durum_lbl = self._durum()
 
     def _adim_vpn(self):
         self._govde(T.VPN_ACIKLAMA)
-        self._not(T.OTOMATIK_KUR_ACIKLAMA)
-        ttk.Button(self.icerik, text=T.OTOMATIK_KUR, command=self._otomatik_vpn_thread,
-                   style="Secondary.TButton").pack(anchor="w", pady=(6, 0))
+        self._not(T.VPN_KURULUYOR)
         self.vpn_durum_var, self.vpn_durum_lbl = self._durum()
         if not self.vpn_kurulu:
             self._durum_boya(self.vpn_durum_var, self.vpn_durum_lbl, "Henüz kontrol edilmedi.", "amber")
@@ -326,10 +322,18 @@ class Wizard(tk.Toplevel):
         elif self.adim in (1, 2):
             self.birincil_btn.configure(text="Devam Et →")
         elif self.adim == 3:
-            self.birincil_btn.configure(text="Devam Et →" if self.sync_ok else "Kontrol Et")
+            if self.sync_ok:
+                self.birincil_btn.configure(text="Devam Et →")
+            elif esitleme.syncthing_exe():
+                self.birincil_btn.configure(text="Kontrol Et")
+            else:
+                self.birincil_btn.configure(text="Otomatik Kur")
         elif self.adim == 4:
             if not self.vpn_kurulu:
-                self.birincil_btn.configure(text="Kontrol Et")
+                if vpn.kurulu_mu():
+                    self.birincil_btn.configure(text="Kontrol Et")
+                else:
+                    self.birincil_btn.configure(text="Otomatik Kur")
             elif self._anahtar_var() and not self.vpn_bagli:
                 self.birincil_btn.configure(text="Bağlan")
             else:
@@ -373,11 +377,16 @@ class Wizard(tk.Toplevel):
         elif self.adim == 3:
             if self.sync_ok:
                 self._ileri()
-            else:
+            elif esitleme.syncthing_exe():
                 self._kontrol_sync_thread()
+            else:
+                self._otomatik_sync_thread()
         elif self.adim == 4:
             if not self.vpn_kurulu:
-                self._kontrol_vpn_thread()
+                if vpn.kurulu_mu():
+                    self._kontrol_vpn_thread()
+                else:
+                    self._otomatik_vpn_thread()
             elif self._anahtar_var() and not self.vpn_bagli:
                 self._baglan_thread()
             else:
@@ -457,7 +466,7 @@ class Wizard(tk.Toplevel):
         except Exception as e:
             self.sync_ok = False
             self._ui(self._durum_boya, self.sync_durum_var, self.sync_durum_lbl,
-                     "Otomatik kurulum başarısız: %s. Kendin kurup Kontrol Et'e bas." % str(e)[:200], "kirmizi")
+                     "Otomatik kurulum başarısız: %s. %s" % (str(e)[:200], T.MANUEL_SYNC), "kirmizi")
             self._mesgul_kapat()
 
     def _otomatik_vpn_thread(self):
@@ -476,14 +485,15 @@ class Wizard(tk.Toplevel):
                 msi = vpn.msi_indir(esitleme.bin_dizini())
                 self._ui(self._durum_boya, self.vpn_durum_var, self.vpn_durum_lbl,
                          "Kuruluyor... (Windows onayı gelirse Evet de)", "amber")
-                if not vpn.sessiz_kur(msi):
-                    raise RuntimeError("Sessiz kurulum başarısız (UAC reddedilmiş olabilir).")
+                ok, mesaj = vpn.sessiz_kur(msi)
+                if not ok:
+                    raise RuntimeError(mesaj)
                 vpn.otomatik_baslat_ayarla()
             self._kontrol_vpn()
         except Exception as e:
             self.vpn_kurulu = False
             self._ui(self._durum_boya, self.vpn_durum_var, self.vpn_durum_lbl,
-                     "Otomatik kurulum başarısız: %s. Kendin kurup Kontrol Et'e bas." % str(e)[:200], "kirmizi")
+                     "Otomatik kurulum başarısız: %s. %s" % (str(e)[:200], T.MANUEL_VPN), "kirmizi")
             self._mesgul_kapat()
 
     def _kontrol_sync_thread(self, sessiz=False):

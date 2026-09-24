@@ -56,8 +56,32 @@ def msi_indir(hedef_klasor, ilerleme=None):
 
 
 def sessiz_kur(msi_yolu):
-    pr = subprocess.run(["msiexec", "/i", msi_yolu, "/quiet", "/norestart"], capture_output=True, timeout=300)
-    return pr.returncode == 0
+    """(basarili_mi, mesaj) döndürür. msiexec çıkış kodunu Türkçe'ye çevirir."""
+    try:
+        if os.path.getsize(msi_yolu) < 1024 * 1024:
+            return False, "İndirilen dosya bozuk (çok küçük). İnterneti kontrol edip tekrar dene."
+    except Exception:
+        return False, "Kurulum dosyası bulunamadı. Tekrar dene."
+    try:
+        pr = subprocess.run(["msiexec", "/i", msi_yolu, "/quiet", "/norestart"],
+                            capture_output=True, text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        return False, "Kurulum zaman aşımına uğradı. Bilgisayarı yeniden başlatıp tekrar dene."
+    except FileNotFoundError:
+        return False, "msiexec bulunamadı (Windows sorunu)."
+    kod = pr.returncode
+    if kod == 0:
+        return True, "Kuruldu."
+    if kod == 1603:
+        return False, "Kurulum yarıda kaldı (1603): Windows onayı 'Hayır' denmiş ya da başka kurulum çakışmış olabilir."
+    if kod == 1625:
+        return False, "Sistem kurulumu engelliyor (1625): yönetici politikası."
+    if kod == 1618:
+        return False, "Başka bir kurulum sürüyor (1618): bitince tekrar dene."
+    if kod == 1601:
+        return False, "Windows kurulum servisi çalışmıyor (1601): bilgisayarı yeniden başlatıp dene."
+    cikti = ((pr.stdout or "") + (pr.stderr or "")).strip().replace("\n", " ")
+    return False, "Kurulum hatası (kod %s). %s" % (kod, cikti[:200] if cikti else "Detay yok.")
 
 
 def baglan(preauth_key, host_adi=""):
