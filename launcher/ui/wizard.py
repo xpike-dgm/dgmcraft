@@ -178,6 +178,7 @@ class Wizard(tk.Toplevel):
             m.title(baslik)
             m.configure(bg="#101615")
             m.resizable(False, False)
+            assets.ikon_pencere(m)
             m.transient(self)
             try:
                 m.grab_set()
