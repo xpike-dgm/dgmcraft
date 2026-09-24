@@ -2,6 +2,11 @@
 
 Teknoloji: Python 3.12 + Tkinter (stdlib) + PyInstaller. Harici pip paketi yok. Arayüz `ui/theme.py` içinde (siteyle aynı dil: warm-dark + amber, saf siyah yok).
 
+## Bootstrapper (arkadaş yolu)
+- `launcher/stub/kurulum_stub.py` tek dosya derlenir (`DgmCraft-Kurulum.exe`): latest zip + SHA256 indirir, doğrular, AppData'ya kurar, kısayol koyar, başlatır.
+- Yarım/bozuk indirme çöpe atılır, doğrulamasız paket çalıştırılmaz.
+- Release'te 3 dosya olur: `DgmCraft-windows.zip`, `.sha256`, `DgmCraft-Kurulum.exe`.
+
 ## AI Yardım (sınırlı)
 - Komut satırındaki "AI Yardım" düğmesi: sorunu yazarsın, durum özeti + son konsol ile birlikte ucuz modele sorar, Türkçe teşhis verir.
 - AI komut çalıştırmaz, dosya yazmaz, ayar değiştirmez.

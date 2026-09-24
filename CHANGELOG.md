@@ -368,6 +368,15 @@ Ayarlar penceresi taşması + exe güncelleyici düzeltmesi.
 - Ayarlar artık kaydırmalı (fare tekerleği destekli); alanlar alta kesilmiyor.
 - Üst barda "Kapalı" iki kez yazıyordu; rozet nokta göstergesine indi.
 
+## [0.25.0] - 2026-09-24
+
+Bootstrapper: tek dosyalık kurulum exe'si.
+
+### Added
+- `DgmCraft-Kurulum.exe`: latest paketi indirir, SHA256 ile doğrular, AppData'ya kurar, kısayol koyar, başlatır.
+- Release'te artık 3 dosya: zip + `.sha256` + kurulum exe'si.
+- Bozuk/yarım indirme çalıştırılmaz; eski sürümlerde sha yoksa kurulum reddedilir.
+
 ## [0.24.0] - 2026-09-24
 
 Görsel asset güncellemesi (marka paketi).

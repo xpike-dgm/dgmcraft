@@ -41,11 +41,17 @@ def son_surum(repo, timeout=15):
         raise ValueError("Sürüm bilgisi okunamadı.")
     asset_url = ""
     try:
-        for a in (veri.get("assets") or []):
-            ad = (a.get("name") or "").lower()
-            if ad.endswith(".zip") and a.get("browser_download_url"):
+        varliklar = veri.get("assets") or []
+        for a in varliklar:
+            if (a.get("name") or "") == "DgmCraft-windows.zip" and a.get("browser_download_url"):
                 asset_url = a["browser_download_url"]
                 break
+        if not asset_url:
+            for a in varliklar:
+                ad = (a.get("name") or "").lower()
+                if ad.endswith(".zip") and a.get("browser_download_url"):
+                    asset_url = a["browser_download_url"]
+                    break
     except Exception:
         pass
     return tag, (veri.get("body") or ""), veri.get("zipball_url", ""), asset_url
