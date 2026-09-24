@@ -526,21 +526,30 @@ class AnaPencere(tk.Tk):
             win.geometry("600x700")
         win.resizable(False, False)
         win.configure(bg=TEMA.BG)
-        canvas = tk.Canvas(win, bg=TEMA.BG, highlightthickness=0)
-        kaydir = ttk.Scrollbar(win, orient="vertical", command=canvas.yview)
+        govde_dis = tk.Frame(win, bg=TEMA.BG)
+        govde_dis.pack(fill="both", expand=True)
+        canvas = tk.Canvas(govde_dis, bg=TEMA.BG, highlightthickness=0)
+        kaydir = ttk.Scrollbar(govde_dis, orient="vertical", command=canvas.yview)
         canvas.configure(yscrollcommand=kaydir.set)
         kaydir.pack(side="right", fill="y")
         canvas.pack(side="left", fill="both", expand=True)
         ic = tk.Frame(canvas, bg=TEMA.BG)
-        canvas.create_window((0, 0), window=ic, anchor="nw", width=440)
+        pencere_id = canvas.create_window((0, 0), window=ic, anchor="nw")
 
         def _bolge(event=None):
             try:
+                canvas.itemconfigure(pencere_id, width=canvas.winfo_width())
                 canvas.configure(scrollregion=canvas.bbox("all"))
+                kutu = canvas.bbox("all") or (0, 0, 0, 0)
+                if (kutu[3] - kutu[1]) > canvas.winfo_height():
+                    kaydir.pack(side="right", fill="y")
+                else:
+                    kaydir.pack_forget()
             except Exception:
                 pass
 
         ic.bind("<Configure>", _bolge)
+        canvas.bind("<Configure>", _bolge)
 
         def _tekerlek(event):
             try:
@@ -562,16 +571,26 @@ class AnaPencere(tk.Tk):
 
         win.protocol("WM_DELETE_WINDOW", _kapat)
 
-        def kart(baslik):
+        def kart(baslik, rozet=None):
             k = tk.Frame(ic, bg=TEMA.KART, highlightthickness=1, highlightbackground=TEMA.BORDER_YUMUSAK)
             k.pack(fill="x", pady=(0, 10))
-            tk.Label(k, text=baslik.upper(), font=("Segoe UI", 8, "bold"), bg=TEMA.KART, fg=TEMA.SOLUK2).pack(anchor="w", padx=12, pady=(10, 4))
+            bas = tk.Frame(k, bg=TEMA.KART)
+            bas.pack(fill="x", padx=12, pady=(10, 4))
+            tk.Label(bas, text=baslik.upper(), font=("Segoe UI", 8, "bold"), bg=TEMA.KART, fg=TEMA.SOLUK2).pack(side="left")
+            rozet_lbl = None
+            if rozet:
+                rozet_lbl = tk.Label(bas, text=rozet[0], font=("Segoe UI", 8, "bold"), bg=rozet[1], fg=rozet[2])
+                rozet_lbl.pack(side="left", padx=(8, 0))
             govde = tk.Frame(k, bg=TEMA.KART)
             govde.pack(fill="x", padx=12, pady=(0, 12))
-            return govde
+            return govde, rozet_lbl
+
+        def not_satir(parent, metin):
+            tk.Label(parent, text=metin, font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.SOLUK,
+                     wraplength=480, justify="left").pack(anchor="w", pady=(6, 0))
 
         # Profil
-        g = kart("Profil")
+        g, _ = kart("Profil")
         satir = tk.Frame(g, bg=TEMA.KART)
         satir.pack(fill="x")
         sol = tk.Frame(satir, bg=TEMA.KART)
@@ -586,64 +605,166 @@ class AnaPencere(tk.Tk):
         port_var = tk.StringVar(value=str(self.ayar.get("sitePort", 8000)))
         e_port = TEMA.giris(sagc, textvariable=port_var, width=12)
         e_port.pack(ipady=5)
+        not_satir(g, "Genelde 8000. Port 1024-65535 arası olmalı.")
+        port_hata_var = tk.StringVar(value="")
+        tk.Label(g, textvariable=port_hata_var, font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.KIRMIZI,
+                 wraplength=480, justify="left").pack(anchor="w")
         # Yapay zeka
-        g = kart("Yapay zeka")
         try:
             ai_kayitli = bool(store.ai_anahtar_oku())
         except Exception:
             ai_kayitli = False
-        tk.Label(g, text="AI anahtarı" + (" (kayıtlı anahtar var)" if ai_kayitli else ""),
+        g, ai_rozet = kart("Yapay zeka", ("KAYITLI ✓" if ai_kayitli else "KAYITLI DEĞİL",
+                                          "#12261C" if ai_kayitli else "#2A2007",
+                                          TEMA.YESIL if ai_kayitli else TEMA.AMBER_HI))
+        tk.Label(g, text="AI anahtarı (zorunlu değil — boş bırakılabilir)",
                  font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 2))
+        ai_satir = tk.Frame(g, bg=TEMA.KART)
+        ai_satir.pack(fill="x")
         ai_var = tk.StringVar(value="")
-        ai_giris = TEMA.giris(g, textvariable=ai_var)
-        ai_giris.pack(fill="x", ipady=5)
+        ai_giris = TEMA.giris(ai_satir, textvariable=ai_var)
+        ai_giris.pack(side="left", fill="x", expand=True, padx=(0, 8), ipady=5)
         try:
             ai_giris.configure(show="*")
         except Exception:
             pass
+
+        def _ai_goster_degistir():
+            try:
+                gizli = ai_giris.cget("show") == "*"
+                ai_giris.configure(show="" if gizli else "*")
+                ai_goster_btn.configure(text="Gizle" if gizli else "Göster")
+            except Exception:
+                pass
+
+        ai_goster_btn = ttk.Button(ai_satir, text="Göster", command=_ai_goster_degistir, style="Secondary.TButton")
+        ai_goster_btn.pack(side="left", padx=(0, 8))
+
+        def _ai_temizle():
+            try:
+                ai_var.set("")
+                try:
+                    os.remove(store.ai_anahtar_dosyasi())
+                except Exception:
+                    pass
+                ai_rozet.configure(text="KAYITLI DEĞİL", bg="#2A2007", fg=TEMA.AMBER_HI)
+            except Exception:
+                pass
+
+        ttk.Button(ai_satir, text="Temizle", command=_ai_temizle, style="Secondary.TButton").pack(side="left")
+        not_satir(g, "AI Yardım düğmesi için gerekir. Boş bırakırsan eski anahtar korunur, sunucu yine çalışır.")
         # Bağlantı
-        g = kart("Bağlantı")
+        g, _ = kart("Bağlantı")
+        vpn_rozet_var = tk.StringVar(value="VPN: denetleniyor...")
+        vpn_rozet = tk.Label(g, textvariable=vpn_rozet_var, font=("Segoe UI", 8, "bold"),
+                             bg=TEMA.KART, fg=TEMA.SOLUK)
+        vpn_rozet.pack(anchor="w", pady=(0, 6))
         satir2 = tk.Frame(g, bg=TEMA.KART)
         satir2.pack(fill="x", pady=(4, 0))
         ttk.Button(satir2, text="VPN Bağlan", command=self._vpn_baglan, style="Secondary.TButton").pack(side="left", padx=(0, 8))
         ttk.Button(satir2, text="Kurulum Sihirbazı", command=self._sihirbaz_ac, style="Secondary.TButton").pack(side="left")
-        tk.Label(g, text="VPN anahtarı kurulumda saklanır; yoksa sihirbazdan eklenir.",
-                 font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.SOLUK).pack(anchor="w", pady=(6, 0))
+        not_satir(g, "VPN anahtarı kurulumda saklanır; yoksa sihirbazdan eklenir.")
+
+        def _vpn_rozet_guncelle():
+            try:
+                bagli, ip, _b = vpn.bagli_mi()
+            except Exception:
+                bagli, ip = False, ""
+            def _uygula():
+                try:
+                    if bagli:
+                        vpn_rozet_var.set("VPN: BAĞLI")
+                        vpn_rozet.configure(bg="#12261C", fg=TEMA.YESIL)
+                    else:
+                        vpn_rozet_var.set("VPN: BAĞLI DEĞİL")
+                        vpn_rozet.configure(bg="#2A2007", fg=TEMA.AMBER_HI)
+                except Exception:
+                    pass
+            self._ui(_uygula)
+
+        threading.Thread(target=_vpn_rozet_guncelle, daemon=True).start()
         # Güncelleme
-        g = kart("Güncelleme")
-        tk.Label(g, text="GitHub repo (boşsa denetim kapalı)",
+        g, _ = kart("Güncelleme")
+        tk.Label(g, text="GitHub repo",
                  font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 2))
         repo_var = tk.StringVar(value=self.ayar.get("githubRepo", ""))
-        TEMA.giris(g, textvariable=repo_var).pack(fill="x", ipady=5)
+        repo_giris = TEMA.giris(g, textvariable=repo_var)
+        repo_giris.pack(fill="x", ipady=5)
+        if not repo_var.get().strip():
+            try:
+                repo_giris.configure(fg="#6B7280")
+                repo_giris.delete(0, "end")
+                repo_giris.insert(0, "örn. kullaniciadi/dgmcraft")
+                repo_giris.bind("<FocusIn>", lambda e: (repo_giris.delete(0, "end"), repo_giris.configure(fg=TEMA.YAZI)) if repo_giris.get() == "örn. kullaniciadi/dgmcraft" else None, add="+")
+            except Exception:
+                pass
+        self._ayar_repo_var = repo_var
+        repo_hata_var = tk.StringVar(value="")
+        tk.Label(g, textvariable=repo_hata_var, font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.KIRMIZI,
+                 wraplength=480, justify="left").pack(anchor="w")
         try:
-            tk.Label(g, text="Yüklü launcher: %s" % C.PAKET_SURUMU,
+            surum_metni = self.ayar.get("launcherSurumu", "") or C.PAKET_SURUMU
+            tk.Label(g, text="Yüklü: %s" % surum_metni,
                      font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.SOLUK).pack(anchor="w", pady=(6, 0))
         except Exception:
             pass
-        ttk.Button(g, text="Güncellemeleri Denetle", command=self._guncelleme_denetle, style="Secondary.TButton").pack(anchor="w", pady=(8, 0))
-        # Sahip
-        g = kart("Sahip")
-        try:
-            vs = version.oku()
-            tk.Label(g, text="Sunucu sürümü: %s%s" % (vs.get("surum", "?"), " (hazırlanıyor)" if vs.get("guncelleniyor") else ""),
-                     font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 6))
-        except Exception:
-            pass
-        satir3 = tk.Frame(g, bg=TEMA.KART)
-        satir3.pack(fill="x")
-        ttk.Button(satir3, text="Klasörü Aç", command=self._klasor_ac, style="Secondary.TButton").pack(side="left", padx=(0, 8))
-        ttk.Button(satir3, text="Güncelleme Yayınla", command=self._guncelleme_yayinla, style="Secondary.TButton").pack(side="left", padx=(0, 8))
-        ttk.Button(satir3, text="Bitir", command=self._guncelleme_bitir, style="Secondary.TButton").pack(side="left")
-        ttk.Button(satir3, text="Kaldır (uygulama)", command=self._kaldir, style="Danger.TButton").pack(side="left", padx=(8, 0))
+        denetle_btn = ttk.Button(g, text="Güncellemeleri Denetle", command=self._guncelleme_denetle, style="Secondary.TButton")
+        denetle_btn.pack(anchor="w", pady=(8, 0))
 
-        def kaydet_kapat():
+        def _repo_izle(*a):
             try:
-                self.ayar["sitePort"] = int(port_var.get().strip())
+                bos = not repo_var.get().strip() or repo_var.get().strip() == "örn. kullaniciadi/dgmcraft"
+                denetle_btn.configure(state="disabled" if bos else "normal")
+                repo_hata_var.set("Denetlemek için önce repo yaz." if bos else "")
             except Exception:
                 pass
-            self.ayar["kullaniciAdi"] = ad_var.get().strip()
+
+        try:
+            repo_var.trace_add("write", _repo_izle)
+            _repo_izle()
+        except Exception:
+            pass
+        # Uygulama (herkeste görünür)
+        g, _ = kart("Uygulama")
+        ttk.Button(g, text="Klasörü Aç", command=self._klasor_ac, style="Secondary.TButton").pack(anchor="w", pady=(2, 0))
+        ttk.Button(g, text="Kaldır", command=self._kaldir, style="Danger.TButton").pack(anchor="w", pady=(8, 0))
+        not_satir(g, "Kaldırma dünya ve ayarları silmez.")
+        # Sahip (yalnızca .sahip dosyası olan makinede görünür)
+        self._sahip_mi = store.sahip_mi(self.kok)
+        if self._sahip_mi:
+            g, _ = kart("Sahip", ("YALNIZ BU BİLGİSAYARDA", "#2A2007", TEMA.AMBER_HI))
             try:
-                self.ayar["githubRepo"] = repo_var.get().strip()
+                vs = version.oku()
+                tk.Label(g, text="Sunucu sürümü: %s%s" % (vs.get("surum", "?"), " (hazırlanıyor)" if vs.get("guncelleniyor") else ""),
+                         font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 6))
+            except Exception:
+                pass
+            satir4 = tk.Frame(g, bg=TEMA.KART)
+            satir4.pack(fill="x")
+            ttk.Button(satir4, text="Güncelleme Yayınla", command=self._guncelleme_yayinla, style="Secondary.TButton").pack(side="left", padx=(0, 8))
+            ttk.Button(satir4, text="Bitir ve arkadaşlara aç", command=self._guncelleme_bitir, style="Secondary.TButton").pack(side="left")
+            not_satir(g, "Tehlikeli işlemler — geri alınamaz. Yayınla tüm arkadaşları durdurur.")
+
+        def kaydet_kapat():
+            port_txt = port_var.get().strip()
+            try:
+                port = int(port_txt)
+                if not 1 <= port <= 65535:
+                    raise ValueError()
+            except Exception:
+                port_hata_var.set("Port sayı olmalı (1-65535, örn. 8000). Değişiklik saklanmadı.")
+                return
+            port_hata_var.set("")
+            ad = ad_var.get().strip()
+            if not ad:
+                messagebox.showwarning("Ad boş", "Ad boş olamaz — kilitte 'Ben' görünür. Önce adını yaz.")
+                return
+            self.ayar["sitePort"] = port
+            self.ayar["kullaniciAdi"] = ad
+            try:
+                repo_txt = repo_var.get().strip()
+                if repo_txt and repo_txt != "örn. kullaniciadi/dgmcraft":
+                    self.ayar["githubRepo"] = repo_txt
             except Exception:
                 pass
             store.kaydet(self.ayar)
@@ -653,9 +774,22 @@ class AnaPencere(tk.Tk):
                     store.ai_anahtar_kaydet(yeni_ai)
             except Exception:
                 pass
-            _kapat()
+            try:
+                kayit_var.set("Kaydedildi ✓")
+            except Exception:
+                pass
 
-        ttk.Button(ic, text="Kaydet ve Kapat", command=kaydet_kapat, style="Primary.TButton").pack(fill="x", pady=(2, 6))
+        # Sabit footer (kaydırmadan etkilenmez)
+        alt_bar = tk.Frame(win, bg=TEMA.BG, highlightthickness=1, highlightbackground=TEMA.BORDER_YUMUSAK)
+        alt_bar.pack(side="bottom", fill="x")
+        alt_ic = tk.Frame(alt_bar, bg=TEMA.BG)
+        alt_ic.pack(fill="x", padx=20, pady=10)
+        tk.Label(alt_ic, text="Kaydet yalnız Ad, Port, Repo, AI anahtarını saklar.",
+                 font=TEMA.FONT_KUCUK, bg=TEMA.BG, fg=TEMA.SOLUK).pack(anchor="w", pady=(0, 6))
+        kayit_var = tk.StringVar(value="")
+        tk.Label(alt_ic, textvariable=kayit_var, font=TEMA.FONT_KUCUK, bg=TEMA.BG, fg=TEMA.YESIL).pack(side="left")
+        ttk.Button(alt_ic, text="Vazgeç", command=_kapat, style="Secondary.TButton").pack(side="left", padx=(0, 8))
+        ttk.Button(alt_ic, text="Kaydet ve Kapat", command=kaydet_kapat, style="Primary.TButton").pack(side="right")
 
     def _klasor_ac(self):
         try:
@@ -701,8 +835,18 @@ class AnaPencere(tk.Tk):
             pass
 
     def _guncelleme_denetle(self):
+        # Ekrandaki repo her zaman disktekinden önce gelir (Kaydet'siz Denetle).
         try:
+            ekran_repo = ""
+            try:
+                ekran_repo = self._ayar_repo_var.get().strip()
+                if ekran_repo == "örn. kullaniciadi/dgmcraft":
+                    ekran_repo = ""
+            except Exception:
+                pass
             self.ayar = store.yukle()
+            if ekran_repo:
+                self.ayar["githubRepo"] = ekran_repo
         except Exception:
             pass
         self._yaz("Güncelleme denetleniyor...\n")
@@ -910,6 +1054,9 @@ class AnaPencere(tk.Tk):
         yenile()
 
     def _guncelleme_yayinla(self):
+        if not store.sahip_mi(self.kok):
+            messagebox.showwarning("Yetki yok", "Güncelleme yalnızca sahip makineden yayınlanır.")
+            return
         if self.sunucu.proc and self.sunucu.proc.poll() is None:
             messagebox.showwarning("Önce kapat", "Yayınlamadan önce sunucuyu Güvenli Kapat ile kapatmalısın.")
             return
@@ -937,6 +1084,9 @@ class AnaPencere(tk.Tk):
         self._ilk_kilit_kontrol(sessiz=True)
 
     def _guncelleme_bitir(self):
+        if not store.sahip_mi(self.kok):
+            messagebox.showwarning("Yetki yok", "Güncelleme yalnızca sahip makineden bitirilir.")
+            return
         try:
             v = version.oku()
         except Exception:

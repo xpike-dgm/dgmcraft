@@ -144,3 +144,13 @@ def kurulum_anahtari_oto_bul(sunucu_koku):
             return f.read().strip()
     except Exception:
         return ""
+
+
+def sahip_mi(sunucu_koku):
+    """Sahip kipi: sunucu kökündeki .sahip dosyası varsa açıktır.
+    Dosya eşitlenmez (.stignore) ve repoya girmez (.gitignore)."""
+    try:
+        from . import constants as _C
+        return os.path.isfile(os.path.join(sunucu_koku, _C.SAHIP_DOSYASI))
+    except Exception:
+        return False

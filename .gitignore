@@ -23,6 +23,7 @@ runtime/
 !plugins/DgmGecmis-*.jar
 
 # Sırlar ve makineye özel dosyalar (ASLA commitlenmez)
+.sahip
 server.properties
 ops.json
 whitelist.json

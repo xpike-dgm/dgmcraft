@@ -390,6 +390,21 @@ Sihirbaz tek yola indi + Tailscale teşhisi.
 
 ## [etiketsiz] - 2026-09-24
 
+Ayarlar turu (mühendis puanları: 562, 567) + sahip kilidi.
+
+### Added
+- `.sahip` dosyası olan makinede Sahip kartı görünür (Yayınla/Bitir); arkadaşlarda yok. Dosya eşitlenmez, repoya girmez.
+
+### Fixed
+- SAHİP/Uygulama kartları 2'li düzene indi ("Kc..." kesilmesi bitti).
+- Sabit footer: Kaydet + Vazgeç + kapsam notu; kaydırınca kaybolmuyor.
+- Denetle ekrandaki repo'yu kullanıyor (Kaydet'siz de çalışır); boşken kilitli + açıklamalı.
+- AI rozeti (Kayıtlı/Kayıtlı değil) + Göster + Temizle + yardım metni.
+- Port/ad doğrulama: kırmızı satır ve uyarı, sessiz geçme yok.
+- VPN rozeti, sürüm rozeti, repo örneği, sahip rozeti.
+
+## [etiketsiz] - 2026-09-24
+
 Tasarım turu 2 (mühendis puanları: 625, 587).
 
 ### Fixed
