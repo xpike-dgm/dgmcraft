@@ -56,15 +56,20 @@ def msi_indir(hedef_klasor, ilerleme=None):
 
 
 def sessiz_kur(msi_yolu):
-    """(basarili_mi, mesaj) döndürür. msiexec çıkış kodunu Türkçe'ye çevirir."""
+    """(basarili_mi, mesaj) döndürür. Kurulum ilerlemesi görünür (/passive),
+    böylece Windows onayı güvenilir şekilde sorulur; sessiz mod onayı
+    bastırıp 1603'e düşürebiliyordu. Hata günlüğü Türkçe özetlenir."""
+    import tempfile
     try:
         if os.path.getsize(msi_yolu) < 1024 * 1024:
             return False, "İndirilen dosya bozuk (çok küçük). İnterneti kontrol edip tekrar dene."
     except Exception:
         return False, "Kurulum dosyası bulunamadı. Tekrar dene."
+    log = os.path.join(tempfile.gettempdir(), "dgm-tailscale-msi.log")
     try:
-        pr = subprocess.run(["msiexec", "/i", msi_yolu, "/quiet", "/norestart"],
-                            capture_output=True, text=True, timeout=300)
+        pr = subprocess.run(["msiexec", "/i", msi_yolu, "/passive", "/norestart",
+                             "/l*v", log],
+                            capture_output=True, text=True, timeout=600)
     except subprocess.TimeoutExpired:
         return False, "Kurulum zaman aşımına uğradı. Bilgisayarı yeniden başlatıp tekrar dene."
     except FileNotFoundError:
@@ -73,15 +78,43 @@ def sessiz_kur(msi_yolu):
     if kod == 0:
         return True, "Kuruldu."
     if kod == 1603:
-        return False, "Kurulum yarıda kaldı (1603): Windows onayı 'Hayır' denmiş ya da başka kurulum çakışmış olabilir."
+        return False, "Kurulum yarıda kaldı (1603). " + _log_ozeti(log)
     if kod == 1625:
         return False, "Sistem kurulumu engelliyor (1625): yönetici politikası."
     if kod == 1618:
         return False, "Başka bir kurulum sürüyor (1618): bitince tekrar dene."
     if kod == 1601:
         return False, "Windows kurulum servisi çalışmıyor (1601): bilgisayarı yeniden başlatıp dene."
+    if kod == 3010:
+        return True, "Kuruldu (yeniden başlatma gerekiyor)."
     cikti = ((pr.stdout or "") + (pr.stderr or "")).strip().replace("\n", " ")
-    return False, "Kurulum hatası (kod %s). %s" % (kod, cikti[:200] if cikti else "Detay yok.")
+    detay = _log_ozeti(log)
+    return False, "Kurulum hatası (kod %s). %s" % (kod, detay or (cikti[:200] if cikti else "Detay yok."))
+
+
+def _log_ozeti(log_yolu):
+    """MSI günlüğünden hataya en yakın satırları bulur (en fazla ~200 karakter)."""
+    try:
+        with open(log_yolu, "r", encoding="utf-8", errors="replace") as f:
+            satirlar = f.read().splitlines()
+    except Exception:
+        try:
+            with open(log_yolu, "r", encoding="utf-16", errors="replace") as f:
+                satirlar = f.read().splitlines()
+        except Exception:
+            return ""
+    for s in reversed(satirlar[-400:]):
+        t = s.strip()
+        if not t:
+            continue
+        k = t.lower()
+        if "return value 3" in k or " error " in k or k.startswith("error"):
+            return "Günlük: " + t[-180:]
+    for s in reversed(satirlar[-50:]):
+        t = s.strip()
+        if t:
+            return "Günlük sonu: " + t[-180:]
+    return ""
 
 
 def baglan(preauth_key, host_adi=""):

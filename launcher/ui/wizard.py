@@ -238,6 +238,7 @@ class Wizard(tk.Toplevel):
         self._not(T.SYNC_KURULUYOR)
         self._not(T.SYNC_KONTROL)
         self.sync_durum_var, self.sync_durum_lbl = self._durum()
+        self._not("Alttaki düğme duruma göre değişir: eksikse Otomatik Kur, kuruluysa Kontrol Et, hazırsa Devam Et.")
 
     def _adim_vpn(self):
         self._govde(T.VPN_ACIKLAMA)
@@ -466,7 +467,7 @@ class Wizard(tk.Toplevel):
         except Exception as e:
             self.sync_ok = False
             self._ui(self._durum_boya, self.sync_durum_var, self.sync_durum_lbl,
-                     "Otomatik kurulum başarısız: %s. %s" % (str(e)[:200], T.MANUEL_SYNC), "kirmizi")
+                     "Otomatik kurulum başarısız: %s. Tekrar dene." % str(e)[:200], "kirmizi")
             self._mesgul_kapat()
 
     def _otomatik_vpn_thread(self):
@@ -493,7 +494,7 @@ class Wizard(tk.Toplevel):
         except Exception as e:
             self.vpn_kurulu = False
             self._ui(self._durum_boya, self.vpn_durum_var, self.vpn_durum_lbl,
-                     "Otomatik kurulum başarısız: %s. %s" % (str(e)[:200], T.MANUEL_VPN), "kirmizi")
+                     "Otomatik kurulum başarısız: %s. Tekrar dene." % str(e)[:200], "kirmizi")
             self._mesgul_kapat()
 
     def _kontrol_sync_thread(self, sessiz=False):
@@ -509,7 +510,7 @@ class Wizard(tk.Toplevel):
             if not esitleme.syncthing_exe():
                 self.sync_ok = False
                 self._ui(self._durum_boya, self.sync_durum_var, self.sync_durum_lbl,
-                         "Syncthing kurulu değil — https://syncthing.net adresinden kur.", "kirmizi")
+                         "Syncthing bulunamadı — alttaki düğmeye bas.", "kirmizi")
             else:
                 self.sync.sessiz_baslat()
                 kid = self.sync.kendi_kimligi()
@@ -545,7 +546,7 @@ class Wizard(tk.Toplevel):
                 self.vpn_kurulu = False
                 self.vpn_bagli = False
                 self._ui(self._durum_boya, self.vpn_durum_var, self.vpn_durum_lbl,
-                         "Tailscale kurulu değil — https://tailscale.com/download adresinden kur.", "kirmizi")
+                         "Tailscale bulunamadı — alttaki düğmeye bas.", "kirmizi")
             else:
                 self.vpn_kurulu = True
                 bagli, ip, _b = vpn.bagli_mi()
