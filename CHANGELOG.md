@@ -422,6 +422,15 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-24
 
+v2 F1 düzeltmeleri: slider + toggle + haber sırası.
+
+### Fixed
+- Bellek seçimi slider oldu (2/3/4/6G duraklı, rozetli).
+- Açma-kapama düğmesi parçası hazır (Ayarlar sayfasında kullanılacak).
+- Haberler artık gerçekten en yeniden (sürüm+tarih sıralı).
+
+## [etiketsiz] - 2026-09-24
+
 v2 F1: Hub + v2 asset paketi.
 
 ### Added
