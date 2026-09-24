@@ -422,6 +422,15 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-24
 
+v2 kabuk cilası (ekran görüntülü tur).
+
+### Fixed
+- Pencere ikonu (tüy gitti), Windows başlık çubuğu koyu moda alındı.
+- Aktif ray bloğu kalktı: ince amber gösterge + amber ikon/yazı.
+- Avatar aralığı + çevrimiçi noktası üst barda.
+
+## [etiketsiz] - 2026-09-24
+
 Tasarım turu 2 (mühendis puanları: 625, 587).
 
 ### Fixed
