@@ -44,9 +44,13 @@ plugins/Plan/
 plugins/Skript/variables.csv
 plugins/Skript/variables.db
 
-# Python
+# Python + PyInstaller yerelleri
 __pycache__/
 *.pyc
+dist/
+build/
+*.spec
+test-build/
 
 # Site yedeği
 site/assets/data.js.bak

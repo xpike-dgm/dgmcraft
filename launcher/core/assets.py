@@ -7,19 +7,27 @@ import sys
 _cache = {}
 
 
-def kok():
+def _frozen_adaylar(*parca):
+    """Exe paketi içi arama: kök + _internal (PyInstaller 6 tek-klasör düzeni)."""
     try:
-        if getattr(sys, "frozen", False):
-            base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
-            aday = os.path.join(base, "launcher", "assets")
-            if os.path.isdir(aday):
-                return aday
-            aday2 = os.path.join(os.path.dirname(sys.executable), "launcher", "assets")
-            if os.path.isdir(aday2):
-                return aday2
-            return aday
+        import sys as _sys
+        if getattr(_sys, "frozen", False):
+            base = getattr(_sys, "_MEIPASS", os.path.dirname(_sys.executable))
+            exe_dizini = os.path.dirname(_sys.executable)
+            for kok in (base, exe_dizini):
+                for alt in (os.path.join(*parca), os.path.join("_internal", *parca)):
+                    aday = os.path.join(kok, alt)
+                    if os.path.isdir(aday):
+                        return aday
     except Exception:
         pass
+    return ""
+
+
+def kok():
+    aday = _frozen_adaylar("launcher", "assets")
+    if aday:
+        return aday
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets")
 
 

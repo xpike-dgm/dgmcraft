@@ -66,10 +66,13 @@ def site_klasoru_bul(sunucu_koku):
         import sys
         if getattr(sys, "frozen", False):
             base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
-            for aday in (os.path.join(base, "site"),
-                         os.path.join(os.path.dirname(sys.executable), "site")):
-                if os.path.isfile(os.path.join(aday, "index.html")):
-                    return aday
+            exe_dizini = os.path.dirname(sys.executable)
+            # PyInstaller 6 tek-klasör düzeni: veriler _internal/ altındadır.
+            for kok in (base, exe_dizini):
+                for alt in ("site", os.path.join("_internal", "site")):
+                    aday = os.path.join(kok, alt)
+                    if os.path.isfile(os.path.join(aday, "index.html")):
+                        return aday
     except Exception:
         pass
     return None
