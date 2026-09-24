@@ -4,8 +4,10 @@ import os
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import (QBrush, QColor, QLinearGradient, QPainter, QPen, QPixmap,
                            QRadialGradient)
-from PySide6.QtWidgets import QFrame, QGraphicsDropShadowEffect, QHBoxLayout, QLabel
+from PySide6.QtWidgets import (QFrame, QGraphicsDropShadowEffect, QHBoxLayout, QLabel,
+                               QPushButton)
 
+from . import ikonlar
 from . import tema as T
 
 _onbellek = {}
@@ -127,6 +129,134 @@ class HeroCerceve(QFrame):
         boya.setPen(QPen(QColor(36, 47, 43), 1))
         boya.setBrush(Qt.NoBrush)
         boya.drawRoundedRect(alan.adjusted(0.5, 0.5, -0.5, -0.5), 12, 12)
+
+
+class RayDugmesi(QPushButton):
+    """Ray öğesi: seçiliyse koyu yuvarlak kutu + yeşil gösterge,
+    ikon ince çizgi olarak çizilir (aktif: açık gri, pasif: soluk)."""
+
+    def __init__(self, tur, ad, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.tur = tur
+        self.ad = ad
+        self.setCheckable(True)
+        self.setFixedSize(56, 48)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setToolTip(ad)
+        self.setAttribute(Qt.WA_Hover, True)
+        self.setStyleSheet("background: transparent; border: none;")
+
+    def paintEvent(self, olay):
+        boya = QPainter(self)
+        boya.setRenderHint(QPainter.Antialiasing, True)
+        kutu = QRectF(self.rect()).adjusted(10, 0, -4, -1)
+        if self.isChecked():
+            boya.setPen(Qt.NoPen)
+            boya.setBrush(QColor("#1A211E"))
+            boya.drawRoundedRect(kutu, 12, 12)
+            boya.setBrush(QColor(T.YESIL))
+            boya.drawRoundedRect(QRectF(1, 12, 3, 24), 1.5, 1.5)
+            renk = "#EDF2F0"
+        else:
+            if self.underMouse():
+                boya.setPen(Qt.NoPen)
+                boya.setBrush(QColor("#161D1A"))
+                boya.drawRoundedRect(kutu, 12, 12)
+            renk = "#7E8B86"
+        ikonlar.ciz(boya, self.tur, QPointF(34, 24), 22, renk)
+        boya.end()
+
+
+    def resizeEvent(self, olay):
+        try:
+            for c in self.findChildren(QFrame):
+                if c.objectName() == "ayrac":
+                    c.setGeometry(0, self.height() - 1, self.width(), 1)
+        except Exception:
+            pass
+        super().resizeEvent(olay)
+
+
+class BaslikDugmesi(QPushButton):
+    """Küçült / kapat: şeffaf, hover'da yuvarlak zemin."""
+
+    def __init__(self, tur, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.tur = tur
+        self.setFixedSize(38, 34)
+        self.setCursor(Qt.ArrowCursor)
+        self.setFocusPolicy(Qt.NoFocus)
+        self.setAttribute(Qt.WA_Hover, True)
+        self.setStyleSheet("background: transparent; border: none;")
+
+    def paintEvent(self, olay):
+        boya = QPainter(self)
+        boya.setRenderHint(QPainter.Antialiasing, True)
+        alan = QRectF(self.rect()).adjusted(3, 3, -3, -3)
+        if self.underMouse():
+            boya.setPen(Qt.NoPen)
+            boya.setBrush(QColor("#B3453B" if self.tur == "kapat" else "#1D2523"))
+            boya.drawRoundedRect(alan, 8, 8)
+        boya.setPen(QPen(QColor("#9AA8A0"), 1.3))
+        if self.tur == "kapat":
+            boya.drawLine(13, 11, 25, 23)
+            boya.drawLine(25, 11, 13, 23)
+        else:
+            boya.drawLine(13, 18, 25, 18)
+        boya.end()
+
+    def mousePressEvent(self, olay):
+        super().mousePressEvent(olay)
+        if self.tur == "kapat":
+            self.close()
+
+
+class BaslikCubugu(QFrame):
+    """Kendi başlık çubuğumuz: pencereyi sürükler, çift tık ile küçültür.
+    Altındaki çizgi görsel olarak ayırır."""
+
+    def __init__(self, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.setObjectName("baslikCubugu")
+        self.setFixedHeight(T.UST_YUKSEKLIK)
+        self._baslangic = None
+        self._pencere_baslangic = None
+        self.setCursor(Qt.ArrowCursor)
+        c = QFrame(self)
+        c.setObjectName("ayrac")
+        c.setGeometry(0, self.height() - 1, self.width(), 1)
+        c.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        c.show()
+
+    def _baslat(self, olay):
+        if olay.button() != Qt.LeftButton:
+            return
+        self._baslangic = olay.globalPosition().toPoint()
+        self._pencere_baslangic = self.window().frameGeometry().topLeft()
+
+    def _tasi(self, olay):
+        if self._baslangic is None or self._pencere_baslangic is None:
+            return
+        if not (olay.buttons() & Qt.LeftButton):
+            return
+        fark = olay.globalPosition().toPoint() - self._baslangic
+        self.window().move(self._pencere_baslangic + fark)
+
+    def _birak(self, _olay=None):
+        self._baslangic = None
+        self._pencere_baslangic = None
+
+    def mousePressEvent(self, olay):
+        self._baslat(olay)
+
+    def mouseMoveEvent(self, olay):
+        self._tasi(olay)
+
+    def mouseReleaseEvent(self, olay):
+        self._birak(olay)
+
+    def mouseDoubleClickEvent(self, olay):
+        self.window().showMinimized()
 
 
 def rozet(ebeveyn, metin, renk, nokta=True):

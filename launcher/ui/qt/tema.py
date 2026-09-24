@@ -3,11 +3,12 @@ from PySide6.QtGui import QColor, QFont, QFontDatabase
 
 GENISLIK = 1180
 YUKSEKLIK = 720
-RAY_GENISLIK = 76
-UST_YUKSEKLIK = 56
+GOLGE = 22
+RAY_GENISLIK = 68
+UST_YUKSEKLIK = 52
 BOSLUK = 16
 KART_ARALIK = 12
-IKON = 20
+IKON = 22
 
 # Palet: v2 ile aynı aile, biraz daha yumuşak
 BG = "#0B0F0E"
@@ -57,9 +58,19 @@ def qss():
 QWidget { background: transparent; color: %(yazi)s; font-family: "Inter"; font-size: 13px; }
 
 #ray { background: %(yuzey)s; }
-#rayUst { background: %(yuzey)s; }
 #icerik { background: %(bg)s; }
+#pencere {
+    background: %(yuzey)s; border: 1px solid #1F2A26; border-radius: 12px;
+}
+#baslikCubugu { background: #0E1412; border-top-left-radius: 11px; border-top-right-radius: 11px; }
+#ayrac { background: #1C2422; border: none; max-height: 1px; min-height: 1px; }
 
+QLabel#pencereBaslik {
+    font-family: "Chakra Petch"; font-size: 15px; font-weight: 700;
+    color: %(yazi)s; letter-spacing: 2px;
+}
+QLabel#kasaAd { font-size: 13px; color: #C7D0CC; }
+QLabel#raySurum { font-size: 9px; color: #55635D; }
 QLabel#ustBaslik { font-size: 17px; color: %(yazi)s; }
 QLabel#sayfaBaslik { font-size: 17px; color: %(yazi)s; font-weight: 500; }
 QLabel#bolumBaslik {
@@ -79,14 +90,6 @@ QFrame#kart {
     background: %(kart)s; border: 1px solid %(cerceve)s; border-radius: 12px;
 }
 QFrame#kartIc { background: transparent; border: none; }
-QFrame#ayrac { background: %(cerceve)s; border: none; max-height: 1px; min-height: 1px; }
-
-QPushButton#rayDugme {
-    background: transparent; border: none; border-radius: 10px;
-    color: %(silik)s; font-size: 10px; padding: 7px 0 6px 0;
-}
-QPushButton#rayDugme:hover { background: #171E1B; color: %(soluk)s; }
-QPushButton#rayDugme:checked { color: %(vurgu)s; }
 
 QPushButton#anaDugme {
     background: %(vurgu)s; color: %(vurguYazi)s; border: none;

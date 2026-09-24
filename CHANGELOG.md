@@ -422,6 +422,20 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-24
 
+PySide6 kabuk: kendi başlık çubuğu + yeni ray tasarımı.
+
+### Added
+- Çerçevesiz pencere: yuvarlak köşe, gerçek gölge, kendi başlık çubuğumuz.
+- Başlık çubuğu: logo + sayfa adı (HUB), sağda yuvarlak avatar, yeşil nokta, kullanıcı adı, küçült (—) ve kapat (×).
+- Başlık çubuğu fareyle sürüklenir; çift tık küçültür.
+- Ray: seçili öğede koyu yuvarlak kutu + sol tarafta yeşil gösterge, ince çizgi (outline) ikonlar, pasifler soluk, aktif açık gri; ipucu (tooltip) ile ad.
+- `ui/qt/ikonlar.py`: 8 sayfa için QPainter çizgi ikon seti (dosya/ikon paketi gerekmez).
+
+### Fixed
+- Qt pencere artık Windows'un beyaz başlık çubuğunu kullanmıyor.
+
+## [etiketsiz] - 2026-09-24
+
 PySide6 arayüzü: Hub sayfası (yeni kuşak). Tkinter v2 ayrı çalışmaya devam eder.
 
 ### Added
