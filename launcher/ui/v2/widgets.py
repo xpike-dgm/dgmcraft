@@ -37,6 +37,117 @@ def ikincil_dugme(ebeveyn, metin, komut):
     return b
 
 
+class AdimSlider(tk.Frame):
+    """Duraklı kaydırıcı: RAM gibi güvenli aralıklarda seçim.
+    degerler=[(etiket, veri), ...], örn. [("2G", 2), ("3G", 3)]."""
+
+    def __init__(self, ebeveyn, degerler, baslangic=1, komut=None, genislik=460):
+        super().__init__(ebeveyn, bg=T.KART)
+        self.degerler = list(degerler)
+        self.komut = komut
+        self.secil = max(0, min(len(self.degerler) - 1, baslangic))
+        self.genislik = genislik
+        self._roz_deger = tk.StringVar(value="")
+        tk.Label(self, textvariable=self._roz_deger, font=("Inter", 11, "bold"),
+                 bg="#1C2622", fg=T.YESIL).pack(anchor="w", pady=(0, 6))
+        self.tuval = tk.Canvas(self, width=genislik, height=44, bg=T.KART,
+                               highlightthickness=0)
+        self.tuval.pack(fill="x")
+        self.tuval.bind("<Button-1>", self._tik)
+        self.tuval.bind("<B1-Motion>", self._tik)
+        self._ciz()
+        self._yansit()
+
+    def _nokta(self, i):
+        n = len(self.degerler)
+        if n <= 1:
+            return 20
+        return 20 + i * ((self.genislik - 40) / (n - 1))
+
+    def _ciz(self):
+        c = self.tuval
+        try:
+            c.delete("all")
+            y = 14
+            c.create_line(20, y, self.genislik - 20, y, fill="#2A3530", width=6, capstyle="round")
+            x1 = self._nokta(self.secil)
+            c.create_line(20, y, x1, y, fill=T.VURGU, width=6, capstyle="round")
+            for i, (etiket, _v) in enumerate(self.degerler):
+                x = self._nokta(i)
+                c.create_oval(x - 3, y - 3, x + 3, y + 3, fill=T.KART, outline="#3A4A43", width=2)
+                c.create_text(x, y + 20, text=etiket, fill=T.SOLUK, font=("Inter", 9))
+            c.create_oval(x1 - 9, y - 9, x1 + 9, y + 9, fill=T.VURGU, outline=T.VURGU_HOVER, width=2)
+        except Exception:
+            pass
+
+    def _tik(self, olay):
+        try:
+            n = len(self.degerler)
+            oran = (olay.x - 20) / max(1, (self.genislik - 40))
+            i = max(0, min(n - 1, round(oran * (n - 1))))
+            if i != self.secil:
+                self.secil = i
+                self._ciz()
+                self._yansit()
+                if self.komut:
+                    self.komut(self.degerler[i][1])
+        except Exception:
+            pass
+
+    def _yansit(self):
+        try:
+            self._roz_deger.set(str(self.degerler[self.secil][0]))
+        except Exception:
+            pass
+
+    def deger(self):
+        return self.degerler[self.secil][1]
+
+
+class Anahtar(tk.Frame):
+    """Açma-kapama düğmesi. acik=True/False, komut(yeni_deger)."""
+
+    def __init__(self, ebeveyn, acik=False, komut=None, genislik=52, yukseklik=28):
+        super().__init__(ebeveyn, bg=T.KART)
+        self.acik = bool(acik)
+        self.komut = komut
+        self.genislik = genislik
+        self.yukseklik = yukseklik
+        self.tuval = tk.Canvas(self, width=genislik, height=yukseklik, bg=T.KART,
+                               highlightthickness=0, cursor="hand2")
+        self.tuval.pack()
+        self.tuval.bind("<Button-1>", self._degistir)
+        self._ciz(False)
+
+    def _ciz(self, anim=True):
+        c = self.tuval
+        try:
+            c.delete("all")
+            w, h = self.genislik, self.yukseklik
+            r = h // 2
+            zemin = T.VURGU if self.acik else "#2A3530"
+            c.create_oval(0, 0, h, h, fill=zemin, outline=zemin)
+            c.create_oval(w - h, 0, w, h, fill=zemin, outline=zemin)
+            c.create_rectangle(r, 0, w - r, h, fill=zemin, outline=zemin)
+            dx = w - h + 3 if self.acik else 3
+            c.create_oval(dx, 3, dx + h - 6, h - 3, fill="#FFFFFF", outline="")
+        except Exception:
+            pass
+
+    def _degistir(self, _olay=None):
+        self.acik = not self.acik
+        self._ciz()
+        try:
+            if self.komut:
+                self.komut(self.acik)
+        except Exception:
+            pass
+
+    def kur(self, acik):
+        self.acik = bool(acik)
+        self._ciz()
+
+
 def giris(ebeveyn, degisken=None, genislik=None):
     e = tk.Entry(ebeveyn, textvariable=degisken, bg="#0F1513", fg=T.YAZI,
                  insertbackground=T.VURGU, relief="flat",

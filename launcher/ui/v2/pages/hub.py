@@ -24,7 +24,7 @@ class HubSayfasi:
         self._oyuncu_listesi = None
         self._oyuncu_bos = None
         self._haber_alani = None
-        self._bellek_dugmeler = {}
+        self._bellek_kaydirici = None
 
     def kur(self, ebeveyn):
         self.cerceve = tk.Frame(ebeveyn, bg=T.BG)
@@ -98,34 +98,21 @@ class HubSayfasi:
         govde = tk.Frame(kart, bg=T.KART)
         govde.pack(fill="x", padx=14, pady=12)
         tk.Label(govde, text="SUNUCU BELLEĞİ", font=("Inter", 8, "bold"),
-                 bg=T.KART, fg=T.SILIK).pack(anchor="w")
-        satir = tk.Frame(govde, bg=T.KART)
-        satir.pack(fill="x", pady=(8, 0))
-        for gb in HEAP_SECENEKLERI:
-            b = tk.Button(satir, text="%dG" % gb, font=("Inter", 11, "bold"),
-                          relief="flat", padx=16, pady=6, cursor="hand2",
-                          command=lambda v=gb: self._bellek_sec(v))
-            b.pack(side="left", padx=(0, 8))
-            self._bellek_dugmeler[gb] = b
-        tk.Label(govde, text="Sonraki başlatmada geçerli olur.",
-                 font=T.FONT_KUCUK, bg=T.KART, fg=T.SOLUK).pack(anchor="w", pady=(8, 0))
-        self._bellek_boya()
-
-    def _bellek_boya(self):
+                 bg=T.KART, fg=T.SILIK).pack(anchor="w", pady=(0, 4))
+        tk.Label(govde, text="Sunucu için ayrılacak maksimum RAM miktarı",
+                 font=T.FONT_KUCUK, bg=T.KART, fg=T.SOLUK).pack(anchor="w", pady=(0, 8))
         secili = self.hizmetler.heap_al()
-        for gb, b in self._bellek_dugmeler.items():
-            try:
-                if gb == secili:
-                    b.configure(bg=T.VURGU, fg=T.VURGU_YAZI, activebackground=T.VURGU_HOVER)
-                else:
-                    b.configure(bg=T.YUZEY, fg=T.YAZI, activebackground="#1C2622")
-            except Exception:
-                pass
+        baslangic = HEAP_SECENEKLERI.index(secili) if secili in HEAP_SECENEKLERI else 1
+        self._bellek_kaydirici = W.AdimSlider(
+            govde, degerler=[("%dG" % gb, gb) for gb in HEAP_SECENEKLERI],
+            baslangic=baslangic, komut=self._bellek_sec, genislik=440)
+        self._bellek_kaydirici.pack(fill="x", pady=(0, 4))
+        tk.Label(govde, text="Sonraki başlatmada geçerli olur.",
+                 font=T.FONT_KUCUK, bg=T.KART, fg=T.SOLUK).pack(anchor="w", pady=(4, 0))
 
     def _bellek_sec(self, gb):
         try:
             self.hizmetler.heap_kaydet(gb)
-            self._bellek_boya()
         except Exception:
             pass
 
@@ -158,6 +145,21 @@ class HubSayfasi:
                 tk.Label(kutu, text=ozet, font=T.FONT_KUCUK, bg=T.KART, fg=T.SOLUK,
                          anchor="w", wraplength=520, justify="left").pack(fill="x")
 
+    @staticmethod
+    def _surum_anahtari(baslik):
+        # "## [0.22.4] - 2026-09-24" -> ((2026,9,24),(0,22,4)); etiketsiz -> ((0,0,0),(0,0,0))
+        import re
+        try:
+            m = re.search(r"\[([^\]]+)\]\s*-\s*(\d{4})-(\d{2})-(\d{2})", baslik)
+            if not m:
+                return ((0, 0, 0), (0, 0, 0))
+            ver = [int(x) for x in re.findall(r"\d+", m.group(1))[:3]]
+            while len(ver) < 3:
+                ver.append(0)
+            return ((int(m.group(2)), int(m.group(3)), int(m.group(4))), tuple(ver))
+        except Exception:
+            return ((0, 0, 0), (0, 0, 0))
+
     def _haber_oku(self):
         import os
         yol = os.path.join(self.hizmetler.kok, "CHANGELOG.md")
@@ -170,16 +172,19 @@ class HubSayfasi:
                     if s.startswith("## "):
                         if baslik:
                             haberler.append((baslik, "; ".join(maddeler[:2])))
-                            if len(haberler) >= 3:
-                                break
                         baslik = s[3:].strip()
                         maddeler = []
                     elif s.startswith("- ") and baslik:
                         maddeler.append(s[2:].strip()[:120])
-                if baslik and len(haberler) < 3:
+                if baslik:
                     haberler.append((baslik, "; ".join(maddeler[:2])))
         except Exception:
             pass
+        try:
+            haberler.sort(key=lambda h: self._surum_anahtari(h[0]), reverse=True)
+        except Exception:
+            pass
+        haberler = [h for h in haberler if self._surum_anahtari(h[0]) != ((0, 0, 0), (0, 0, 0))][:3]
         if not haberler:
             try:
                 haberler = [("Sürüm %s" % self.hizmetler.surum, "")]
