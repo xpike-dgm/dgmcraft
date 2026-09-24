@@ -413,6 +413,15 @@ Ayarlar turu (mühendis puanları: 562, 567) + sahip kilidi.
 
 ## [etiketsiz] - 2026-09-24
 
+v2 F0: sıfırdan kabuk.
+
+### Added
+- `launcher/ui/v2/`: jetonlar, parçalar, 8 sayfa iskeleti, ray + üst bar + geçişli kabuk. Yeni özellik = 1 dosya + kayıt satırı.
+- Gömülü fontlar (Inter + Chakra Petch, OFL): pencere öncesi ctypes kaydı, adminsuz.
+- `launcher/v2.py` + `DgmCraft-v2.bat`: eski uygulama aynen durur, v2 ayrı girişten açılır.
+
+## [etiketsiz] - 2026-09-24
+
 Tasarım turu 2 (mühendis puanları: 625, 587).
 
 ### Fixed
