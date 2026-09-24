@@ -378,6 +378,14 @@ Görsel asset güncellemesi (marka paketi).
 - Sihirbaz adım görselleri, güncelleme dialogu illüstrasyonu, kurulum ikonu.
 - Kısayollar artık uygulama ikonunu taşıyor.
 - Exe ikonu + asset paketi derlemeye dahil (build scriptleri güncellendi).
+
+## [0.24.1] - 2026-09-24
+
+Site exe paketine gömüldü.
+
+### Fixed
+- Exe ile "Siteyi Aç" ham JSON hatası veriyordu (`site klasörü boş`); site artık pakette geliyor, gerçekten yoksa düzgün bekleme sayfası çıkıyor.
+- Öncelik: sunucu klasöründeki site (güncel), yoksa paketteki.
 - Site tarafı için `DgmCraft-Site-Drop/` (74 dosya + MANIFEST, repo dışı).
 
 ## [0.22.4] - 2026-09-24

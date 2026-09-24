@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pyinstaller
-      - run: python -m PyInstaller --noconfirm --windowed --name DgmCraft --paths launcher --add-data "launcher/assets;launcher/assets" --icon "launcher/assets/brand/DgmCraft-app-icon.ico" launcher/app.py
+      - run: python -m PyInstaller --noconfirm --windowed --name DgmCraft --paths launcher --add-data "launcher/assets;launcher/assets" --add-data "site;site" --icon "launcher/assets/brand/DgmCraft-app-icon.ico" launcher/app.py
       - run: Compress-Archive -Path dist/DgmCraft/* -DestinationPath DgmCraft-windows.zip
       - uses: softprops/action-gh-release@v2
         with:

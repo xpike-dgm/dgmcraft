@@ -53,6 +53,38 @@ def site_link_yaz(sunucu_koku, vpn_ip, port, komut_gonderici=None):
     return True
 
 
+def site_klasoru_bul(sunucu_koku):
+    """Önce sunucu kökündeki site/, yoksa exe paketindeki site/.
+    İkisi de yoksa None (eşitleme henüz gelmemiş)."""
+    try:
+        aday = os.path.join(sunucu_koku, "site")
+        if os.path.isfile(os.path.join(aday, "index.html")):
+            return aday
+    except Exception:
+        pass
+    try:
+        import sys
+        if getattr(sys, "frozen", False):
+            base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+            for aday in (os.path.join(base, "site"),
+                         os.path.join(os.path.dirname(sys.executable), "site")):
+                if os.path.isfile(os.path.join(aday, "index.html")):
+                    return aday
+    except Exception:
+        pass
+    return None
+
+
+def bekleme_sayfasi():
+    return """<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8">""" \
+        """<title>DgmCraft - Hazırlanıyor</title></head>""" \
+        """<body style="background:#0B0F0E;color:#F2F5F3;font-family:sans-serif;""" \
+        """display:flex;align-items:center;justify-content:center;height:100vh;margin:0">""" \
+        """<div style="text-align:center"><h1>DGM CRAFT</h1>""" \
+        """<p>Site dosyaları henüz eşleşmedi. Eşitleme bitince bu sayfa kendiliğinden açılır.</p>""" \
+        """<p><a href="/" style="color:#F0A202">Tekrar dene</a></p></div></body></html>"""
+
+
 def son_log_satirlari(sunucu_koku, n=200):
     yol = os.path.join(sunucu_koku, "logs", "latest.log")
     try:
@@ -340,7 +372,15 @@ class SiteSunucusu:
                     self._json({"hazirDegil": True, "not": "Bu özellik uygulama güncellemesi bekliyor.", "esya": []})
                     return
                 # Statik site dosyaları
-                site_klasoru = os.path.join(kok, "site")
+                site_klasoru = site_klasoru_bul(kok)
+                if not site_klasoru:
+                    ham = bekleme_sayfasi().encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(ham)))
+                    self.end_headers()
+                    self.wfile.write(ham)
+                    return
                 istenen = self.path.split("?")[0].lstrip("/")
                 if istenen == "":
                     istenen = "index.html"
@@ -351,7 +391,7 @@ class SiteSunucusu:
                 if not os.path.isfile(tam):
                     tam = os.path.join(site_klasoru, "index.html")
                     if not os.path.isfile(tam):
-                        self._json({"hata": "site klasörü boş"}, 404)
+                        self._json({"hata": "sayfa bulunamadı"}, 404)
                         return
                 try:
                     with open(tam, "rb") as f:
