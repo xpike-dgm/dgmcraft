@@ -59,6 +59,89 @@ def foto(*parca):
         return None
 
 
+def kucult(*parca, hedef=20):
+    """PNG'yi hedef boyutta PhotoImage yapar. Pillow varsa kaliteli (LANCZOS),
+    yoksa Tk'nin yerleşik azaltması. 48px ray ikonlarını 20px'e indirmek için."""
+    anahtar = "kucuk:%d:%s" % (hedef, "/".join(parca))
+    if anahtar in _cache:
+        return _cache[anahtar]
+    resim = None
+    try:
+        import base64
+        import io
+        from PIL import Image
+        p = yol(*parca)
+        if os.path.isfile(p):
+            ham = Image.open(p).convert("RGBA")
+            w, h = ham.size
+            k = hedef / float(max(1, min(w, h)))
+            yeni = ham.resize((max(1, int(w * k)), max(1, int(h * k))), Image.LANCZOS)
+            tampon = io.BytesIO()
+            yeni.save(tampon, format="PNG")
+            import tkinter as tk
+            resim = tk.PhotoImage(data=base64.b64encode(tampon.getvalue()))
+    except Exception:
+        resim = None
+    if resim is None:
+        kaynak = foto(*parca)
+        if kaynak is None:
+            return None
+        try:
+            w = int(kaynak.width())
+            if w <= hedef:
+                resim = kaynak
+            else:
+                resim = kaynak.subsample(max(1, int(round(w / float(hedef)))))
+        except Exception:
+            return None
+    _cache[anahtar] = resim
+    return resim
+
+
+def olcek(*parca, genislik=None, yukseklik=None):
+    """En-boy oranını koruyarak kutuya sığdırır (Pillow yoksa Tk azaltması)."""
+    kutu = "olc:%s:%s:%s" % (genislik, yukseklik, "/".join(parca))
+    if kutu in _cache:
+        return _cache[kutu]
+    resim = None
+    try:
+        import base64
+        import io
+        from PIL import Image
+        p = yol(*parca)
+        if os.path.isfile(p):
+            ham = Image.open(p).convert("RGBA")
+            w, h = ham.size
+            k = 1.0
+            if genislik:
+                k = min(k, genislik / float(w))
+            if yukseklik:
+                k = min(k, yukseklik / float(h))
+            yeni = ham.resize((max(1, int(w * k)), max(1, int(h * k))), Image.LANCZOS)
+            tampon = io.BytesIO()
+            yeni.save(tampon, format="PNG")
+            import tkinter as tk
+            resim = tk.PhotoImage(data=base64.b64encode(tampon.getvalue()))
+    except Exception:
+        resim = None
+    if resim is None:
+        kaynak = foto(*parca)
+        if kaynak is None:
+            return None
+        try:
+            w, h = int(kaynak.width()), int(kaynak.height())
+            adim = 1
+            if genislik and w > genislik:
+                adim = max(adim, int(round(w / float(genislik))))
+            if yukseklik and h > yukseklik:
+                adim = max(adim, int(round(h / float(yukseklik))))
+            resim = kaynak.subsample(adim, adim) if adim > 1 else kaynak
+        except Exception:
+            return None
+    _cache[kutu] = resim
+    return resim
+
+
 def ikon_pencere(pencere):
     """Pencere simgesi (ICO). Başarısız olursa sessiz geçilir."""
     try:

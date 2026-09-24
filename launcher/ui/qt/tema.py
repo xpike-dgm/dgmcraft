@@ -1,0 +1,141 @@
+"""PySide6 arayüzü: tek gerçek kaynak. QSS + gerçek yuvarlak köşe/gölge/gradyan."""
+from PySide6.QtGui import QColor, QFont, QFontDatabase
+
+GENISLIK = 1180
+YUKSEKLIK = 720
+RAY_GENISLIK = 76
+UST_YUKSEKLIK = 56
+BOSLUK = 16
+KART_ARALIK = 12
+IKON = 20
+
+# Palet: v2 ile aynı aile, biraz daha yumuşak
+BG = "#0B0F0E"
+YUZEY = "#111715"
+KART = "#151B19"
+KART_ACIK = "#1A211E"
+CERCEVE = "#242F2B"
+CERCEVE_PARLAK = "#3A4A43"
+YAZI = "#F2F5F3"
+SOLUK = "#96A49C"
+SILIK = "#6E7F76"
+VURGU = "#F0A202"
+VURGU_HOVER = "#FFB61A"
+VURGU_YAZI = "#1A1000"
+YESIL = "#34D399"
+KIRMIZI = "#FB7185"
+MAVI = "#93C5FD"
+
+# Hero tonları
+HERO_UST = "#17211D"
+HERO_ALT = "#101614"
+
+UYGULAMA = "DgmCraft"
+
+
+def fontlar_yukle():
+    """Inter + Chakra Petch dosyalarını Qt'ye tanıtır; yoksa sistem fontuna düşer."""
+    yigin = []
+    try:
+        from core import assets as _A
+        import os
+        for dosya in ("Inter-Regular.ttf", "Inter-SemiBold.ttf", "Inter-Bold.ttf",
+                      "ChakraPetch-Bold.ttf", "ChakraPetch-SemiBold.ttf"):
+            yol = _A.yol("fonts", dosya)
+            if os.path.isfile(yol):
+                kimlik = QFontDatabase.addApplicationFont(yol)
+                if kimlik >= 0:
+                    yigin.extend(QFontDatabase.applicationFontFamilies(kimlik))
+    except Exception:
+        pass
+    return yigin
+
+
+def qss():
+    return """
+* { outline: 0; }
+QWidget { background: transparent; color: %(yazi)s; font-family: "Inter"; font-size: 13px; }
+
+#ray { background: %(yuzey)s; }
+#rayUst { background: %(yuzey)s; }
+#icerik { background: %(bg)s; }
+
+QLabel#ustBaslik { font-size: 17px; color: %(yazi)s; }
+QLabel#sayfaBaslik { font-size: 17px; color: %(yazi)s; font-weight: 500; }
+QLabel#bolumBaslik {
+    font-size: 11px; color: %(silik)s; font-weight: 600; letter-spacing: 1px;
+}
+QLabel#metin { font-size: 13px; color: %(yazi)s; }
+QLabel#ikincil { font-size: 12px; color: %(soluk)s; }
+QLabel#soluk { font-size: 12px; color: %(soluk)s; }
+QLabel#minik { font-size: 11px; color: %(silik)s; }
+QLabel#kucuk { font-size: 11px; color: %(silik)s; }
+
+QLabel#heroBaslik { font-size: 26px; color: %(yazi)s; font-weight: 600; }
+QLabel#heroMetin { font-size: 13px; color: %(soluk)s; }
+QLabel#rozetYazi { font-size: 11px; color: %(soluk)s; letter-spacing: 1px; }
+
+QFrame#kart {
+    background: %(kart)s; border: 1px solid %(cerceve)s; border-radius: 12px;
+}
+QFrame#kartIc { background: transparent; border: none; }
+QFrame#ayrac { background: %(cerceve)s; border: none; max-height: 1px; min-height: 1px; }
+
+QPushButton#rayDugme {
+    background: transparent; border: none; border-radius: 10px;
+    color: %(silik)s; font-size: 10px; padding: 7px 0 6px 0;
+}
+QPushButton#rayDugme:hover { background: #171E1B; color: %(soluk)s; }
+QPushButton#rayDugme:checked { color: %(vurgu)s; }
+
+QPushButton#anaDugme {
+    background: %(vurgu)s; color: %(vurguYazi)s; border: none;
+    border-radius: 19px; font-size: 14px; font-weight: 600; padding: 11px 28px;
+}
+QPushButton#anaDugme:hover { background: %(vurguHover)s; }
+QPushButton#anaDugme:pressed { background: #D99102; }
+QPushButton#anaDugme:disabled { background: #2A3530; color: %(silik)s; }
+
+QPushButton#hayaletDugme {
+    background: transparent; color: %(yazi)s; border: 1px solid %(cerceve)s;
+    border-radius: 16px; font-size: 12px; padding: 8px 18px;
+}
+QPushButton#hayaletDugme:hover { border-color: %(cerceveParlak)s; background: #18201D; }
+QPushButton#hayaletDugme:pressed { background: #1C2422; }
+
+QPushButton#ikonDugme {
+    background: transparent; border: none; border-radius: 8px; padding: 6px;
+}
+QPushButton#ikonDugme:hover { background: #1A221F; }
+
+QSlider::groove:horizontal {
+    height: 4px; background: #2A3530; border-radius: 2px;
+}
+QSlider::sub-page:horizontal { background: %(vurgu)s; border-radius: 2px; }
+QSlider::handle:horizontal {
+    background: %(vurgu)s; width: 16px; height: 16px;
+    margin: -6px 0; border-radius: 8px;
+}
+QSlider::handle:horizontal:hover { background: %(vurguHover)s; }
+
+QScrollArea { border: none; background: transparent; }
+QScrollBar:vertical {
+    background: transparent; width: 10px; margin: 0;
+}
+QScrollBar::handle:vertical {
+    background: #2A3530; border-radius: 5px; min-height: 30px; margin: 2px;
+}
+QScrollBar::handle:vertical:hover { background: #3A4A43; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
+
+QToolTip {
+    background: %(kartAcik)s; color: %(yazi)s; border: 1px solid %(cerceve)s;
+    padding: 5px 8px; border-radius: 6px;
+}
+""" % {
+        "bg": BG, "yuzey": YUZEY, "kart": KART, "kartAcik": KART_ACIK,
+        "cerceve": CERCEVE, "cerceveParlak": CERCEVE_PARLAK, "yazi": YAZI,
+        "soluk": SOLUK, "silik": SILIK, "vurgu": VURGU, "vurguHover": VURGU_HOVER,
+        "vurguYazi": VURGU_YAZI, "yesil": YESIL, "kirmizi": KIRMIZI, "mavi": MAVI,
+    }

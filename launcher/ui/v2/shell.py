@@ -1,17 +1,23 @@
 """v2 kabuk: sol ray + üst bar + sayfa alanı. Sıfırdan, eski uygulamadan bağımsız."""
 import tkinter as tk
+from core.hizmetler import Hizmetler as _Hizmetler
 from . import tokens as T
 from . import widgets as W
 from . import kayit
 
 
 def _koyu_baslik_cubugu(pencere):
-    """Windows başlık çubuğunu koyu yapar (10 20H1+). Olmazsa sessiz geçilir."""
+    """Windows başlık çubuğunu koyu yapar. 19 = Win10 1809, 20 = 20H1+.
+    Olmazsa sessiz geçilir."""
     try:
         import ctypes
         deger = ctypes.c_int(1)
-        ctypes.windll.dwmapi.DwmSetWindowAttribute(
-            pencere.winfo_id(), 20, ctypes.byref(deger), ctypes.sizeof(deger))
+        for kod in (20, 19):
+            try:
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    pencere.winfo_id(), kod, ctypes.byref(deger), ctypes.sizeof(deger))
+            except Exception:
+                pass
     except Exception:
         pass
 
@@ -22,42 +28,9 @@ RAY_IKON = {
 }
 
 
-class Hizmetler:
-    def __init__(self, kok, ayar):
-        import queue as _q
-        self.kok = kok
-        self.ayar = ayar
-        self.log_kuyrugu = _q.Queue(maxsize=5000)
-        self.sunucu = None
-        try:
-            self.kullanici = (ayar.get("kullaniciAdi") or "").strip() or "Oyuncu"
-        except Exception:
-            self.kullanici = "Oyuncu"
-        try:
-            from core import version as _V
-            self.surum = _V.oku().get("surum", "?")
-        except Exception:
-            self.surum = "?"
-
-    def sunucu_al(self):
-        if self.sunucu is None:
-            from core import sunucu as _S
-            self.sunucu = _S.SunucuYoneticisi(self.kok, self.log_kuyrugu)
-        return self.sunucu
-
-    def heap_al(self):
-        try:
-            return max(1, min(16, int(self.ayar.get("heapGB", 3))))
-        except Exception:
-            return 3
-
-    def heap_kaydet(self, gb):
-        try:
-            self.ayar["heapGB"] = max(1, min(16, int(gb)))
-            from core import store as _ST
-            _ST.kaydet(self.ayar)
-        except Exception:
-            pass
+class Hizmetler(_Hizmetler):
+    """Uyumluluk katmanı: v2 kabuğu core.hizmetler.Hizmetler'ı kullanır."""
+    pass
 
 
 class Kabuk(tk.Tk):
@@ -97,26 +70,23 @@ class Kabuk(tk.Tk):
         ray.pack_propagate(False)
         try:
             from core import assets as _A
-            logo = _A.foto("brand", "mark-480.png")
+            logo = _A.kucult("brand", "mark-480.png", hedef=28)
             if logo:
-                try:
-                    kucuk = logo.subsample(10, 10)
-                    self._logo_ref = kucuk
-                    tk.Label(ray, image=kucuk, bg=T.YUZEY).pack(pady=(14, 18))
-                except Exception:
-                    pass
+                self._logo_ref = logo
+                tk.Label(ray, image=logo, bg=T.YUZEY).pack(pady=(14, 14))
         except Exception:
             pass
         for kimlik, mod in kayit.SAYFALAR:
             b = tk.Frame(ray, bg=T.YUZEY, cursor="hand2")
-            b.pack(fill="x", pady=2)
-            gosterge = tk.Frame(b, bg=T.VURGU, width=3)
+            b.pack(fill="x", pady=1)
+            gosterge = tk.Frame(b, bg=T.VURGU, width=2)
             govde = tk.Frame(b, bg=T.YUZEY)
             govde.pack(side="left", fill="x", expand=True)
             ikon = self._ray_ikon(govde, kimlik)
-            ikon.pack(pady=(8, 2))
-            etiket = tk.Label(govde, text=mod.BASLIK, font=("Inter", 8), bg=T.YUZEY, fg=T.SOLUK)
-            etiket.pack(pady=(0, 8))
+            ikon.pack(pady=(6, 1))
+            etiket = tk.Label(govde, text=mod.BASLIK, font=("Inter", 7),
+                              bg=T.YUZEY, fg=T.SILIK)
+            etiket.pack(pady=(0, 6))
             b.bind("<Button-1>", lambda e, k=kimlik: self._sayfa_ac(k))
             for cocuk in (ikon, etiket):
                 try:
@@ -134,24 +104,21 @@ class Kabuk(tk.Tk):
         ust = tk.Frame(self, bg=T.BG, height=T.UST_YUKSEKLIK)
         ust.pack(side="top", fill="x", padx=T.BOSLUK, pady=(12, 0))
         ust.pack_propagate(False)
-        self._ust_baslik = tk.Label(ust, text="", font=T.FONT_DEV, bg=T.BG, fg=T.YAZI)
+        self._ust_baslik = tk.Label(ust, text="", font=T.FONT_SAYFA, bg=T.BG, fg=T.YAZI)
         self._ust_baslik.pack(side="left")
         sag = tk.Frame(ust, bg=T.BG)
         sag.pack(side="right")
         try:
             from core import assets as _A2
-            kafa = _A2.foto("brand", "app-icon-128.png")
+            kafa = _A2.kucult("brand", "app-icon-128.png", hedef=24)
             if kafa:
-                try:
-                    minik = kafa.subsample(4, 4)
-                    self._kafa_ref = minik
-                    tk.Label(sag, image=minik, bg=T.BG).pack(side="left", padx=(0, 10))
-                except Exception:
-                    pass
+                self._kafa_ref = kafa
+                tk.Label(sag, image=kafa, bg=T.BG).pack(side="left", padx=(0, 8))
         except Exception:
             pass
-        tk.Label(sag, text="●", font=("Inter", 10), bg=T.BG, fg=T.YESIL).pack(side="left", padx=(0, 6))
-        tk.Label(sag, text=self.hizmetler.kullanici, font=T.FONT_BASLIK, bg=T.BG, fg=T.YAZI).pack(side="left", padx=(0, 4))
+        tk.Label(sag, text="●", font=("Inter", 7), bg=T.BG, fg=T.YESIL).pack(side="left", padx=(0, 5))
+        tk.Label(sag, text=self.hizmetler.kullanici, font=("Inter", 10), bg=T.BG,
+                 fg=T.SOLUK).pack(side="left", padx=(0, 2))
 
     def _kur_icerik(self):
         self._icerik = tk.Frame(self, bg=T.BG)
@@ -168,7 +135,6 @@ class Kabuk(tk.Tk):
 
     def _ray_boya(self, kimlik, aktif):
         oge = self._ray_dugmeler[kimlik]
-        renk = T.VURGU if aktif else T.SOLUK
         try:
             if aktif:
                 oge["gosterge"].pack(side="left", fill="y")
@@ -177,34 +143,41 @@ class Kabuk(tk.Tk):
         except Exception:
             pass
         try:
-            # PNG ikonlar sabit kalır; yalnızca çizgi ikonlar yeniden boyanır.
-            if isinstance(oge["ikon"], tk.Canvas):
-                oge["ikon"].destroy()
-                yeni_ikon = W.ikon_ciz(oge["govde"], oge["tur"], boyut=26, renk=renk)
-                try:
-                    yeni_ikon.bind("<Button-1>", lambda e, k=kimlik: self._sayfa_ac(k))
-                except Exception:
-                    pass
-                yeni_ikon.pack(pady=(8, 2), before=oge["etiket"])
-                oge["ikon"] = yeni_ikon
+            oge["etiket"].configure(fg=T.VURGU if aktif else T.SILIK)
         except Exception:
             pass
-        try:
-            oge["etiket"].configure(fg=T.VURGU if aktif else T.SOLUK)
-        except Exception:
-            pass
+        self._ray_ikon_degistir(kimlik, aktif)
 
-    def _ray_ikon(self, ebeveyn, kimlik, renk=None):
-        """PNG varsa onu, yoksa çizgi ikonu kullanır."""
+    def _ray_ikon(self, ebeveyn, kimlik, aktif=False):
+        """PNG varsa onu (20px), yoksa çizgi ikonu. Gri/ton: aktifse amber."""
         try:
             from core import assets as _A
             ad = RAY_IKON.get(kimlik, kimlik)
-            img = _A.foto("v2", "nav-icons", ad + ".png")
+            son_ad = ad + ("-aktif.png" if aktif else "-gri.png")
+            img = _A.kucult("v2", "nav-icons", son_ad, hedef=T.IKON)
             if img:
                 return tk.Label(ebeveyn, image=img, bg=T.YUZEY)
         except Exception:
             pass
-        return W.ikon_ciz(ebeveyn, kimlik, boyut=26, renk=renk)
+        return W.ikon_ciz(ebeveyn, kimlik, boyut=T.IKON, renk=T.VURGU if aktif else T.SILIK)
+
+    def _ray_ikon_degistir(self, kimlik, aktif):
+        """Aktif durum değişince ikonu yeniden kurar (PNG/çizgi fark etmez)."""
+        try:
+            oge = self._ray_dugmeler[kimlik]
+            yeni = self._ray_ikon(oge["govde"], kimlik, aktif)
+            try:
+                yeni.bind("<Button-1>", lambda e, k=kimlik: self._sayfa_ac(k))
+            except Exception:
+                pass
+            yeni.pack(pady=(6, 1), before=oge["etiket"])
+            try:
+                oge["ikon"].destroy()
+            except Exception:
+                pass
+            oge["ikon"] = yeni
+        except Exception:
+            pass
 
     def _sayfa_ac(self, kimlik):
         if kimlik == self._aktif:
@@ -230,7 +203,7 @@ class Kabuk(tk.Tk):
                 pass
         yeni = self._sayfalar[kimlik]
         try:
-            self._ust_baslik.configure(text=yeni.BASLIK if hasattr(yeni, "BASLIK") else kimlik)
+            self._ust_baslik.configure(text=self._sayfa_adi(kimlik))
         except Exception:
             pass
         try:
@@ -241,3 +214,9 @@ class Kabuk(tk.Tk):
             yeni.goster()
         except Exception:
             pass
+
+    def _sayfa_adi(self, kimlik):
+        for k, mod in kayit.SAYFALAR:
+            if k == kimlik:
+                return getattr(mod, "BASLIK", kimlik)
+        return kimlik

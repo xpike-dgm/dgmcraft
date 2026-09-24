@@ -17,14 +17,20 @@ MAVI = "#93C5FD"
 
 FONT_METIN = ("Inter", 10)
 FONT_KUCUK = ("Inter", 9)
-FONT_BASLIK = ("Inter", 13, "bold")
-FONT_DEV = ("Chakra Petch", 22, "bold")
-FONT_DEV_KUCUK = ("Chakra Petch", 13, "bold")
+FONT_MINIK = ("Inter", 8)
+FONT_BASLIK = ("Inter", 12)
+FONT_SAYFA = ("Inter", 13)
+FONT_HERO = ("Inter", 19)
+FONT_DEV = ("Inter", 15)
+FONT_DEV_KUCUK = ("Inter", 11)
 FONT_KONSOL = ("Consolas", 10)
+FONT_ETIKET = ("Inter", 8, "bold")
 
 GENISLIK = 1180
 YUKSEKLIK = 720
-RAY_GENISLIK = 84
-UST_YUKSEKLIK = 64
+RAY_GENISLIK = 76
+UST_YUKSEKLIK = 56
 BOSLUK = 16
 KART_ARALIK = 12
+IKON = 20
+IKON_KUCUK = 16

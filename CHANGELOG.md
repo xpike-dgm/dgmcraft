@@ -422,7 +422,21 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-24
 
-v2 F1 düzeltmeleri: slider + toggle + haber sırası.
+PySide6 arayüzü: Hub sayfası (yeni kuşak). Tkinter v2 ayrı çalışmaya devam eder.
+
+### Added
+- `launcher/qt.py` + `DgmCraft-Qt.bat`: PySide6 giriş noktası.
+- `ui/qt/`: QSS tema, gerçek yuvarlak köşe/gölge/gradyan yardımcıları, kabuk (76px ray, 8 sayfa, yığın).
+- Hub: hero (dikey gradyan + radyal ışık + kenar tüylü görsel), durum rozeti, hap "Sunucuyu Başlat" / "Güvenli Kapat", bellek slider'ı (2/3/4/6G), çevrimiçi oyuncu listesi, davet kopyalama, haber akışı, sunucu bilgi kartı.
+- `core/hizmetler.py` + `core/haber.py`: Tkinter ve Qt'un ortak kullandığı servis ve CHANGELOG okuyucu.
+
+### Fixed
+- Ray ikonları 48px olarak basılıyordu; artık 20px, pasifleri gri, aktif sayfa amber.
+- Tkinter v2'de sayfa adı küçük harf gösteriyordu (modül yerine kimlik okunuyordu).
+
+## [etiketsiz] - 2026-09-24
+
+v2 F1 düzeltmeleri: slider+toggle parçaları, haberler yeniye göre.
 
 ### Fixed
 - Bellek seçimi slider oldu (2/3/4/6G duraklı, rozetli).

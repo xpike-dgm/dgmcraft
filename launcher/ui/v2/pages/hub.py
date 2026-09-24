@@ -21,6 +21,7 @@ class HubSayfasi:
         self._rozet_var = None
         self._bilgi_var = None
         self._eylem_alani = None
+        self._eylem_dugmesi = None
         self._oyuncu_listesi = None
         self._oyuncu_bos = None
         self._haber_alani = None
@@ -41,34 +42,49 @@ class HubSayfasi:
     # ---------- hero ----------
     def _kur_hero(self):
         from core import assets as _A
-        hero = tk.Frame(self.cerceve, bg="#0D1312", highlightthickness=1,
+        hero = tk.Frame(self.cerceve, bg=T.KART, highlightthickness=1,
                         highlightbackground=T.CERCEVE)
         hero.pack(fill="x")
-        tuval = tk.Canvas(hero, bg="#0D1312", highlightthickness=0, height=240)
+        tuval = tk.Canvas(hero, bg=T.KART, highlightthickness=0, height=212)
         tuval.pack(fill="x")
+        self._hero_tuval = tuval
         try:
-            bg = _A.foto("v2", "hub-hero.png")
+            zemin = W.gradyan(tuval, 1072, 212, "#17211D", "#101614", anahtar="hero-arka")
+            if zemin:
+                self._hero_zemin = zemin
+                tuval.create_image(0, 0, image=zemin, anchor="nw")
+        except Exception:
+            pass
+        try:
+            bg = _A.olcek("v2", "hub-hero-soft.png", yukseklik=182)
             if bg:
                 self._hero_ref = bg
-                tuval.create_image(500, 120, image=bg)
+                tuval.create_image(800, 106, image=bg)
         except Exception:
             pass
-        katman = tk.Frame(tuval, bg="#0D1312")
         try:
-            katman.place(x=28, y=28)
+            serit = W.gradyan_serit("#17211D", "#101614", 212) or ["#141B18"]
+            isik = W.parlama(tuval, 620, 200, T.VURGU, guc=0.13, zemin=serit,
+                             merkez=(150, 150), anahtar="hero-isik")
+            if isik:
+                self._hero_isik = isik
+                tuval.create_image(150, 150, image=isik)
         except Exception:
             pass
-        self._rozet_var = tk.StringVar(value="HAZIR")
-        self._rozet = tk.Label(katman, textvariable=self._rozet_var, font=("Inter", 9, "bold"),
-                               bg="#12261C", fg=T.YESIL)
-        self._rozet.pack(anchor="w")
-        tk.Label(katman, text="Sunucuyu Başlat", font=("Chakra Petch", 26, "bold"),
-                 bg="#0D1312", fg=T.YAZI).pack(anchor="w", pady=(8, 4))
-        self._bilgi_var = tk.StringVar(value="3 kişilik özel Survival+ sunucun.")
-        tk.Label(katman, textvariable=self._bilgi_var, font=T.FONT_METIN,
-                 bg="#0D1312", fg=T.SOLUK, wraplength=560, justify="left").pack(anchor="w")
-        self._eylem_alani = tk.Frame(katman, bg="#0D1312")
-        self._eylem_alani.pack(anchor="w", pady=(14, 0))
+        # Durum rozeti: hap şeklinde koyu kutu + nokta + yazı
+        self._rozet_kutu = tuval.create_rectangle(30, 26, 96, 48, fill="#131A17",
+                                                  outline="#1E2A25", width=1)
+        tuval.create_oval(35, 34, 41, 40, fill=T.YESIL, outline="")
+        self._rozet_yazi = tuval.create_text(47, 37, anchor="w", text="HAZIR",
+                                             fill=T.SOLUK, font=("Inter", 8))
+        tuval.create_text(30, 78, anchor="w", text="Sunucuyu Başlat",
+                          fill=T.YAZI, font=T.FONT_HERO)
+        self._bilgi_yazi = tuval.create_text(
+            30, 100, anchor="nw", text="3 kişilik özel Survival+ sunucun.",
+            fill=T.SOLUK, font=("Inter", 9), width=430)
+        self._eylem_alani = None
+        self._eylem_dugmesi = None
+        self._eylem_yazi = None
         self._eylem_ciz("yukleniyor")
 
     def _eylem_ciz(self, durum, host=None):
@@ -77,38 +93,56 @@ class HubSayfasi:
                 w.destroy()
         except Exception:
             pass
+        self._eylem_dugmesi = None
+        self._eylem_yazi = None
         if durum == "yukleniyor":
-            tk.Label(self._eylem_alani, text="Durum okunuyor...",
-                     font=T.FONT_METIN, bg="#0D1312", fg=T.SOLUK).pack(anchor="w")
+            self._eylem_yazi = self._hero_tuval.create_text(
+                30, 140, anchor="w", text="Durum okunuyor...",
+                fill=T.SILIK, font=("Inter", 9))
         elif durum == "baslatilabilir":
-            W.birincil_dugme(self._eylem_alani, "SUNUCUYU BAŞLAT", self._baslat).pack(anchor="w")
+            self._eylem_dugmesi = W.OvalDugme(
+                self._hero_tuval, "Sunucuyu Başlat", self._baslat,
+                vurgu=True, genislik=176, yukseklik=38, bg="#141B18")
+            self._eylem_dugmesi.place(x=30, y=124)
         elif durum == "misafir":
-            tk.Label(self._eylem_alani, text="%s sunucuyu başlattı — ona katılabilirsin." % host,
-                     font=("Inter", 12, "bold"), bg="#0D1312", fg=T.YAZI).pack(anchor="w")
+            self._eylem_yazi = self._hero_tuval.create_text(
+                30, 143, anchor="w",
+                text="%s sunucuyu başlattı — ona katılabilirsin." % host,
+                fill=T.YAZI, font=("Inter", 10))
         elif durum == "host":
-            W.ikincil_dugme(self._eylem_alani, "Güvenli Kapat", self._guvenli_kapat).pack(anchor="w")
+            self._eylem_dugmesi = W.OvalDugme(
+                self._hero_tuval, "Güvenli Kapat", self._guvenli_kapat,
+                vurgu=False, genislik=150, yukseklik=38, bg="#141B18")
+            self._eylem_dugmesi.place(x=30, y=124)
         elif durum == "bakim":
-            tk.Label(self._eylem_alani, text="Bakım bitince buradan başlatırsın.",
-                     font=T.FONT_METIN, bg="#0D1312", fg=T.SOLUK).pack(anchor="w")
+            self._eylem_yazi = self._hero_tuval.create_text(
+                30, 143, anchor="w", text="Bakım bitince buradan başlatırsın.",
+                fill=T.SILIK, font=("Inter", 9))
 
     # ---------- bellek ----------
     def _kur_bellek(self, ebeveyn):
         kart = W.kart(ebeveyn)
         kart.pack(fill="x", pady=(0, T.KART_ARALIK))
         govde = tk.Frame(kart, bg=T.KART)
-        govde.pack(fill="x", padx=14, pady=12)
-        tk.Label(govde, text="SUNUCU BELLEĞİ", font=("Inter", 8, "bold"),
-                 bg=T.KART, fg=T.SILIK).pack(anchor="w", pady=(0, 4))
-        tk.Label(govde, text="Sunucu için ayrılacak maksimum RAM miktarı",
-                 font=T.FONT_KUCUK, bg=T.KART, fg=T.SOLUK).pack(anchor="w", pady=(0, 8))
+        govde.pack(fill="x", padx=16, pady=14)
+        ust_satir = tk.Frame(govde, bg=T.KART)
+        ust_satir.pack(fill="x")
+        tk.Label(ust_satir, text="SUNUCU BELLEĞİ", font=T.FONT_ETIKET,
+                 bg=T.KART, fg=T.SILIK).pack(side="left")
+        self._bellek_rozet = tk.Label(ust_satir, text="", font=("Inter", 9),
+                                      bg=T.KART, fg=T.VURGU)
+        self._bellek_rozet.pack(side="right")
+        tk.Label(govde, text="Sunucuya ayrılacak maksimum RAM miktarı",
+                 font=T.FONT_KUCUK, bg=T.KART, fg=T.SOLUK).pack(anchor="w", pady=(2, 10))
         secili = self.hizmetler.heap_al()
         baslangic = HEAP_SECENEKLERI.index(secili) if secili in HEAP_SECENEKLERI else 1
         self._bellek_kaydirici = W.AdimSlider(
             govde, degerler=[("%dG" % gb, gb) for gb in HEAP_SECENEKLERI],
-            baslangic=baslangic, komut=self._bellek_sec, genislik=440)
-        self._bellek_kaydirici.pack(fill="x", pady=(0, 4))
+            baslangic=baslangic, komut=self._bellek_sec, genislik=418,
+            rozet=self._bellek_rozet)
+        self._bellek_kaydirici.pack(fill="x", pady=(0, 2))
         tk.Label(govde, text="Sonraki başlatmada geçerli olur.",
-                 font=T.FONT_KUCUK, bg=T.KART, fg=T.SOLUK).pack(anchor="w", pady=(4, 0))
+                 font=T.FONT_KUCUK, bg=T.KART, fg=T.SILIK).pack(anchor="w", pady=(2, 0))
 
     def _bellek_sec(self, gb):
         try:
@@ -140,57 +174,17 @@ class HubSayfasi:
             tk.Label(satir, text="●", font=("Inter", 10), bg=T.KART, fg=T.VURGU).pack(side="left", padx=(0, 8))
             kutu = tk.Frame(satir, bg=T.KART)
             kutu.pack(side="left", fill="x", expand=True)
-            tk.Label(kutu, text=baslik, font=("Inter", 11, "bold"), bg=T.KART, fg=T.YAZI, anchor="w").pack(fill="x")
+            tk.Label(kutu, text=baslik, font=("Inter", 10), bg=T.KART, fg=T.YAZI, anchor="w").pack(fill="x")
             if ozet:
                 tk.Label(kutu, text=ozet, font=T.FONT_KUCUK, bg=T.KART, fg=T.SOLUK,
                          anchor="w", wraplength=520, justify="left").pack(fill="x")
 
-    @staticmethod
-    def _surum_anahtari(baslik):
-        # "## [0.22.4] - 2026-09-24" -> ((2026,9,24),(0,22,4)); etiketsiz -> ((0,0,0),(0,0,0))
-        import re
-        try:
-            m = re.search(r"\[([^\]]+)\]\s*-\s*(\d{4})-(\d{2})-(\d{2})", baslik)
-            if not m:
-                return ((0, 0, 0), (0, 0, 0))
-            ver = [int(x) for x in re.findall(r"\d+", m.group(1))[:3]]
-            while len(ver) < 3:
-                ver.append(0)
-            return ((int(m.group(2)), int(m.group(3)), int(m.group(4))), tuple(ver))
-        except Exception:
-            return ((0, 0, 0), (0, 0, 0))
-
     def _haber_oku(self):
-        import os
-        yol = os.path.join(self.hizmetler.kok, "CHANGELOG.md")
-        haberler = []
+        from core import haber as _H
         try:
-            with open(yol, "r", encoding="utf-8", errors="replace") as f:
-                baslik, maddeler = "", []
-                for satir in f:
-                    s = satir.strip()
-                    if s.startswith("## "):
-                        if baslik:
-                            haberler.append((baslik, "; ".join(maddeler[:2])))
-                        baslik = s[3:].strip()
-                        maddeler = []
-                    elif s.startswith("- ") and baslik:
-                        maddeler.append(s[2:].strip()[:120])
-                if baslik:
-                    haberler.append((baslik, "; ".join(maddeler[:2])))
+            return _H.changelog_oku(self.hizmetler.kok, 3)
         except Exception:
-            pass
-        try:
-            haberler.sort(key=lambda h: self._surum_anahtari(h[0]), reverse=True)
-        except Exception:
-            pass
-        haberler = [h for h in haberler if self._surum_anahtari(h[0]) != ((0, 0, 0), (0, 0, 0))][:3]
-        if not haberler:
-            try:
-                haberler = [("Sürüm %s" % self.hizmetler.surum, "")]
-            except Exception:
-                pass
-        return haberler
+            return []
 
     # ---------- oyuncular ----------
     def _kur_oyuncular(self, ebeveyn):
@@ -207,7 +201,9 @@ class HubSayfasi:
         self._oyuncu_bos.pack(anchor="w", pady=(8, 0))
         self._oyuncu_listesi = tk.Frame(govde, bg=T.KART)
         self._oyuncu_listesi.pack(fill="x", pady=(8, 0))
-        W.ikincil_dugme(govde, "Davet Adresini Kopyala", self._davet_kopyala).pack(anchor="w", pady=(12, 0))
+        W.OvalDugme(govde, "Davet Adresini Kopyala", self._davet_kopyala,
+                    vurgu=False, genislik=186, yukseklik=32,
+                    bg=T.KART).pack(anchor="w", pady=(14, 0))
 
     def _davet_kopyala(self):
         try:
@@ -263,7 +259,7 @@ class HubSayfasi:
         try:
             from core import kilit as _K, sunucu as _S, version as _V
             if _V.guncelleniyor_mu():
-                self._kuyruk.put_nowait(("rozet", ("BAKIMDA", "#2A2007", T.AMBER_HI)))
+                self._kuyruk.put_nowait(("rozet", ("BAKIMDA", "#2A2007", T.VURGU_HOVER)))
                 self._kuyruk.put_nowait(("eylem", ("bakim", None)))
                 self._kuyruk.put_nowait(("oyuncular", []))
                 return
@@ -283,11 +279,17 @@ class HubSayfasi:
             else:
                 self._kuyruk.put_nowait(("rozet", ("HAZIR", "#12261C", T.YESIL)))
                 self._kuyruk.put_nowait(("eylem", ("baslatilabilir", None)))
-            self._kuyruk.put_nowait(("oyuncular", self._oyuncu_oku() if (calisiyor or dolu) else []))
+                self._kuyruk.put_nowait(("oyuncular", self._oyuncu_oku() if (calisiyor or dolu) else []))
         except Exception:
             pass
         try:
             self.cerceve.after(500, self._bosalt)
+        except Exception:
+            pass
+
+    def _bilgi_degistir(self, metin):
+        try:
+            self._hero_tuval.itemconfigure(self._bilgi_yazi, text=metin)
         except Exception:
             pass
 
@@ -298,8 +300,8 @@ class HubSayfasi:
                 if tur == "rozet":
                     metin, arka, yazi = veri
                     try:
-                        self._rozet_var.set(metin)
-                        self._rozet.configure(bg=arka, fg=yazi)
+                        self._rozet_yazi2 = self._hero_tuval.itemconfigure(
+                            self._rozet_yazi, text=metin, fill=yazi)
                     except Exception:
                         pass
                 elif tur == "eylem":
@@ -307,9 +309,9 @@ class HubSayfasi:
                     try:
                         self._eylem_ciz(durum, host)
                         if durum == "bakim":
-                            self._bilgi_var.set("Sunucu dosyaları güncelleniyor.")
+                            self._bilgi_degistir("Sunucu dosyaları güncelleniyor.")
                         elif durum == "misafir":
-                            self._bilgi_var.set("Sürüm %s." % self.hizmetler.surum)
+                            self._bilgi_degistir("Sürüm %s." % self.hizmetler.surum)
                     except Exception:
                         pass
                 elif tur == "oyuncular":
@@ -348,7 +350,7 @@ class HubSayfasi:
                 satir = tk.Frame(self._oyuncu_listesi, bg=T.KART)
                 satir.pack(fill="x", pady=2)
                 tk.Label(satir, text="●", font=("Inter", 9), bg=T.KART, fg=T.YESIL).pack(side="left", padx=(0, 6))
-                tk.Label(satir, text=ad, font=("Inter", 11, "bold"), bg=T.KART, fg=T.YAZI).pack(side="left")
+                tk.Label(satir, text=ad, font=("Inter", 10), bg=T.KART, fg=T.YAZI).pack(side="left")
         except Exception:
             pass
 
