@@ -37,54 +37,74 @@ class StubPencere(tk.Tk):
         super().__init__()
         self.title("DgmCraft Kurulum")
         try:
-            w, h = 520, 420
+            from core import assets as _A
+            _A.ikon_pencere(self)
+        except Exception:
+            pass
+        try:
+            w, h = 560, 600
             x = (self.winfo_screenwidth() - w) // 2
             y = max(0, (self.winfo_screenheight() - h) // 2 - 20)
             self.geometry("%dx%d+%d+%d" % (w, h, x, y))
         except Exception:
-            self.geometry("520x420")
+            self.geometry("560x600")
         self.resizable(False, False)
         self.configure(bg=BG)
         try:
             st = ttk.Style(self)
             st.theme_use("clam")
             st.configure("Amber.Horizontal.TProgressbar", background=AMBER,
-                         troughcolor="#141B19", borderwidth=0, thickness=10)
+                         troughcolor="#141B19", borderwidth=0, thickness=12)
         except Exception:
             pass
         self._kuyruk = queue.Queue()
         self._iptal = False
-        dis = tk.Frame(self, bg=BG)
-        dis.pack(fill="both", expand=True, padx=36, pady=28)
-        tk.Label(dis, text="DGM CRAFT", font=("Segoe UI", 24, "bold"), bg=BG, fg=YAZI).pack(pady=(4, 2))
-        tk.Label(dis, text="Kurulum", font=("Segoe UI", 13), bg=BG, fg=AMBER).pack(pady=(0, 12))
+        try:
+            from core import assets as _A2
+            self._bg_img = _A2.foto("splash", "splash-bg-800.png")
+            if self._bg_img:
+                tk.Label(self, image=self._bg_img, bg=BG).place(x=0, y=0, relwidth=1, relheight=1)
+        except Exception:
+            pass
+        kart = tk.Frame(self, bg="#101615", highlightthickness=1, highlightbackground="#26332E")
+        kart.place(relx=0.5, rely=0.52, anchor="center", width=460, height=460)
+        try:
+            from core import assets as _A3
+            self._logo_img = _A3.foto("brand", "app-icon-128.png")
+            if self._logo_img:
+                tk.Label(kart, image=self._logo_img, bg="#101615").pack(pady=(22, 6))
+        except Exception:
+            pass
+        tk.Label(kart, text="DGM CRAFT", font=("Segoe UI", 22, "bold"), bg="#101615", fg=YAZI).pack()
+        tk.Label(kart, text="Kurulum", font=("Segoe UI", 12), bg="#101615", fg=AMBER).pack(pady=(0, 10))
         self.durum_var = tk.StringVar(value="Hazır olduğunda Kur'a bas.")
-        tk.Label(dis, textvariable=self.durum_var, font=("Segoe UI", 11), bg=BG, fg=SOLUK,
-                 wraplength=430, justify="center").pack(pady=(0, 12))
-        self.bar = ttk.Progressbar(dis, maximum=100, length=430, style="Amber.Horizontal.TProgressbar")
-        self.bar.pack(fill="x", pady=(0, 16))
-        alt = tk.Frame(dis, bg=BG)
-        alt.pack(fill="x")
+        tk.Label(kart, textvariable=self.durum_var, font=("Segoe UI", 11), bg="#101615", fg=SOLUK,
+                 wraplength=400, justify="center").pack(pady=(0, 10))
+        self.bar = ttk.Progressbar(kart, maximum=100, style="Amber.Horizontal.TProgressbar")
+        self.bar.pack(fill="x", padx=30, pady=(0, 16))
+        alt = tk.Frame(kart, bg="#101615")
+        alt.pack(fill="x", padx=30, pady=(0, 20))
         self.kur_btn = tk.Button(alt, text="Kur", command=self._kur_bas, bg=AMBER, fg="#1A1000",
                                  font=("Segoe UI", 11, "bold"), relief="flat", padx=24, pady=8)
         self.kur_btn.pack(side="right")
         tk.Button(alt, text="Kapat", command=self._kapat, bg="#223029", fg="#E8EEEA",
                   font=("Segoe UI", 10), relief="flat", padx=18, pady=8).pack(side="left")
+        tk.Label(self, text="Sürüm: DgmCraft Kurulum", font=("Segoe UI", 8), bg=BG, fg="#6E7F76").place(relx=0.5, rely=0.97, anchor="center")
         self.after(150, self._pompa)
         self.protocol("WM_DELETE_WINDOW", self._kapat)
 
-    def _ui(self, fn, *args):
+    def _ui(self, fn, *args, **kwargs):
         try:
-            self._kuyruk.put_nowait((fn, args))
+            self._kuyruk.put_nowait((fn, args, kwargs))
         except Exception:
             pass
 
     def _pompa(self):
         try:
             while True:
-                fn, args = self._kuyruk.get_nowait()
+                fn, args, kwargs = self._kuyruk.get_nowait()
                 try:
-                    fn(*args)
+                    fn(*args, **kwargs)
                 except Exception:
                     pass
         except queue.Empty:

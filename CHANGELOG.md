@@ -377,6 +377,15 @@ Bootstrapper: tek dosyalık kurulum exe'si.
 - Release'te artık 3 dosya: zip + `.sha256` + kurulum exe'si.
 - Bozuk/yarım indirme çalıştırılmaz; eski sürümlerde sha yoksa kurulum reddedilir.
 
+## [0.25.1] - 2026-09-24
+
+Kurulum stub düzeltmeleri.
+
+### Fixed
+- `_ui` kwargs kabul etmiyordu, ilerleme çubuğu ilk güncellemede çöküyordu (`value` hatası). Üç pencerede de kuyruk kwargs taşıyor.
+- Stub penceresi yenilendi: arka plan görseli, logo, pencere ikonu, ortalanmış kart.
+- Stub derlemesine asset paketi dahil.
+
 ## [0.24.0] - 2026-09-24
 
 Görsel asset güncellemesi (marka paketi).

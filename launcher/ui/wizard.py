@@ -93,18 +93,18 @@ class Wizard(tk.Toplevel):
         self._ciz()
 
     # ---------- altyapı ----------
-    def _ui(self, fn, *args):
+    def _ui(self, fn, *args, **kwargs):
         try:
-            self._ui_kuyrugu.put_nowait((fn, args))
+            self._ui_kuyrugu.put_nowait((fn, args, kwargs))
         except Exception:
             pass
 
     def _ui_pompa(self):
         try:
             while True:
-                fn, args = self._ui_kuyrugu.get_nowait()
+                fn, args, kwargs = self._ui_kuyrugu.get_nowait()
                 try:
-                    fn(*args)
+                    fn(*args, **kwargs)
                 except Exception:
                     pass
         except queue.Empty:

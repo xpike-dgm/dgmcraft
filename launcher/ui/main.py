@@ -175,9 +175,9 @@ class AnaPencere(tk.Tk):
         except Exception:
             pass
 
-    def _ui(self, fn, *args):
+    def _ui(self, fn, *args, **kwargs):
         try:
-            self._ui_kuyrugu.put_nowait((fn, args))
+            self._ui_kuyrugu.put_nowait((fn, args, kwargs))
         except Exception:
             pass
 
@@ -258,9 +258,9 @@ class AnaPencere(tk.Tk):
         # Worker'lardan gelen UI güncellemelerini ana thread'de uygula.
         try:
             while True:
-                fn, args = self._ui_kuyrugu.get_nowait()
+                fn, args, kwargs = self._ui_kuyrugu.get_nowait()
                 try:
-                    fn(*args)
+                    fn(*args, **kwargs)
                 except Exception:
                     pass
         except queue.Empty:
