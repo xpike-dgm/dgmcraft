@@ -44,7 +44,7 @@ class Wizard(tk.Toplevel):
         self.adimlar = [
             ("Hoş geldin", self._adim_hosgeldin),
             ("Adın", self._adim_ad),
-            ("VPN anahtarı", self._adim_anahtar),
+            ("Davet kodun", self._adim_anahtar),
             ("Dosya eşitleme", self._adim_sync),
             ("Gizli ağ", self._adim_vpn),
             ("Arkadaşlar", self._adim_arkadas),
@@ -73,8 +73,8 @@ class Wizard(tk.Toplevel):
         self._icerik_canvas.configure(yscrollcommand=self._icerik_kaydir.set)
         self.icerik = tk.Frame(self._icerik_canvas, bg=TEMA.BG)
         self._icerik_pencere = self._icerik_canvas.create_window((0, 0), window=self.icerik, anchor="nw")
-        self.icerik.bind("<Configure>", lambda e: self._icerik_canvas.configure(scrollregion=self._icerik_canvas.bbox("all")))
-        self._icerik_canvas.bind("<Configure>", lambda e: self._icerik_canvas.itemconfigure(self._icerik_pencere, width=e.width))
+        self.icerik.bind("<Configure>", self._icerik_olcu)
+        self._icerik_canvas.bind("<Configure>", self._icerik_olcu)
         self._icerik_canvas.pack(side="left", fill="both", expand=True)
         self._icerik_kaydir.pack(side="right", fill="y")
         self.bind_all("<MouseWheel>", self._icerik_tekerlek, add="+")
@@ -114,6 +114,23 @@ class Wizard(tk.Toplevel):
         try:
             if self.winfo_exists():
                 self.after(150, self._ui_pompa)
+        except Exception:
+            pass
+
+    def _icerik_olcu(self, event=None):
+        try:
+            self._icerik_canvas.configure(scrollregion=self._icerik_canvas.bbox("all"))
+            self._icerik_canvas.itemconfigure(self._icerik_pencere, width=self._icerik_canvas.winfo_width())
+            kutu = self._icerik_canvas.bbox("all") or (0, 0, 0, 0)
+            tasdi = (kutu[3] - kutu[1]) > self._icerik_canvas.winfo_height()
+            if tasdi:
+                self._icerik_kaydir.pack(side="right", fill="y")
+            else:
+                self._icerik_kaydir.pack_forget()
+                try:
+                    self._icerik_canvas.yview_moveto(0)
+                except Exception:
+                    pass
         except Exception:
             pass
 
@@ -178,9 +195,15 @@ class Wizard(tk.Toplevel):
         except Exception:
             pass
 
+    KALAN_SURE = ("~2 dk", "~2 dk", "~1 dk", "~1 dk", "~1 dk", "~30 sn", "bitiş")
+
     def _ciz(self):
         baslik, kurucu = self.adimlar[self.adim]
-        self.adim_sayisi_var.set("ADIM %d / %d" % (self.adim + 1, len(self.adimlar)))
+        try:
+            kalan = self.KALAN_SURE[self.adim]
+        except Exception:
+            kalan = ""
+        self.adim_sayisi_var.set("ADIM %d / %d • %s" % (self.adim + 1, len(self.adimlar), kalan))
         self.adim_baslik_var.set(baslik)
         try:
             self.bar.configure(value=100 * (self.adim + 1) / len(self.adimlar))
@@ -190,7 +213,11 @@ class Wizard(tk.Toplevel):
         kurucu()
         self._birincil_yenile()
         try:
-            self.geri_btn.configure(state="normal" if self.adim > 0 else "disabled")
+            if self.adim > 0:
+                self.geri_btn.pack(side="left")
+                self.geri_btn.configure(state="normal")
+            else:
+                self.geri_btn.pack_forget()
         except Exception:
             pass
 
@@ -199,24 +226,86 @@ class Wizard(tk.Toplevel):
         self._govde(T.HOSGELDIN_ACIKLAMA)
         self._not("Sana 7 kısa adımda her şeyi hazırlatacağım. Her adım, bir önceki doğrulanmadan açılmaz.")
 
+    def _yer_tutucu(self, giris, var, ornek):
+        """Boşken gri örnek yazı, odaklanınca silinir."""
+        def _goster(*a):
+            try:
+                if not var.get():
+                    giris.configure(fg="#6B7280")
+                    giris.delete(0, "end")
+                    giris.insert(0, ornek)
+            except Exception:
+                pass
+
+        def _odak_girdi(*a):
+            try:
+                if giris.get() == ornek and not var.get():
+                    giris.delete(0, "end")
+                    giris.configure(fg=TEMA.YAZI)
+            except Exception:
+                pass
+
+        def _odak_cikti(*a):
+            try:
+                var.set(giris.get() if giris.get() != ornek else "")
+                if not var.get():
+                    _goster()
+                else:
+                    giris.configure(fg=TEMA.YAZI)
+            except Exception:
+                pass
+
+        try:
+            giris.bind("<FocusIn>", _odak_girdi, add="+")
+            giris.bind("<FocusOut>", _odak_cikti, add="+")
+            _goster()
+        except Exception:
+            pass
+
+    ORNEK_AD = "Örnek: Ahmet"
+
+    def _ad(self):
+        try:
+            ad = self.ad_var.get().strip()
+        except Exception:
+            ad = ""
+        return "" if ad == self.ORNEK_AD else ad
+
     def _adim_ad(self):
         self._govde(T.AD_ACIKLAMA)
         tk.Label(self.icerik, text=T.AD_SOR, font=FONT_GOVDE, bg=TEMA.BG, fg=TEMA.YAZI).pack(anchor="w", pady=(10, 4))
-        g = TEMA.giris(self.icerik, textvariable=self.ad_var, width=28)
+        g = TEMA.giris(self.icerik, textvariable=self.ad_var)
         try:
             g.configure(font=FONT_GIRIS)
         except Exception:
             pass
-        g.pack(anchor="w", pady=2, ipady=8)
+        g.pack(fill="x", pady=2, ipady=8)
+        if not self._ad():
+            self._yer_tutucu(g, self.ad_var, self.ORNEK_AD)
+        self._not("Boş bırakılamaz. Bu isim sunucuyu kimin açtığını gösterir.")
 
     def _adim_anahtar(self):
         self._govde(T.ANAHTAR_ACIKLAMA)
-        g = TEMA.giris(self.icerik, textvariable=self.key_var, width=44)
+        satir = tk.Frame(self.icerik, bg=TEMA.BG)
+        satir.pack(fill="x", pady=(10, 2))
+        g = TEMA.giris(satir, textvariable=self.key_var)
         try:
             g.configure(font=FONT_GIRIS, show="*")
         except Exception:
             pass
-        g.pack(anchor="w", pady=(10, 2), ipady=8)
+        g.pack(side="left", fill="x", expand=True, ipady=8)
+        self._anahtar_gizli = True
+
+        def _goster_degistir():
+            self._anahtar_gizli = not self._anahtar_gizli
+            try:
+                g.configure(show="*" if self._anahtar_gizli else "")
+                goster_btn.configure(text="Göster" if self._anahtar_gizli else "Gizle")
+            except Exception:
+                pass
+
+        goster_btn = ttk.Button(satir, text="Göster", command=_goster_degistir, style="Secondary.TButton")
+        goster_btn.pack(side="left", padx=(8, 0))
         self._not(T.ANAHTAR_YOK_NOTU)
         if not self.key_var.get().strip():
             ttk.Button(self.icerik, text="Anahtarım yok, sonra ekleyeceğim",
@@ -235,10 +324,8 @@ class Wizard(tk.Toplevel):
 
     def _adim_sync(self):
         self._govde(T.SYNC_ACIKLAMA)
-        self._not(T.SYNC_KURULUYOR)
         self._not(T.SYNC_KONTROL)
         self.sync_durum_var, self.sync_durum_lbl = self._durum()
-        self._not("Alttaki düğme duruma göre değişir: eksikse Otomatik Kur, kuruluysa Kontrol Et, hazırsa Devam Et.")
 
     def _adim_vpn(self):
         self._govde(T.VPN_ACIKLAMA)
@@ -278,13 +365,17 @@ class Wizard(tk.Toplevel):
     def _adim_hazir(self):
         self._govde(T.HAZIR_BASLIK)
         satirlar = [
-            "Adın: %s" % (self.ad_var.get().strip() or "—"),
-            "Dosya eşitleme: %s" % ("hazır" if self.sync_ok else "eksik"),
-            "VPN: %s" % ("bağlı (%s)" % self.vpn_ip if self.vpn_bagli else ("kurulu" if self.vpn_kurulu else "eksik")),
-            "Eşleştirme: %s" % ("tamam" if self.esles_ok else ("atlandı" if self.esles_atlandi else "eksik")),
+            ("Adın: %s" % (self._ad() or "—"), TEMA.YESIL),
+            ("Dosya eşitleme: %s" % ("hazır" if self.sync_ok else "eksik"),
+             TEMA.YESIL if self.sync_ok else TEMA.KIRMIZI),
+            ("VPN: %s" % ("bağlı" if self.vpn_bagli else ("kurulu, bağlanmadı" if self.vpn_kurulu else "eksik")),
+             TEMA.YESIL if self.vpn_bagli else TEMA.AMBER_HI),
+            ("Sunucu daveti: %s" % ("tamam" if self.esles_ok else ("atlandı — sonra eklenebilir" if self.esles_atlandi else "eksik")),
+             TEMA.YESIL if self.esles_ok else TEMA.AMBER_HI),
         ]
-        for s in satirlar:
-            tk.Label(self.icerik, text="•  " + s, font=FONT_GOVDE, bg=TEMA.BG, fg=TEMA.YAZI, anchor="w").pack(fill="x", pady=3)
+        for s, renk in satirlar:
+            tk.Label(self.icerik, text="●  " + s, font=FONT_GOVDE, bg=TEMA.BG, fg=renk, anchor="w").pack(fill="x", pady=3)
+        self._not("Her şeyi sonra Ayarlar ve sihirbazdan değiştirebilirsin.")
 
     # ---------- yardımcılar ----------
     def _anahtar_var(self):
@@ -350,10 +441,10 @@ class Wizard(tk.Toplevel):
         if self.adim == 0:
             self._ileri()
         elif self.adim == 1:
-            if not self.ad_var.get().strip():
+            if not self._ad():
                 messagebox.showwarning("Ad gerekli", "Devam etmek için adını yazmalısın.")
                 return
-            self.ayar["kullaniciAdi"] = self.ad_var.get().strip()
+            self.ayar["kullaniciAdi"] = self._ad()
             store.kaydet(self.ayar)
             self._ileri()
         elif self.adim == 2:
@@ -574,7 +665,7 @@ class Wizard(tk.Toplevel):
         if not anahtar:
             messagebox.showwarning("Anahtar yok", "Bağlanmak için önce VPN anahtarını gir (2. adım).")
             return
-        ad = self.ad_var.get().strip() or "DgmCraft"
+        ad = self._ad() or "DgmCraft"
         self._mesgul_ac(None)
         if self.adim == 4:
             self._durum_boya(self.vpn_durum_var, self.vpn_durum_lbl, "Bağlanıyor...", "amber")
@@ -652,7 +743,7 @@ class Wizard(tk.Toplevel):
 
     # ---------- bitir ----------
     def _bitir(self):
-        ad = self.ad_var.get().strip()
+        ad = self._ad()
         if not ad:
             self.adim = 1
             self._ciz()

@@ -56,20 +56,29 @@ def uygula(pencere):
     stil.configure("PanelSoluk.TLabel", background=PANEL, foreground=SOLUK, font=FONT_KUCUK)
     stil.configure("Baslik.TLabel", background=BG, foreground=YAZI, font=FONT_BASLIK)
     stil.configure("PanelBaslik.TLabel", background=PANEL, foreground=YAZI, font=FONT_ALT)
+    # Odak göstergesi tek sistem: noktalı çerçeve yok, odaklanan düğme parlar.
+    _duz = [("Button.border", {"sticky": "nswe", "children": [
+        ("Button.padding", {"sticky": "nswe", "children": [
+            ("Button.label", {"sticky": "nswe"})]})]})]
+    for _stil in ("Primary.TButton", "Secondary.TButton", "Danger.TButton"):
+        try:
+            stil.layout(_stil, _duz)
+        except Exception:
+            pass
     # Birincil düğme (amber)
     stil.configure("Primary.TButton", background=AMBER, foreground=AMBER_KOYU_YAZI,
                    font=("Segoe UI", 10, "bold"), padding=(14, 8), borderwidth=0)
-    stil.map("Primary.TButton", background=[("active", AMBER_HI), ("disabled", "#4A3A10")],
+    stil.map("Primary.TButton", background=[("focus", AMBER_HI), ("active", AMBER_HI), ("disabled", "#4A3A10")],
              foreground=[("disabled", "#8A7A50")])
     # İkincil düğme
     stil.configure("Secondary.TButton", background="#223029", foreground="#E8EEEA",
                    font=FONT_NORMAL, padding=(12, 7), borderwidth=1, bordercolor=BORDER)
-    stil.map("Secondary.TButton", background=[("active", "#2C3E35")],
-             bordercolor=[("active", AMBER)])
+    stil.map("Secondary.TButton", background=[("focus", "#2C3E35"), ("active", "#2C3E35")],
+             bordercolor=[("focus", AMBER), ("active", AMBER)])
     # Tehlikeli düğme
     stil.configure("Danger.TButton", background="#3A1D18", foreground=KIRMIZI,
                    font=FONT_NORMAL, padding=(12, 7), borderwidth=1, bordercolor="#5A2B1A")
-    stil.map("Danger.TButton", background=[("active", "#4A241D")])
+    stil.map("Danger.TButton", background=[("focus", "#4A241D"), ("active", "#4A241D")])
     # Sekmeler
     stil.configure("TNotebook", background=BG, borderwidth=0)
     stil.configure("TNotebook.Tab", background=PANEL, foreground=SOLUK,
