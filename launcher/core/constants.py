@@ -12,6 +12,7 @@ KAPANMA_SAVE_BEKLEME_SN = 10
 KAPANMA_UST_SINIR_SN = 90
 TEHLIKELI_KOMUTLAR = ("stop", "op", "deop", "restart", "reload", "save-off")
 SAHIP_DOSYASI = ".sahip"
+GITHUB_REPO = "xpike-dgm/dgmcraft"
 ESITLEME_DISLAMA = ["(?d)backups", "(?d)logs", "(?d)cache", "(?d).stversions", "*.tmp", "*.part", "(?d).sahip"]
 KLASOR_ID = "dgmcraf-sunucu"
 SYNCTHING_SURUM = "1.27.12"

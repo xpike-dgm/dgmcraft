@@ -14,11 +14,9 @@ from . import constants as C
 UYGULANACAK_KLASORLER = ["launcher", "scripts", "site", "docs"]
 
 
-def depo(ayar):
-    try:
-        return ((ayar or {}).get("githubRepo") or "").strip().strip("/")
-    except Exception:
-        return ""
+def depo(ayar=None):
+    # Repo koda kazılıdır, kullanıcıdan istenmez.
+    return C.GITHUB_REPO
 
 
 def son_surum(repo, timeout=15):

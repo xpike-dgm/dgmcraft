@@ -390,6 +390,14 @@ Sihirbaz tek yola indi + Tailscale teşhisi.
 
 ## [etiketsiz] - 2026-09-24
 
+Konsolsuz başlatma + repo kazıma.
+
+### Fixed
+- Başlatma bat dosyaları konsol penceresi bırakmıyordu; `start + pythonw + exit` ile sessizleşti.
+- GitHub repo koda kazındı (`xpike-dgm/dgmcraft`); Ayarlar'daki repo girişi kalktı.
+
+## [etiketsiz] - 2026-09-24
+
 Ayarlar turu (mühendis puanları: 562, 567) + sahip kilidi.
 
 ### Added

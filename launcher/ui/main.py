@@ -685,45 +685,13 @@ class AnaPencere(tk.Tk):
         threading.Thread(target=_vpn_rozet_guncelle, daemon=True).start()
         # Güncelleme
         g, _ = kart("Güncelleme")
-        tk.Label(g, text="GitHub repo",
-                 font=TEMA.FONT_NORMAL, bg=TEMA.KART, fg=TEMA.YAZI).pack(anchor="w", pady=(0, 2))
-        repo_var = tk.StringVar(value=self.ayar.get("githubRepo", ""))
-        repo_giris = TEMA.giris(g, textvariable=repo_var)
-        repo_giris.pack(fill="x", ipady=5)
-        if not repo_var.get().strip():
-            try:
-                repo_giris.configure(fg="#6B7280")
-                repo_giris.delete(0, "end")
-                repo_giris.insert(0, "örn. kullaniciadi/dgmcraft")
-                repo_giris.bind("<FocusIn>", lambda e: (repo_giris.delete(0, "end"), repo_giris.configure(fg=TEMA.YAZI)) if repo_giris.get() == "örn. kullaniciadi/dgmcraft" else None, add="+")
-            except Exception:
-                pass
-        self._ayar_repo_var = repo_var
-        repo_hata_var = tk.StringVar(value="")
-        tk.Label(g, textvariable=repo_hata_var, font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.KIRMIZI,
-                 wraplength=480, justify="left").pack(anchor="w")
         try:
             surum_metni = self.ayar.get("launcherSurumu", "") or C.PAKET_SURUMU
             tk.Label(g, text="Yüklü: %s" % surum_metni,
-                     font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.SOLUK).pack(anchor="w", pady=(6, 0))
+                     font=TEMA.FONT_KUCUK, bg=TEMA.KART, fg=TEMA.SOLUK).pack(anchor="w", pady=(0, 6))
         except Exception:
             pass
-        denetle_btn = ttk.Button(g, text="Güncellemeleri Denetle", command=self._guncelleme_denetle, style="Secondary.TButton")
-        denetle_btn.pack(anchor="w", pady=(8, 0))
-
-        def _repo_izle(*a):
-            try:
-                bos = not repo_var.get().strip() or repo_var.get().strip() == "örn. kullaniciadi/dgmcraft"
-                denetle_btn.configure(state="disabled" if bos else "normal")
-                repo_hata_var.set("Denetlemek için önce repo yaz." if bos else "")
-            except Exception:
-                pass
-
-        try:
-            repo_var.trace_add("write", _repo_izle)
-            _repo_izle()
-        except Exception:
-            pass
+        ttk.Button(g, text="Güncellemeleri Denetle", command=self._guncelleme_denetle, style="Secondary.TButton").pack(anchor="w")
         # Uygulama (herkeste görünür)
         g, _ = kart("Uygulama")
         ttk.Button(g, text="Klasörü Aç", command=self._klasor_ac, style="Secondary.TButton").pack(anchor="w", pady=(2, 0))
@@ -835,18 +803,8 @@ class AnaPencere(tk.Tk):
             pass
 
     def _guncelleme_denetle(self):
-        # Ekrandaki repo her zaman disktekinden önce gelir (Kaydet'siz Denetle).
         try:
-            ekran_repo = ""
-            try:
-                ekran_repo = self._ayar_repo_var.get().strip()
-                if ekran_repo == "örn. kullaniciadi/dgmcraft":
-                    ekran_repo = ""
-            except Exception:
-                pass
             self.ayar = store.yukle()
-            if ekran_repo:
-                self.ayar["githubRepo"] = ekran_repo
         except Exception:
             pass
         self._yaz("Güncelleme denetleniyor...\n")
