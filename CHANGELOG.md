@@ -422,6 +422,14 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-25
 
+F8 — Ayarlar sayfası (PySide6).
+
+### Added
+- Ayarlar sayfası, v1'deki kartların karşılığı: Profil (kullanıcı adı kaydet), Yapay zeka (anahtar göster/temizle), Bağlantı (VPN durumu + Bağlan + Kurulum Sihirbazı), Güncelleme (sürüm + denetle), Uygulama (bellek slider'ı, klasörü aç, kaldır), Sahip (Yayınla / Bitir — yalnızca sahip makinesinde görünür).
+- `launcher/wizard.py`: kurulum sihirbazını tek başına açan giriş noktası; PySide6 Ayarlar'dan ayrı süreçte başlatılıyor.
+
+## [etiketsiz] - 2026-09-25
+
 F7 — Görevler sayfası (PySide6).
 
 ### Added
