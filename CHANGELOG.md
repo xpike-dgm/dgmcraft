@@ -422,6 +422,19 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-25
 
+F6 — Sıralama sayfası (PySide6).
+
+### Added
+- `core/siralama.py`: iki kaynak — sunucudaki ajLeaderboards tabloları (RCON `ajlb list` / `ajlb list <board>`) veya yoksa yerel veri (Essentials para/son görülme/oynama, AuraSkills yetenek toplamı).
+- Sıralama sayfası: 3'lü ızgara, madalyalı podyum (1-2-3), sıra listesi, senin satırın vurgulu, kaynak etiketi, Yenile düğmesi.
+- Tablo yoksa sayfa, oyun içinde kullanılacak `/ajlb add <placeholder> <ad>` komutlarını gösterir.
+
+### Notlar
+- Sunucuda şu anda hiç ajLeaderboards tablosu tanımlı değil (`/ajlb list` boş). Komut RCON üzerinden yanıt vermediği için tablolar oyun içinden açılmalı; sayfa o zamana kadar yerel veriyi gösteriyor.
+- Her sayının kaynağı kart üzerinde yazıyor; hiçbir değer uydurulmuyor.
+
+## [etiketsiz] - 2026-09-25
+
 F5 — Yetenekler sayfası (PySide6).
 
 ### Added
