@@ -1,659 +1,580 @@
-"""F7 — Görev Ağacı: 750 düğümlük harita; sürükle/klavye ile kaydırma, üstüne
-gelince detay kartı.
+"""F7 — Görevler: ilerleme özeti, bölüm listesi ve seçili görevin detay kartı.
 
-Harita verisi `core.gorev_agaci`'den gelir. BeautyQuests görev dosyaları
-geldiğinde aynı düğümler gerçek ad/durum/ödül bilgisini otomatik alır.
+Sol sütunda arama + filtreler ve bölüm bölüm açılan görev listesi; sağda
+seçili görevin hedefleri, ön koşulları, ödülleri ve aksiyonları.
+Veri `core.gorev_agaci`'den gelir; BeautyQuests dosyaları geldiğinde satırlar
+gerçek ad, durum, hedef ve ödül bilgisini otomatik alır.
 """
-import math
 import threading
 
-from PySide6.QtCore import QPointF, QRectF, Qt, QTimer, Signal
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPixmap
-from PySide6.QtWidgets import (QComboBox, QFrame, QHBoxLayout, QLabel, QPushButton,
-                               QSizePolicy, QVBoxLayout, QWidget)
+from PySide6.QtCore import QPoint, QRectF, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPen
+from PySide6.QtWidgets import (QComboBox, QFrame, QHBoxLayout, QLabel, QLineEdit,
+                               QPushButton, QScrollArea, QSizePolicy, QVBoxLayout,
+                               QWidget)
 
+from core import gorev_agaci as GA
 from .. import ikonlar
 from .. import tema as T
 from .. import yardimci as Y
-from core import gorev_agaci as GA
 
 BASLIK = "Görevler"
 
-DUGUM_R = 30.0        # düğüm yarıçapı (dünya birimi)
-EN_KUCUK = 0.26
-EN_BUYUK = 1.35
-ADIM_KLAVYE = 900.0   # saniyede dünya birimi
-KAYDIRMA_SINIR = 1400.0
+CIZGI = "#242F2B"
+ZEMIN = "#121816"
+VURGU_ZEMIN = "#16211D"
+YESIL = "#34D399"
+
+DURUM_GEYSI = {
+    GA.DURUM_TAMAM: (YESIL, "#08150F", "tamam"),
+    GA.DURUM_AKTIF: (T.VURGU, "#1A1000", "oyna"),
+    GA.DURUM_KILITLI: ("#2A3530", T.SILIK, "kilit"),
+    GA.DURUM_TANIMSIZ: ("#232E29", "#55635D", "kilit"),
+}
+
+HEDEF_ADI = {
+    "MOBS": "Yaratık avla", "MINE": "Blok kaz", "PLACE_BLOCKS": "Blok yerleştir",
+    "ITEMS": "Eşya topla", "LOCATION": "Yere ulaş",
+    "INTERACT_LOCATION": "Yerle etkileş", "INTERACT_BLOCK": "Bloğa dokun",
+    "CHAT": "Söyle", "DEAL_DAMAGE": "Hasar ver", "PLAY_TIME": "Süre geçir",
+    "DEATH": "Öl", "EAT_DRINK": "Ye iç", "FISH": "Balık tut", "MELT": "Erit",
+    "ENCHANT": "Büyü at", "CRAFT": "Üret", "BUCKET": "Kova kullan",
+    "BREED": "Yavrulat", "TAME": "Evcilleştir",
+}
+
+HEDEF_SIMGE = {
+    "MOBS": "kilic", "MINE": "kazma", "PLACE_BLOCKS": "bot", "ITEMS": "sandik",
+    "LOCATION": "goz", "INTERACT_LOCATION": "anahtar", "INTERACT_BLOCK": "kalkan",
+    "CHAT": "mesale", "DEAL_DAMAGE": "kilic", "PLAY_TIME": "yildiz",
+    "DEATH": "kalp", "EAT_DRINK": "bugday", "FISH": "balik", "MELT": "iksir",
+    "ENCHANT": "kitap", "CRAFT": "kalkan", "BUCKET": "kurek", "BREED": "agac",
+    "TAME": "kalp",
+}
 
 
-class DetayKarti(QFrame):
-    """Düğümün yanında açılan bilgi kartı."""
-
-    def __init__(self, ebeveyn=None):
-        super().__init__(ebeveyn)
-        self.setObjectName("agacKart")
-        self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-        self.hide()
-        govde = QVBoxLayout(self)
-        govde.setContentsMargins(14, 12, 14, 12)
-        govde.setSpacing(6)
-
-        self.ustSatir = QHBoxLayout()
-        self.ustSatir.setContentsMargins(0, 0, 0, 0)
-        self.rozet = QLabel("")
-        self.rozet.setObjectName("minik")
-        self.rozet.setAlignment(Qt.AlignRight)
-        self.ustSatir.addWidget(self.rozet, 1)
-        govde.addLayout(self.ustSatir)
-
-        self.ad = QLabel("")
-        self.ad.setObjectName("kartBaslik")
-        self.ad.setWordWrap(True)
-        govde.addWidget(self.ad)
-
-        self.bolum = QLabel("")
-        self.bolum.setObjectName("kucuk")
-        govde.addWidget(self.bolum)
-
-        self.ozet = QLabel("")
-        self.ozet.setObjectName("kucuk")
-        self.ozet.setWordWrap(True)
-        govde.addWidget(self.ozet)
-
-        self.ayrac = QFrame()
-        self.ayrac.setFixedHeight(1)
-        self.ayrac.setStyleSheet("background: #242F2B;")
-        govde.addWidget(self.ayrac)
-
-        self.odul = QLabel("")
-        self.odul.setObjectName("minik")
-        self.odul.setWordWrap(True)
-        govde.addWidget(self.odul)
-
-        self.ipucu = QLabel("")
-        self.ipucu.setObjectName("minik")
-        self.ipucu.setWordWrap(True)
-        self.ipucu.setStyleSheet("color: #55635D;")
-        govde.addWidget(self.ipucu)
-
-    def goster(self, dugum, ekran, tuval):
-        ad = dugum.get("ad") or "Görev %03d" % dugum.get("no", 0)
-        self.ad.setText(ad)
-        durum = dugum.get("durum", GA.DURUM_TANIMSIZ)
-        renk = GA.DURUM_RENK.get(durum, T.SILIK)
-        self.rozet.setText('<span style="color:%s;font-weight:700;">%s</span>'
-                           % (renk, GA.DURUM_ETIKET.get(durum, "")))
-        self.bolum.setText("Bölüm %d · %s" % (GA.ARSIV_SIRA.get(dugum["arsiv"], 0) + 1,
-                                             GA.ARSIV_ADI.get(dugum["arsiv"], "")))
-        ozet = dugum.get("aciklama") or GA.ARSIV_OZET.get(dugum["arsiv"], "")
-        if dugum.get("objektif"):
-            ozet = ("%d hedef. " % dugum["objektif"]) + ozet
-        self.ozet.setText(_kisalt(ozet, 190))
-        odul = dugum.get("odul") or []
-        self.odul.setText(("Ödül: " + " · ".join(odul[:4])) if odul
-                          else "Ödül: görev tanımı gelince yazılacak")
-        gerek = dugum.get("oncesi") or []
-        self.ipucu.setText(("Ön koşul: " + ", ".join("#%03d" % o for o in gerek[:3]))
-                           if gerek else "Ön koşulu yok")
-        self.adjustSize()
-        gen = self.sizeHint()
-        w = max(250, min(320, gen.width()))
-        h = gen.height()
-        x = ekran.x() + DUGUM_R * 1.2 + 16
-        y = ekran.y() - h / 2.0
-        if x + w > tuval.width() - 10:
-            x = ekran.x() - DUGUM_R * 1.2 - 16 - w
-        y = max(8, min(tuval.height() - h - 8, y))
-        self.setGeometry(int(x), int(y), int(w), int(h))
-        self.show()
-        self.raise_()
-
-
-def _kisalt(metin, sinir):
+def _kisalt(metin, sinir=90):
     m = " ".join((metin or "").split())
-    if len(m) <= sinir:
-        return m
-    return m[:sinir].rsplit(" ", 1)[0] + "…"
+    return m if len(m) <= sinir else m[:sinir].rstrip() + "…"
 
 
-class AgacTuvali(QWidget):
-    """Kaydırılabilir harita: fare sürükle, WASD/yön tuşları, tekerlek, Q/E döndür."""
+def _elips(etiket):
+    """Etiketi mevcut genişliğine göre tek satırda kısaltır."""
+    if etiket.width() <= 10:
+        return
+    metin = etiket.text()
+    olcum = etiket.fontMetrics()
+    if olcum.horizontalAdvance(metin) <= etiket.width():
+        return
+    while metin and olcum.horizontalAdvance(metin + "…") > etiket.width():
+        metin = metin[:-1]
+    etiket.setText(metin + "…")
 
-    dugum_secili = Signal(object)
+
+class Cizgi(QFrame):
+    """1px ayraç."""
 
     def __init__(self, ebeveyn=None):
         super().__init__(ebeveyn)
-        self.setMouseTracking(True)
-        self.setFocusPolicy(Qt.StrongFocus)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.setAttribute(Qt.WA_OpaquePaintEvent, True)
-        self.setAutoFillBackground(False)
+        self.setFixedHeight(1)
+        self.setStyleSheet("background: %s; border: none;" % CIZGI)
 
-        self.harita = None
-        self.olcek = 0.62
-        self.ofset = QPointF(0.0, 0.0)
-        self.aci = 0.0
-        self._surukle = None
-        self._tuslar = set()
-        self._uzerinde = None
-        self._secili = None
-        self._gorunur = []
-        self._son_fare = None
-        self._arka = None
 
-        self.kart = DetayKarti(self)
+class DaireSimge(QWidget):
+    """Daire içinde simge (durum rozetleri ve küçük ikonlar)."""
 
-        self._saat = QTimer(self)
-        self._saat.setInterval(16)
-        self._saat.timeout.connect(self._kaydir_ilerle)
+    def __init__(self, tur, renk, cap=22, kalinlik=1.9, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.tur = tur
+        self.renk = renk
+        self._kalinlik = kalinlik
+        self.setFixedSize(cap, cap)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
-    # ------------------------------------------------------------- veri -----
-    def harita_yukle(self, harita):
-        self.harita = harita
-        self._uzerinde = None
-        self._secili = None
-        self.kart.hide()
-        if harita and not getattr(self, "_ilk_gorunum", False):
-            self._ilk_gorunum = True
-            self.ilk_konuma_getir()
-        self.update()
-
-    def _sinir_kutusu(self):
-        if not self.harita:
-            return (-2000.0, -2000.0, 2000.0, 2000.0)
-        x1 = y1 = 1e18
-        x2 = y2 = -1e18
-        for a in self.harita["arsivler"]:
-            s = a.get("sinir")
-            if not s:
-                continue
-            x1 = min(x1, s[0])
-            y1 = min(y1, s[1])
-            x2 = max(x2, s[2])
-            y2 = max(y2, s[3])
-        if x1 > x2:
-            return (-2000.0, -2000.0, 2000.0, 2000.0)
-        return (x1, y1, x2, y2)
-
-    def ilk_konuma_getir(self):
-        """Harita açılınca ilk bölümü, bölüm adı görünecek şekilde getirir."""
-        self.olcek = 0.62
-        self.aci = 0.0
-        self._ilk_konum()
-        self.update()
-
-    def _ilk_konum(self):
-        if not self.harita or not self.harita["arsivler"]:
-            return
-        a = self.harita["arsivler"][0]
-        self.ofset = QPointF(a["merkez"][0], a["ust"] + 260.0)
-
-    def aktif_dugum(self):
-        """Henüz tamamlanmamış, oynanabilir ilk gerçek görev."""
-        if not self.harita:
-            return None
-        for g in self.harita["dugumler"]:
-            if g.get("durum") == GA.DURUM_AKTIF:
-                return g
-        return None
-
-    def oyuncuya_git(self, dugum):
-        if not dugum:
-            return
-        self.ofset = QPointF(dugum["x"], dugum["y"])
-        self.olcek = max(self.olcek, 0.85)
-        self._secili = dugum
-        self.update()
-        self.dugum_secili.emit(dugum)
-
-    # ---------------------------------------------------------- dönüşüm -----
-    def _ekran(self, dunya):
-        px = (dunya[0] - self.ofset.x()) * self.olcek
-        py = (dunya[1] - self.ofset.y()) * self.olcek
-        c, s = math.cos(self.aci), math.sin(self.aci)
-        return QPointF(px * c - py * s + self.width() / 2.0,
-                       px * s + py * c + self.height() / 2.0)
-
-    def _dunya(self, ekran):
-        px = ekran.x() - self.width() / 2.0
-        py = ekran.y() - self.height() / 2.0
-        c, s = math.cos(-self.aci), math.sin(-self.aci)
-        return QPointF((px * c - py * s) / self.olcek + self.ofset.x(),
-                       (px * s + py * c) / self.olcek + self.ofset.y())
-
-    def _gorunur_alan(self, pay=140.0):
-        noktalar = [QPointF(0, 0), QPointF(self.width(), 0),
-                    QPointF(0, self.height()), QPointF(self.width(), self.height())]
-        d = [self._dunya(n) for n in noktalar]
-        xs = [p.x() for p in d]
-        ys = [p.y() for p in d]
-        return (min(xs) - pay, min(ys) - pay, max(xs) + pay, max(ys) + pay)
-
-    # ------------------------------------------------------------- çizim -----
     def paintEvent(self, olay):
         boya = QPainter(self)
         boya.setRenderHint(QPainter.Antialiasing, True)
-        self._arka_zenit(boya)
-        if not self.harita:
-            boya.setPen(QColor(T.SILIK))
-            font = QFont(self.font())
-            font.setPointSize(11)
-            boya.setFont(font)
-            boya.drawText(self.rect(), Qt.AlignCenter,
-                          "Görev ağacı hazırlanıyor…")
-            boya.end()
-            return
-        alan = self._gorunur_alan()
-        self._kenarlari_ciz(boya, alan)
-        self._arsivleri_ciz(boya, alan)
-        self._dugumleri_ciz(boya, alan)
-        self._minimap_ciz(boya)
+        m = self.rect().center()
+        dolu = self.tur in ("tamam", "oyna") and self.renk in (YESIL, T.VURGU)
+        if dolu:
+            boya.setPen(Qt.NoPen)
+            boya.setBrush(QColor(self.renk))
+            glif_rengi = "#08150F" if self.renk == YESIL else "#1A1000"
+        else:
+            boya.setPen(QPen(QColor(self.renk), 1.6))
+            boya.setBrush(Qt.NoBrush)
+            glif_rengi = self.renk
+        yari = self.width() / 2.0 - 1.0
+        boya.drawEllipse(m, yari, yari)
+        ikonlar.ciz(boya, self.tur, m, self.width() * 0.64, glif_rengi,
+                    self._kalinlik)
         boya.end()
 
-    def _arka_zenit(self, boya):
-        arka = self._arka_pixmap()
-        if arka is not None:
-            boya.drawPixmap(0, 0, arka)
-        else:
-            boya.fillRect(self.rect(), QColor(T.BG))
-        self._izgara_ciz(boya)
 
-    def _arka_pixmap(self):
-        """Arka plan dokusunu bir kez ölçekleyip saklar (her karede ölçek yapmaz)."""
-        if self._arka is not None and self._arka.size() == self.size():
-            return self._arka
-        self._arka = QPixmap(self.size())
-        self._arka.fill(QColor(T.BG))
-        pm = Y.pixmap("v2", "quest-tree-background.png")
-        if pm is not None and not pm.isNull():
-            boya = QPainter(self._arka)
-            boya.setRenderHint(QPainter.SmoothPixmapTransform, True)
-            boya.setOpacity(0.22)
-            boya.drawPixmap(QRectF(0, 0, self.width(), self.height()), pm,
-                            QRectF(0, 0, pm.width(), pm.height()))
-            boya.end()
-        return self._arka
+class SimgeKutusu(QWidget):
+    """40px yuvarlak köşeli simge kutusu."""
 
-    def _izgara_ciz(self, boya):
-        """Ekran uzayında dönmüş ızgara; arka plan hissi verir."""
-        adim = 150.0
-        if self.olcek * adim < 34:
-            adim *= 2
-        s = adim * self.olcek
-        ca, sa = math.cos(self.aci), math.sin(self.aci)
-        cx, cy = self.width() / 2.0, self.height() / 2.0
-        boya.setPen(QPen(QColor(0x1E, 0x2A, 0x25), 1))
-        boya.setBrush(Qt.NoBrush)
-        kosa = self.width() + self.height()
-        adet = int(kosa / s) + 3
-        u = -kosa * 0.5 - s
-        # Yatay çizgi ailesi: yön (cos, sin), başlangıç dik doğrultuda.
-        for i in range(adet):
-            t = u + i * s
-            ax, ay = cx - sa * t, cy + ca * t
-            boya.drawLine(QPointF(ax, ay),
-                          QPointF(ax + ca * kosa, ay + sa * kosa))
-        # Dikey çizgi ailesi: yön (-sin, cos).
-        for j in range(adet):
-            t = u + j * s
-            ax, ay = cx + ca * t, cy + sa * t
-            boya.drawLine(QPointF(ax, ay),
-                          QPointF(ax - sa * kosa, ay + ca * kosa))
+    def __init__(self, tur, renk, boyut=40, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.tur = tur
+        self.renk = renk
+        self.setFixedSize(boyut, boyut)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
-    def _kenarlari_ciz(self, boya, alan):
-        dugum = {g["no"]: g for g in self.harita["dugumler"]}
-        o = self.olcek
-        kalin_ana = max(1.0, 1.7 * o)
-        kalin_yan = max(0.7, 1.0 * o)
-        for a, b, tur in self.harita["kenarlar"]:
-            ga, gb = dugum.get(a), dugum.get(b)
-            if ga is None or gb is None:
-                continue
-            if tur == "bolum":
-                # Bölüm geçiş çizgisi uzundur; iki ucu da görünürse çiz.
-                if not (alan[0] < ga["x"] < alan[2] and alan[1] < ga["y"] < alan[3]):
-                    continue
-                if not (alan[0] < gb["x"] < alan[2] and alan[1] < gb["y"] < alan[3]):
-                    continue
-            if max(ga["x"], gb["x"]) < alan[0] or min(ga["x"], gb["x"]) > alan[2]:
-                continue
-            if max(ga["y"], gb["y"]) < alan[1] or min(ga["y"], gb["y"]) > alan[3]:
-                continue
-            if tur == "bolum":
-                renk = QColor(0x2A, 0x35, 0x31, 0xAA)
-                kal = max(1.0, 1.2 * o)
-            elif tur == "ana":
-                renk = QColor(0x42, 0x55, 0x4A, 0xFF)
-                kal = kalin_ana
-            else:
-                renk = QColor(0x33, 0x40, 0x39, 0xE0)
-                kal = kalin_yan
-            pen = QPen(renk, kal)
-            pen.setCapStyle(Qt.RoundCap)
-            if tur == "bolum":
-                pen.setStyle(Qt.DashLine)
-                pen.setDashPattern([3, 7])
-            boya.setPen(pen)
-            boya.drawLine(self._ekran((ga["x"], ga["y"])),
-                          self._ekran((gb["x"], gb["y"])))
+    def paintEvent(self, olay):
+        boya = QPainter(self)
+        boya.setRenderHint(QPainter.Antialiasing, True)
+        boya.setPen(QPen(QColor("#1F2A26"), 1))
+        boya.setBrush(QColor("#0F1513"))
+        boya.drawRoundedRect(QRectF(0.5, 0.5, self.width() - 1, self.height() - 1),
+                             10, 10)
+        ikonlar.ciz(boya, self.tur, self.rect().center(), self.width() * 0.54,
+                    self.renk, 1.9)
+        boya.end()
 
-    def _arsivleri_ciz(self, boya, alan):
-        for a in self.harita["arsivler"]:
-            s = a.get("sinir")
-            if not s:
-                continue
-            if s[2] < alan[0] or s[0] > alan[2] or s[3] < alan[1] or s[1] > alan[3]:
-                continue
-            merkez = self._ekran((a["merkez"][0], a["ust"]))
-            boyut = max(26.0, 40.0 * self.olcek)
-            boya.save()
-            boya.translate(merkez)
-            boya.rotate(math.degrees(self.aci))
-            ikonlar.ciz_arsiv(boya, a["amblem"], QPointF(0, 0), boyut, T.VURGU)
-            boya.restore()
-            yazi = self.font()
-            yazi.setPointSizeF(max(7.5, min(13.0, 9.0 * self.olcek + 3.5)))
-            yazi.setBold(True)
-            boya.setFont(yazi)
-            boya.setPen(QColor(T.SOLUK))
-            boya.drawText(QRectF(merkez.x() + boyut * 0.75,
-                                 merkez.y() - boyut * 0.5,
-                                 520 * max(0.5, self.olcek), boyut),
-                          Qt.AlignVCenter | Qt.AlignLeft, a["ad"])
 
-    def _dugumleri_ciz(self, boya, alan):
-        o = self.olcek
-        yaricap = DUGUM_R * o
-        if yaricap < 2.2:
-            return
-        ikon_boyut = max(6.0, yaricap * 1.05)
-        kalin = max(1.0, 1.7 * o)
-        gorunur = []
-        for g in self.harita["dugumler"]:
-            if g["x"] < alan[0] or g["x"] > alan[2]:
-                continue
-            if g["y"] < alan[1] or g["y"] > alan[3]:
-                continue
-            gorunur.append(g)
-            p = self._ekran((g["x"], g["y"]))
-            durum = g.get("durum", GA.DURUM_TANIMSIZ)
-            renk = QColor(GA.DURUM_RENK.get(durum, T.SILIK))
-            vurgulu = g is self._uzerinde or g is self._secili
-            if vurgulu:
-                yaricap2 = yaricap + 5.0
-                boya.setPen(Qt.NoPen)
-                boya.setBrush(QBrush(QColor(renk.red(), renk.green(),
-                                            renk.blue(), 0x33)))
-                boya.drawEllipse(p, yaricap2, yaricap2)
-            # halka gövde
-            if durum in (GA.DURUM_TAMAM, GA.DURUM_AKTIF):
-                boya.setPen(Qt.NoPen)
-                boya.setBrush(QBrush(QColor(renk.red(), renk.green(),
-                                            renk.blue(), 0x1C)))
-                boya.drawEllipse(p, yaricap * 1.55, yaricap * 1.55)
-            if durum == GA.DURUM_TANIMSIZ:
-                boya.setBrush(QColor(0x0F, 0x15, 0x13, 0xCC))
-            else:
-                boya.setBrush(QColor(0x0F, 0x15, 0x13, 0xF0))
-            pen = QPen(renk, kalin if not vurgulu else kalin + 1.2)
-            boya.setPen(pen)
-            boya.drawEllipse(p, yaricap, yaricap)
-            boya.save()
-            boya.translate(p)
-            boya.rotate(math.degrees(self.aci))
-            ikonlar.ciz(boya, g.get("tur", "agac"), QPointF(0, 0), ikon_boyut,
-                        T.YAZI if durum != GA.DURUM_TANIMSIZ else T.SILIK,
-                        max(1.5, 2.0 * o))
-            boya.restore()
-        self._gorunur = gorunur
-        for g in (self._uzerinde, self._secili):
-            if g is None:
-                continue
-            p = self._ekran((g["x"], g["y"]))
-            yazi = self.font()
-            yazi.setPointSizeF(9.0)
-            yazi.setBold(True)
-            boya.setFont(yazi)
-            metin = _kisalt(g.get("ad") or "", 42)
-            gen = boya.boundingRect(QRectF(0, 0, 400, 40), Qt.TextWordWrap, metin)
-            kutu = QRectF(p.x() - gen.width() / 2.0 - 6,
-                          p.y() + yaricap + 6, gen.width() + 12, gen.height() + 6)
-            boya.setPen(Qt.NoPen)
-            boya.setBrush(QColor(0x0B, 0x0F, 0x0E, 0xE6))
-            boya.drawRoundedRect(kutu, 6, 6)
-            boya.setPen(QColor(T.YAZI))
-            boya.drawText(kutu.adjusted(6, 3, -6, -3), Qt.TextWordWrap, metin)
+class OzetRozet(QWidget):
+    """Başlıktaki küçük istatistik: ikon + değer + etiket."""
 
-    def _minimap_ciz(self, boya):
-        if not self.harita or not self.harita["arsivler"]:
-            return
-        x1, y1, x2, y2 = self._sinir_kutusu()
-        gx = max(1.0, x2 - x1)
-        gy = max(1.0, y2 - y1)
-        w, h = 132.0, 132.0 * gy / gx
-        if h < 40:
-            h = 40.0
-        sol = self.width() - w - 14
-        ust = self.height() - h - 14
-        boya.setPen(Qt.NoPen)
-        boya.setBrush(QColor(0x0B, 0x0F, 0x0E, 0xD9))
-        boya.drawRoundedRect(QRectF(sol, ust, w, h), 8, 8)
-        boya.setPen(QPen(QColor(T.CERCEVE), 1))
-        boya.setBrush(Qt.NoBrush)
-        boya.drawRoundedRect(QRectF(sol, ust, w, h), 8, 8)
+    def __init__(self, tur, renk, ebeveyn=None):
+        super().__init__(ebeveyn)
+        dikey = QHBoxLayout(self)
+        dikey.setContentsMargins(0, 0, 0, 0)
+        dikey.setSpacing(9)
+        dikey.addWidget(DaireSimge(tur, renk, 26, 1.8), 0, Qt.AlignVCenter)
+        metin = QVBoxLayout()
+        metin.setContentsMargins(0, 0, 0, 0)
+        metin.setSpacing(0)
+        self.deger = QLabel("0")
+        self.deger.setObjectName("rozetDeger")
+        metin.addWidget(self.deger)
+        self.etiket = QLabel("")
+        self.etiket.setObjectName("rozetEtiket")
+        metin.addWidget(self.etiket)
+        dikey.addLayout(metin)
 
-        def dunya_kutu(s):
-            return QRectF(sol + (s[0] - x1) / gx * w, ust + (s[1] - y1) / gy * h,
-                          (s[2] - s[0]) / gx * w, (s[3] - s[1]) / gy * h)
 
-        boya.setPen(Qt.NoPen)
-        for a in self.harita["arsivler"]:
-            s = a.get("sinir")
-            if not s:
-                continue
-            r = dunya_kutu(s)
-            boya.setBrush(QColor(0x1A, 0x24, 0x20, 0xCC))
-            boya.drawRoundedRect(r, 3, 3)
-            tamam = sum(1 for g in a["dugumler"]
-                        if g.get("durum") == GA.DURUM_TAMAM)
-            if tamam:
-                oran = tamam / float(max(1, len(a["dugumler"])))
-                boya.setBrush(QColor(0xF0, 0xA2, 0x02,
-                                     int(0x30 + 0xA0 * oran)))
-                boya.drawRoundedRect(r, 3, 3)
-        alan = self._gorunur_alan(0)
-        gorunur_kutu = dunya_kutu(alan)
-        boya.setPen(QPen(QColor(T.VURGU), 1.4))
-        boya.setBrush(QColor(0xF0, 0xA2, 0x02, 0x22))
-        boya.drawRoundedRect(gorunur_kutu.adjusted(0, 0, -1, -1), 4, 4)
+class GorevSatiri(QFrame):
+    """Sol listede tek satır görev."""
 
-    # ------------------------------------------------------------ olaylar ---
-    def _sinirla(self):
-        x1, y1, x2, y2 = self._sinir_kutusu()
-        genislik = (x2 - x1) / self.olcek
-        yukseklik = (y2 - y1) / self.olcek
-        if self.width() > genislik:
-            self.ofset.setX((x1 + x2) / 2.0)
-        else:
-            self.ofset.setX(max(x1 - KAYDIRMA_SINIR, min(x2 + KAYDIRMA_SINIR,
-                                                        self.ofset.x())))
-        if self.height() > yukseklik:
-            self.ofset.setY((y1 + y2) / 2.0)
-        else:
-            self.ofset.setY(max(y1 - KAYDIRMA_SINIR, min(y2 + KAYDIRMA_SINIR,
-                                                        self.ofset.y())))
+    def __init__(self, dugum, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.dugum = dugum
+        self.setObjectName("gorevSatir")
+        self.setFixedHeight(40)
+        self.setCursor(Qt.PointingHandCursor)
+        self._secili = False
 
-    def mousePressEvent(self, olay):
-        if olay.button() != Qt.LeftButton:
-            return
-        self._surukle = olay.position()
-        self._son_fare = olay.position()
-        self.setCursor(Qt.ClosedHandCursor)
-        self.setFocus(Qt.MouseFocusReason)
-        dugum = self._altindaki(olay.position())
-        if dugum is not None:
-            self._secili = dugum
-            self.dugum_secili.emit(dugum)
-            self.kart.goster(dugum, self._ekran((dugum["x"], dugum["y"])), self)
-            self.update()
-        else:
-            self.kart.hide()
+        satir = QHBoxLayout(self)
+        satir.setContentsMargins(10, 0, 10, 0)
+        satir.setSpacing(10)
+        renk, glif, _t = DURUM_GEYSI.get(dugum.get("durum"),
+                                          DURUM_GEYSI[GA.DURUM_TANIMSIZ])
+        satir.addWidget(DaireSimge(_t, renk, 20, 1.8), 0, Qt.AlignVCenter)
+        metin = QVBoxLayout()
+        metin.setContentsMargins(0, 0, 0, 0)
+        metin.setSpacing(0)
+        self.ad = QLabel(_kisalt(dugum.get("ad") or "Görev", 40))
+        self.ad.setObjectName("satirAd")
+        self.aciklama = QLabel(_kisalt(dugum.get("aciklama") or
+                                       GA.ARSIV_OZET.get(dugum["arsiv"], ""), 80))
+        self.aciklama.setObjectName("satirAlt")
+        metin.addWidget(self.ad)
+        metin.addWidget(self.aciklama)
+        satir.addLayout(metin, 1)
+        self.sag = QLabel("%s · #%03d" % (GA.ARSIV_ADI.get(dugum["arsiv"], ""),
+                                          dugum.get("no", 0)))
+        self.sag.setObjectName("satirSag")
+        satir.addWidget(self.sag, 0, Qt.AlignVCenter)
+        self._renk = renk
 
-    def mouseMoveEvent(self, olay):
-        p = olay.position()
-        if self._surukle is not None:
-            fark = p - self._surukle
-            self._surukle = p
-            c, s = math.cos(-self.aci), math.sin(-self.aci)
-            self.ofset.setX(self.ofset.x() - (fark.x() * c - fark.y() * s) / self.olcek)
-            self.ofset.setY(self.ofset.y() - (fark.x() * s + fark.y() * c) / self.olcek)
-            self._sinirla()
-            self.kart.hide()
-            self.update()
-            return
-        dugum = self._altindaki(p)
-        if dugum is not self._uzerinde:
-            self._uzerinde = dugum
-            if dugum is not None:
-                self.setCursor(Qt.PointingHandCursor)
-                self.kart.goster(dugum, self._ekran((dugum["x"], dugum["y"])), self)
-            elif self._secili is None:
-                self.kart.hide()
-            self.update()
-        elif dugum is not None:
-            self.kart.goster(dugum, self._ekran((dugum["x"], dugum["y"])), self)
-        self._son_fare = p
+    def _yenile(self):
+        self.setObjectName("gorevSecili" if self._secili else "gorevSatir")
+        stil = self.style()
+        stil.unpolish(self)
+        stil.polish(self)
 
-    def mouseReleaseEvent(self, olay):
-        self._surukle = None
-        self.unsetCursor()
-
-    def leaveEvent(self, olay):
-        self._uzerinde = None
-        self._son_fare = None
-        if self._secili is None:
-            self.kart.hide()
-        self.update()
-
-    def wheelEvent(self, olay):
-        adim = olay.angleDelta().y()
-        if not adim:
-            return
-        eski = self.olcek
-        yeni = max(EN_KUCUK, min(EN_BUYUK, eski * (1.12 if adim > 0 else 1 / 1.12)))
-        if abs(yeni - eski) < 0.0005:
-            return
-        imlec = olay.position()
-        sabit = self._dunya(imlec)
-        self.olcek = yeni
-        c, s = math.cos(self.aci), math.sin(self.aci)
-        px = (sabit.x() - self.ofset.x()) * yeni
-        py = (sabit.y() - self.ofset.y()) * yeni
-        self.ofset.setX(sabit.x() - (px * c + py * s) / yeni)
-        self.ofset.setY(sabit.y() - (-px * s + py * c) / yeni)
-        self._sinirla()
-        if self._uzerinde is not None:
-            self.kart.goster(self._uzerinde,
-                             self._ekran((self._uzerinde["x"],
-                                          self._uzerinde["y"])), self)
-        self.update()
-        olay.accept()
-
-    def keyPressEvent(self, olay):
-        tus = olay.key()
-        if tus in (Qt.Key_W, Qt.Key_A, Qt.Key_S, Qt.Key_D,
-                   Qt.Key_Up, Qt.Key_Left, Qt.Key_Down, Qt.Key_Right):
-            self._tuslar.add(tus)
-            self._saat.start()
-            olay.accept()
-            return
-        if tus == Qt.Key_E:
-            self.aci += math.radians(12)
-            self.update()
-            olay.accept()
-            return
-        if tus == Qt.Key_Q:
-            self.aci -= math.radians(12)
-            self.update()
-            olay.accept()
-            return
-        if tus == Qt.Key_F:
-            dugum = self._secili or self._uzerinde or self.aktif_dugum()
-            if dugum is not None:
-                self.oyuncuya_git(dugum)
-            olay.accept()
-            return
-        if tus in (Qt.Key_Plus, Qt.Key_Equal):
-            self.olcek = min(EN_BUYUK, self.olcek * 1.2)
-            self._sinirla()
-            self.update()
-            olay.accept()
-            return
-        if tus == Qt.Key_Minus:
-            self.olcek = max(EN_KUCUK, self.olcek / 1.2)
-            self._sinirla()
-            self.update()
-            olay.accept()
-            return
-        olay.ignore()
-
-    def keyReleaseEvent(self, olay):
-        tus = olay.key()
-        if tus in self._tuslar:
-            self._tuslar.discard(tus)
-            if not self._tuslar:
-                self._saat.stop()
-        olay.accept()
-
-    def focusOutEvent(self, olay):
-        self._tuslar.clear()
-        self._saat.stop()
-        super().focusOutEvent(olay)
+    def sec(self, secili):
+        if self._secili != bool(secili):
+            self._secili = bool(secili)
+            self._yenile()
 
     def resizeEvent(self, olay):
-        self._arka = None
-        self._sinirla()
         super().resizeEvent(olay)
+        _elips(self.sag)
 
-    def _kaydir_ilerle(self):
-        if not self._tuslar:
-            self._saat.stop()
-            return
-        dx = dy = 0.0
-        if Qt.Key_A in self._tuslar or Qt.Key_Left in self._tuslar:
-            dx -= 1
-        if Qt.Key_D in self._tuslar or Qt.Key_Right in self._tuslar:
-            dx += 1
-        if Qt.Key_W in self._tuslar or Qt.Key_Up in self._tuslar:
-            dy -= 1
-        if Qt.Key_S in self._tuslar or Qt.Key_Down in self._tuslar:
-            dy += 1
-        if not dx and not dy:
-            self._saat.stop()
-            return
-        adim = ADIM_KLAVYE * (1.0 / 60.0) * 1.5
-        c, s = math.cos(self.aci), math.sin(self.aci)
-        # D/W sağ-yukarı: kamera dünyada o yöne gider (içerik ters yönde kayar).
-        self.ofset.setX(self.ofset.x() + (dx * c - dy * s) * adim / self.olcek)
-        self.ofset.setY(self.ofset.y() + (dx * s + dy * c) * adim / self.olcek)
-        self._sinirla()
-        if self._uzerinde is not None:
-            self.kart.goster(self._uzerinde,
-                             self._ekran((self._uzerinde["x"],
-                                          self._uzerinde["y"])), self)
-        self.update()
 
-    def _altindaki(self, ekran):
-        yaricap = max(8.0, DUGUM_R * self.olcek + 4)
-        en = None
-        en_kisa = yaricap * yaricap
-        for g in self._gorunur:
-            p = self._ekran((g["x"], g["y"]))
-            d = (p.x() - ekran.x()) ** 2 + (p.y() - ekran.y()) ** 2
-            if d <= en_kisa:
-                en_kisa = d
-                en = g
-        return en
+class BolumSatiri(QFrame):
+    """Bölüm başlığı: açılıp kapanır, altında görev satırları."""
+
+    def __init__(self, arsiv, dugumler, toplam=None, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.setObjectName("seffaf")
+        self.arsiv = arsiv
+        self._tum = dugumler
+        self.toplam = len(arsiv["dugumler"]) if toplam is None else toplam
+        self.satirlar = []
+        self._acik = False
+        self._kuruldu = False
+        self._suzgecli = len(dugumler) != self.toplam
+
+        govde = QVBoxLayout(self)
+        govde.setContentsMargins(0, 0, 0, 0)
+        govde.setSpacing(2)
+
+        self.baslik = QFrame()
+        self.baslik.setObjectName("bolumBaslik")
+        self.baslik.setCursor(Qt.PointingHandCursor)
+        self.baslik.setFixedHeight(34)
+        satir = QHBoxLayout(self.baslik)
+        satir.setContentsMargins(4, 0, 8, 0)
+        satir.setSpacing(7)
+        self.okSimge = QLabel()
+        self.okSimge.setFixedSize(14, 14)
+        self.okSimge.setPixmap(ikonlar.pixmap_icin_uret("sagok", 14, T.SILIK))
+        satir.addWidget(self.okSimge)
+        self.ad = QLabel("Bölüm %d · %s" % (arsiv["sira"] + 1, arsiv["ad"]))
+        self.ad.setObjectName("bolumAd")
+        satir.addWidget(self.ad)
+        satir.addStretch(1)
+        self.sayi = QLabel("%d görev" % self.toplam)
+        self.sayi.setObjectName("bolumSayi")
+        satir.addWidget(self.sayi)
+        self.baslik.mousePressEvent = self._baslik_tik
+        govde.addWidget(self.baslik)
+
+        self.liste = QVBoxLayout()
+        self.liste.setContentsMargins(20, 2, 0, 6)
+        self.liste.setSpacing(1)
+        govde.addLayout(self.liste)
+
+    def _baslik_tik(self, olay):
+        self.acik_degistir()
+
+    def kur(self, dugumler=None, acik=False):
+        """Satırlar yalnızca bölüm açıldığında üretilir (kapalıyken boş kalır)."""
+        if dugumler is not None:
+            self._tum = dugumler
+            self._suzgecli = len(dugumler) != self.toplam
+        self.sayiyi_guncelle()
+        self.acik_degistir(acik)
+
+    def _satirlari_kur(self):
+        if self._kuruldu:
+            return
+        self._kuruldu = True
+        for g in self._tum:
+            s = GorevSatiri(g)
+            s.mousePressEvent = (lambda e, d=g: self._satir_tik(d))
+            self.satirlar.append(s)
+            self.liste.addWidget(s)
+
+    def sayiyi_guncelle(self):
+        if self._suzgecli:
+            self.sayi.setText("%d eşleşme" % len(self._tum))
+        else:
+            self.sayi.setText("%d görev" % self.toplam)
+
+    def _satir_tik(self, dugum):
+        for s in self.satirlar:
+            s.sec(s.dugum is dugum)
+        if self.tiklandi:
+            self.tiklandi(dugum)
+
+    tiklandi = None
+
+    def acik_degistir(self, zorla=None):
+        yeni = (not self._acik) if zorla is None else bool(zorla)
+        self._acik = yeni
+        if yeni:
+            self._satirlari_kur()
+        for s in self.satirlar:
+            s.setVisible(yeni)
+        self.okSimge.setPixmap(ikonlar.pixmap_icin_uret(
+            "asagi" if yeni else "sagok", 14, T.SOLUK))
+        self.baslik.setStyleSheet(
+            "QFrame#bolumBaslik { background: %s; border-radius: 7px; }"
+            "QFrame#bolumBaslik:hover { background: #151D1A; }"
+            % ("#141B19" if yeni else "transparent"))
+
+    def uygula(self, arama, durum):
+        """Arama/durum filtresini uygular; eşleşme yoksa bölümü gizler.
+        Satırlar henüz üretilmemişse veri üzerinden sayılır (kapalı bölüm
+        yanlışlıkla gizlenmesin)."""
+        kelime = arama.strip().lower()
+
+        def uygun(g):
+            if durum != "tumu" and g.get("durum") != durum:
+                return False
+            if not kelime:
+                return True
+            havuz = ("%s %s" % (g.get("ad", ""),
+                                g.get("aciklama") or "")).lower()
+            return kelime in havuz
+
+        say = sum(1 for g in self._tum if uygun(g))
+        for s in self.satirlar:
+            s.setVisible(self._acik and uygun(s.dugum))
+        if kelime or durum != "tumu":
+            self.sayi.setText("%d / %d" % (say, self.toplam))
+        else:
+            self.sayi.setText("%d görev" % self.toplam)
+        self.setVisible(say > 0)
+        return say
+
+
+class OdulKutusu(QFrame):
+    """Detay kartındaki ödül kutusu."""
+
+    def __init__(self, metin, tur, renk, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.setObjectName("odulKutu")
+        self.setFixedHeight(46)
+        satir = QHBoxLayout(self)
+        satir.setContentsMargins(10, 0, 10, 0)
+        satir.setSpacing(9)
+        satir.addWidget(SimgeKutusu(tur, renk, 30), 0, Qt.AlignVCenter)
+        etiket = QLabel(metin)
+        etiket.setObjectName("odulYazi")
+        etiket.setWordWrap(True)
+        satir.addWidget(etiket, 1)
+
+
+class DetayKarti(QFrame):
+    """Sağ sütun: seçili görevin tüm bilgisi."""
+
+    def __init__(self, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.setObjectName("detayKart")
+        self.dugum = None
+        govde = QVBoxLayout(self)
+        govde.setContentsMargins(20, 18, 20, 18)
+        govde.setSpacing(10)
+        self.govde = govde
+        self._bos_goster()
+
+    def _temizle(self):
+        Y.yerlesim_temizle(self.govde)
+        self.govde.setSpacing(10)
+
+    def _bos_goster(self):
+        self._temizle()
+        kutu = QVBoxLayout()
+        kutu.addStretch(1)
+        ikon = QLabel()
+        ikon.setAlignment(Qt.AlignCenter)
+        ikon.setPixmap(ikonlar.pixmap_icin_uret("kitap", 44, T.SILIK))
+        kutu.addWidget(ikon)
+        baslik = QLabel("Bir görev seç")
+        baslik.setObjectName("detayBaslik")
+        baslik.setAlignment(Qt.AlignCenter)
+        kutu.addWidget(baslik)
+        aciklama = QLabel("Soldaki listeden bir göreve tıkla; hedefleri, ön koşulları ve ödülleri burada görürsün.")
+        aciklama.setObjectName("kucuk")
+        aciklama.setAlignment(Qt.AlignCenter)
+        aciklama.setWordWrap(True)
+        kutu.addWidget(aciklama)
+        kutu.addStretch(1)
+        self.govde.addLayout(kutu)
+
+    def goster(self, dugum, takip_cb, basla_cb):
+        self._temizle()
+        self.dugum = dugum
+        durum = dugum.get("durum", GA.DURUM_TANIMSIZ)
+        renk, glif, _t = DURUM_GEYSI.get(durum, DURUM_GEYSI[GA.DURUM_TANIMSIZ])
+        etiket = {GA.DURUM_TAMAM: "Tamamlandı", GA.DURUM_AKTIF: "Oynanabilir",
+                  GA.DURUM_KILITLI: "Kilitli"}.get(durum, "Tanım bekleniyor")
+
+        ust = QHBoxLayout()
+        ust.setContentsMargins(0, 0, 0, 0)
+        ust.setSpacing(10)
+        simge = SimgeKutusu(dugum.get("tur", "agac"),
+                            T.VURGU if durum == GA.DURUM_AKTIF else T.SOLUK, 40)
+        ust.addWidget(simge, 0, Qt.AlignTop)
+        basliklar = QVBoxLayout()
+        basliklar.setContentsMargins(0, 0, 0, 0)
+        basliklar.setSpacing(2)
+        ad = QLabel(dugum.get("ad") or "Görev")
+        ad.setObjectName("detayBaslik")
+        ad.setWordWrap(True)
+        basliklar.addWidget(ad)
+        alt = QLabel("Bölüm %d — %s · #%03d" % (
+            GA.ARSIV_SIRA.get(dugum["arsiv"], 0) + 1,
+            GA.ARSIV_ADI.get(dugum["arsiv"], ""), dugum.get("no", 0)))
+        alt.setObjectName("detayAlt")
+        basliklar.addWidget(alt)
+        ust.addLayout(basliklar, 1)
+        rozet = QLabel("▶  " + etiket)
+        rozet.setObjectName("durumRozeti")
+        rozet_rengi = T.SOLUK if durum == GA.DURUM_TANIMSIZ else renk
+        rozet.setStyleSheet("QLabel { color: %s; background: %s; border: 1px solid %s;"
+                            " border-radius: 11px; padding: 5px 11px; font-size: 11px;"
+                            " font-weight: 700; }" % (rozet_rengi, _zemin(rozet_rengi),
+                                                     _kenar(rozet_rengi)))
+        ust.addWidget(rozet, 0, Qt.AlignTop)
+        self.govde.addLayout(ust)
+
+        alinti = QLabel(GA.ARSIV_OZET.get(dugum["arsiv"], ""))
+        alinti.setObjectName("detayAlinti")
+        alinti.setWordWrap(True)
+        self.govde.addWidget(alinti)
+
+        aciklama = dugum.get("aciklama") or ""
+        if aciklama:
+            a = QLabel(aciklama)
+            a.setObjectName("kucuk")
+            a.setWordWrap(True)
+            self.govde.addWidget(a)
+        self.govde.addWidget(Cizgi())
+
+        hedefler = dugum.get("hedefler") or []
+        self.govde.addWidget(self._bolum_etiketi("Hedefler"))
+        if hedefler:
+            for h in hedefler:
+                self.govde.addWidget(self._hedef_satiri(h, dugum))
+        else:
+            bilgi = QLabel("Hedefler görev tanımı gelince burada listelenir.")
+            bilgi.setObjectName("minik")
+            bilgi.setWordWrap(True)
+            self.govde.addWidget(bilgi)
+
+        self.govde.addWidget(Cizgi())
+        self.govde.addWidget(self._bolum_etiketi("Ön koşullar"))
+        oncesi = dugum.get("oncesi") or []
+        if oncesi:
+            satir = QHBoxLayout()
+            satir.setSpacing(8)
+            satir.addWidget(DaireSimge("kilit", T.SILIK, 16, 1.7), 0, Qt.AlignTop)
+            o = QLabel(", ".join("#%03d" % x for x in oncesi[:4]))
+            o.setObjectName("kucuk")
+            o.setWordWrap(True)
+            satir.addWidget(o, 1)
+            self.govde.addLayout(satir)
+        else:
+            satir = QHBoxLayout()
+            satir.setSpacing(8)
+            satir.addWidget(DaireSimge("tamam", YESIL, 16, 1.7), 0, Qt.AlignTop)
+            o = QLabel("Ön koşulu yok")
+            o.setObjectName("kucuk")
+            satir.addWidget(o)
+            self.govde.addLayout(satir)
+
+        self.govde.addWidget(Cizgi())
+        self.govde.addWidget(self._bolum_etiketi("Ödül"))
+        odul = dugum.get("odul") or []
+        if odul:
+            izgara = QHBoxLayout()
+            izgara.setSpacing(8)
+            for o in odul[:2]:
+                izgara.addWidget(OdulKutusu(o, _odul_simge(o), _odul_renk(o)), 1)
+            self.govde.addLayout(izgara)
+        else:
+            bilgi = QLabel("Ödül bilgisi görev tanımıyla gelir.")
+            bilgi.setObjectName("minik")
+            self.govde.addWidget(bilgi)
+
+        self.govde.addStretch(1)
+        dugmeler = QHBoxLayout()
+        dugmeler.setSpacing(8)
+        takipli = False
+        try:
+            takipli = self.h.ayar.get("takipGorev") == dugum.get("no")
+        except Exception:
+            pass
+        takip = QPushButton(("★  Takip ediliyor" if takipli else "☆  Takip et"))
+        takip.setObjectName("anaDugme" if takipli else "hayaletDugme")
+        takip.setCursor(Qt.PointingHandCursor)
+        takip.setMinimumHeight(42)
+        takip.clicked.connect(lambda: takip_cb(dugum))
+        dugmeler.addWidget(takip, 1)
+        basla = QPushButton("▶  Göreve Başla")
+        basla.setObjectName("anaDugme")
+        basla.setCursor(Qt.PointingHandCursor)
+        basla.setMinimumHeight(42)
+        basla.clicked.connect(lambda: basla_cb(dugum))
+        dugmeler.addWidget(basla, 1)
+        self.govde.addLayout(dugmeler)
+
+    def _bolum_etiketi(self, metin):
+        et = QLabel(metin.upper())
+        et.setObjectName("detayBolum")
+        return et
+
+    def _hedef_satiri(self, hedef, dugum):
+        satir = QFrame()
+        satir.setObjectName("seffaf")
+        yatay = QHBoxLayout(satir)
+        yatay.setContentsMargins(0, 0, 0, 0)
+        yatay.setSpacing(9)
+        kutu = QLabel("□")
+        kutu.setObjectName("hedefKutu")
+        yatay.addWidget(kutu, 0, Qt.AlignTop)
+        metinler = QVBoxLayout()
+        metinler.setContentsMargins(0, 0, 0, 0)
+        metinler.setSpacing(0)
+        ad = HEDEF_ADI.get(hedef.get("tip", ""), hedef.get("tip", "Hedef"))
+        if hedef.get("adet"):
+            ad = "%s (%d)" % (ad, hedef["adet"])
+        ilk = QLabel(ad)
+        ilk.setObjectName("satirAd")
+        metinler.addWidget(ilk)
+        if hedef.get("ipucu"):
+            ip = QLabel(_kisalt(hedef["ipucu"], 70))
+            ip.setObjectName("satirAlt")
+            ip.setWordWrap(True)
+            metinler.addWidget(ip)
+        yatay.addLayout(metinler, 1)
+        return satir
+
+
+def _zemin(renk):
+    return {"#34D399": "#10241B", "#F0A202": "#241A08"}.get(renk, "#1A211E")
+
+
+def _kenar(renk):
+    return {"#34D399": "#1E4A38", "#F0A202": "#4A3410"}.get(renk, CIZGI)
+
+
+def _odul_renk(metin):
+    if "₺" in metin:
+        return YESIL
+    if "XP" in metin:
+        return T.VURGU
+    return T.SOLUK
+
+
+def _odul_simge(metin):
+    if "₺" in metin:
+        return "elmas"
+    if "XP" in metin:
+        return "yildiz"
+    return "sandik"
+
+
+class FiltreDugmesi(QPushButton):
+    """Tümü / Oynanabilir / Tamamlandı / Kilitli düğmeleri."""
+
+    def __init__(self, metin, kimlik, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.kimlik = kimlik
+        self.setText(metin)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setFixedHeight(30)
+        self.setCheckable(True)
+
+    def sec(self, secili):
+        self.setChecked(secili)
+        if secili:
+            self.setStyleSheet(
+                "QPushButton { background: %s; color: #06210F; border: 1px solid %s;"
+                " border-radius: 15px; font-size: 12px; font-weight: 700;"
+                " padding: 0px 14px; }" % (YESIL, YESIL))
+        else:
+            self.setStyleSheet(
+                "QPushButton { background: transparent; color: %s;"
+                " border: 1px solid %s; border-radius: 15px; font-size: 12px;"
+                " padding: 0px 14px; }"
+                "QPushButton:hover { border-color: #3A4A43; background: #151D1A; }"
+                % (T.SOLUK, CIZGI))
 
 
 class GorevlerSayfasi(QWidget):
@@ -664,6 +585,11 @@ class GorevlerSayfasi(QWidget):
         self.h = hizmetler
         self._oyuncular = []
         self._yuklendi = False
+        self._bolumler = []
+        self._arama = ""
+        self._durum = "tumu"
+        self.harita = None
+        self._secili = None
         self.veri_hazir.connect(self._uygula)
         self._arayuz_kur()
         self._yukle()
@@ -680,158 +606,303 @@ class GorevlerSayfasi(QWidget):
             uuid = oyuncular[0]["uuid"] if oyuncular else None
             onizleme = bool(getattr(self.h, "gorev_onizleme", False))
             harita = GA.agac(self.h.kok, uuid, onizleme=onizleme)
-            GA.yerles(harita["arsivler"])
         except Exception as e:
-            harita = {"arsivler": [], "dugumler": [], "kenarlar": [], "hata": str(e)}
+            harita = {"arsivler": [], "dugumler": [], "hata": str(e)}
         Y.guvenli_yayin(self.veri_hazir, oyuncular, harita)
 
     # ------------------------------------------------------------ arayüz ----
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(T.BOSLUK, T.BOSLUK, T.BOSLUK, T.BOSLUK)
+        dis.setSpacing(12)
+        dis.addWidget(self._baslik_kismi())
+
+        govde = QHBoxLayout()
+        govde.setContentsMargins(0, 0, 0, 0)
+        govde.setSpacing(12)
+        govde.addWidget(self._sol_sutun(), 58)
+        self.detay = DetayKarti()
+        govde.addWidget(self.detay, 42)
+        dis.addLayout(govde, 1)
+
+    def _baslik_kismi(self):
+        kutu = QFrame()
+        kutu.setObjectName("seffaf")
+        satir = QHBoxLayout(kutu)
+        satir.setContentsMargins(2, 0, 2, 0)
+        satir.setSpacing(18)
+
+        sol = QVBoxLayout()
+        sol.setContentsMargins(0, 0, 0, 0)
+        sol.setSpacing(2)
+        self.baslik = QLabel("Görev İlerlemesi")
+        self.baslik.setObjectName("sayfaBaslik")
+        sol.addWidget(self.baslik)
+        self.altBaslik = QLabel("0 / 0 tamamlandı")
+        self.altBaslik.setObjectName("kucuk")
+        sol.addWidget(self.altBaslik)
+        cubukSatir = QHBoxLayout()
+        cubukSatir.setContentsMargins(0, 5, 0, 0)
+        cubukSatir.setSpacing(10)
+        self.cubuk = Cubuk()
+        cubukSatir.addWidget(self.cubuk, 1)
+        self.yuzde = QLabel("%0")
+        self.yuzde.setObjectName("ilerlemeYuzde")
+        cubukSatir.addWidget(self.yuzde)
+        sol.addLayout(cubukSatir)
+        satir.addLayout(sol, 1)
+
+        self.rozetBolum = OzetRozet("kitap", T.SOLUK)
+        self.rozetBolum.etiket.setText("bölüm")
+        self.rozetAktif = OzetRozet("oyna", YESIL)
+        self.rozetAktif.etiket.setText("oynanabilir")
+        self.rozetTamam = OzetRozet("tamam", YESIL)
+        self.rozetTamam.etiket.setText("tamamlandı")
+        for r in (self.rozetBolum, self.rozetAktif, self.rozetTamam):
+            satir.addWidget(r, 0, Qt.AlignVCenter)
+        return kutu
+
+    def _sol_sutun(self):
+        kutu = QFrame()
+        kutu.setObjectName("listeKutu")
+        dis = QVBoxLayout(kutu)
+        dis.setContentsMargins(10, 10, 10, 10)
         dis.setSpacing(8)
 
-        ust = QFrame()
-        ust.setObjectName("kart")
-        satir = QHBoxLayout(ust)
-        satir.setContentsMargins(14, 9, 14, 9)
-        satir.setSpacing(10)
+        araclar = QHBoxLayout()
+        araclar.setContentsMargins(0, 0, 0, 0)
+        araclar.setSpacing(7)
+        self.arama = QLineEdit()
+        self.arama.setObjectName("aramaKutusu")
+        self.arama.setPlaceholderText("Görev ara...")
+        self.arama.setClearButtonEnabled(True)
+        self.arama.setFixedWidth(168)
+        self.arama.textChanged.connect(self._arama_degisti)
+        araclar.addWidget(self.arama)
 
-        etiket = QLabel("OYUNCU")
-        etiket.setObjectName("bolumBaslik")
-        satir.addWidget(etiket)
-        self.secici = QComboBox()
-        self.secici.setFixedWidth(190)
-        self.secici.setStyleSheet(
-            "QComboBox { background: #0F1513; border: 1px solid %s; border-radius: 9px;"
-            " padding: 7px 10px; color: %s; font-size: 13px; }" % (T.CERCEVE, T.YAZI))
-        self.secici.currentIndexChanged.connect(self._oyuncu_degisti)
-        satir.addWidget(self.secici)
+        self.secim = QComboBox()
+        self.secim.addItem("Tümü")
+        self.secim.addItem("Oynanabilir")
+        self.secim.addItem("Tamamlandı")
+        self.secim.addItem("Kilitli")
+        self.secim.setFixedWidth(112)
+        self.secim.currentIndexChanged.connect(self._secim_degisti)
+        araclar.addWidget(self.secim)
 
-        self.ozet = QLabel("")
-        self.ozet.setObjectName("kucuk")
-        satir.addWidget(self.ozet)
-        satir.addStretch(1)
+        self.filtreler = []
+        for metin, kimlik in (("Tümü", "tumu"), ("Oynanabilir", GA.DURUM_AKTIF),
+                              ("Tamamlandı", GA.DURUM_TAMAM),
+                              ("Kilitli", GA.DURUM_KILITLI)):
+            b = FiltreDugmesi(metin, kimlik)
+            b.clicked.connect(lambda _c, k=kimlik: self._filtre_sec(k))
+            self.filtreler.append(b)
+            araclar.addWidget(b)
+        araclar.addStretch(1)
+        dis.addLayout(araclar)
 
-        self.buton_ara = self._dugme("◀ Başlangıç", self._ilk)
-        satir.addWidget(self.buton_ara)
-        self.buton_odak = self._dugme("Odaklan", self._odaklan)
-        satir.addWidget(self.buton_odak)
-        self.buton_kucult = QPushButton("−")
-        self.buton_kucult.setObjectName("zoomDugme")
-        self.buton_kucult.setCursor(Qt.PointingHandCursor)
-        self.buton_kucult.clicked.connect(self._uzaklastir)
-        satir.addWidget(self.buton_kucult)
-        self.buton_buyut = QPushButton("+")
-        self.buton_buyut.setObjectName("zoomDugme")
-        self.buton_buyut.setCursor(Qt.PointingHandCursor)
-        self.buton_buyut.clicked.connect(self._yaklastir)
-        satir.addWidget(self.buton_buyut)
-        dis.addWidget(ust)
+        self.kaydirma = QScrollArea()
+        self.kaydirma.setWidgetResizable(True)
+        self.kaydirma.setFrameShape(QFrame.NoFrame)
+        self.kaydirma.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        ic = QWidget()
+        ic.setObjectName("seffaf")
+        self.bolum_alan = QVBoxLayout(ic)
+        self.bolum_alan.setContentsMargins(0, 0, 6, 0)
+        self.bolum_alan.setSpacing(3)
+        self.kaydirma.setWidget(ic)
+        dis.addWidget(self.kaydirma, 1)
 
-        self.tuval = AgacTuvali()
-        dis.addWidget(self.tuval, 1)
-
-        alt = QFrame()
-        alt.setObjectName("kart")
-        satir2 = QHBoxLayout(alt)
-        satir2.setContentsMargins(14, 8, 14, 8)
-        satir2.setSpacing(14)
-        for ad, renk in (("Tamamlandı", GA.DURUM_RENK[GA.DURUM_TAMAM]),
-                         ("Oynanabilir", GA.DURUM_RENK[GA.DURUM_AKTIF]),
-                         ("Kilitli", GA.DURUM_RENK[GA.DURUM_KILITLI]),
-                         ("Tanım bekleniyor", GA.DURUM_RENK[GA.DURUM_TANIMSIZ])):
-            satir2.addWidget(self._lejant(ad, renk))
-        satir2.addStretch(1)
-        ipucu = QLabel("Sürükle: kaydır  ·  WASD / oklar: kaydır  ·  Tekerlek: yakınlaş  ·  Q/E: döndür  ·  F: odaklan")
-        ipucu.setObjectName("minik")
-        satir2.addWidget(ipucu)
-        dis.addWidget(alt)
-
-    def _dugme(self, metin, islev, birincil=False):
-        b = QPushButton(metin)
-        b.setObjectName("anaDugme" if birincil else "hayaletDugme")
-        b.setCursor(Qt.PointingHandCursor)
-        b.clicked.connect(islev)
-        return b
-
-    def _lejant(self, metin, renk):
-        kutu = QWidget()
-        satir = QHBoxLayout(kutu)
-        satir.setContentsMargins(0, 0, 0, 0)
-        satir.setSpacing(6)
-        nokta = QLabel("●")
-        nokta.setStyleSheet("color: %s; background: transparent;" % renk)
-        satir.addWidget(nokta)
-        yazi = QLabel(metin)
-        yazi.setObjectName("minik")
-        satir.addWidget(yazi)
+        self.alt = QLabel("")
+        self.alt.setObjectName("minik")
+        self.alt.setAlignment(Qt.AlignRight)
+        dis.addWidget(self.alt)
         return kutu
 
     # -------------------------------------------------------------- olay ----
-    def _oyuncu_degisti(self, indeks):
-        if indeks < 0 or indeks >= len(self._oyuncular):
+    def _filtre_sec(self, kimlik):
+        self._durum = kimlik
+        for b in self.filtreler:
+            b.sec(b.kimlik == kimlik)
+        self._suzgeci_uygula()
+
+    def _secim_degisti(self, indeks):
+        kimlik = ["tumu", GA.DURUM_AKTIF, GA.DURUM_TAMAM,
+                  GA.DURUM_KILITLI][max(0, min(3, indeks))]
+        self._filtre_sec(kimlik)
+        for b in self.filtreler:
+            b.sec(b.kimlik == self._durum)
+        self.secim.blockSignals(True)
+        self.secim.setCurrentIndex(["tumu", GA.DURUM_AKTIF, GA.DURUM_TAMAM,
+                                    GA.DURUM_KILITLI].index(self._durum))
+        self.secim.blockSignals(False)
+
+    def _arama_degisti(self, metin):
+        self._arama = metin
+        self._liste_kur(bool(metin.strip()))
+
+    def _suzgeci_uygula(self):
+        kelime = self._arama.strip()
+        toplam = 0
+        for b in self._bolumler:
+            toplam += b.uygula(self._arama, self._durum)
+        if not self.harita:
             return
+        o = self.harita["ozet"]
+        bolum = sum(1 for b in self._bolumler if b.isVisible())
+        if kelime or self._durum != "tumu":
+            on = '"%s" · ' % kelime if kelime else ""
+            self.alt.setText("%s%d görev · %d bölüm" % (on, toplam, bolum))
+        else:
+            self.alt.setText("Toplam %d bölüm · %d görev" % (o["bolum"], o["toplam"]))
 
-        def oku():
-            harita = None
-            try:
-                oyuncu = self._oyuncular[indeks]
-                onizleme = bool(getattr(self.h, "gorev_onizleme", False))
-                harita = GA.agac(self.h.kok, oyuncu["uuid"], onizleme=onizleme)
-                GA.yerles(harita["arsivler"])
-            except Exception:
-                pass
-            if harita is not None:
-                Y.guvenli_yayin(self.veri_hazir, self._oyuncular, harita)
+    def _uygun(self, dugum):
+        if self._durum != "tumu" and dugum.get("durum") != self._durum:
+            return False
+        kelime = self._arama.strip().lower()
+        if not kelime:
+            return True
+        havuz = ("%s %s" % (dugum.get("ad", ""),
+                            dugum.get("aciklama") or "")).lower()
+        return kelime in havuz
 
-        threading.Thread(target=oku, daemon=True).start()
+    def _liste_kur(self, filtreli):
+        """Bölüm listesini kurar; satırlar yalnız açılan bölümde üretilir."""
+        if not self.harita:
+            return
+        onceki = self._secili
+        Y.yerlesim_temizle(self.bolum_alan)
+        self._bolumler = []
+        gruplar = {}
+        for g in self.harita["dugumler"]:
+            gruplar.setdefault(g["arsiv"], []).append(g)
+        for arsiv in self.harita["arsivler"]:
+            tum = gruplar.get(arsiv["anahtar"], [])
+            dugumler = [g for g in tum if self._uygun(g)] if filtreli else tum
+            if filtreli and not dugumler:
+                continue
+            b = BolumSatiri(arsiv, dugumler, toplam=len(tum))
+            b.tiklandi = self._gorev_sec
+            self.bolum_alan.addWidget(b)
+            self._bolumler.append(b)
+        self._ilk_ac(filtreli)
+        self._suzgeci_uygula()
+
+    def _ilk_ac(self, filtreli):
+        """Oynanabilir görevin bölümünü (yoksa ilk bölümü) açar."""
+        hedef = None
+        for g in self.harita["dugumler"]:
+            if g.get("durum") == GA.DURUM_AKTIF and self._uygun(g):
+                hedef = g
+                break
+        if hedef is None and filtreli and self._bolumler:
+            hedef = self._bolumler[0]._tum[0] if self._bolumler[0]._tum else None
+        secilecek = None
+        for b in self._bolumler:
+            if hedef is not None and b.arsiv["anahtar"] == hedef["arsiv"]:
+                secilecek = (b, hedef)
+                break
+        if secilecek is None and self._bolumler:
+            b = self._bolumler[0]
+            secilecek = (b, b._tum[0] if b._tum else None)
+        if secilecek:
+            b, g = secilecek
+            b.acik_degistir(True)
+            if g is not None:
+                self._gorev_sec(g)
 
     def _uygula(self, oyuncular, harita):
         if oyuncular and oyuncular != self._oyuncular:
             self._oyuncular = oyuncular
-            self.secici.blockSignals(True)
-            self.secici.clear()
-            for o in oyuncular:
-                self.secici.addItem(o["ad"] or o["uuid"][:8])
-            self.secici.blockSignals(False)
-        self.tuval.harita_yukle(harita)
-        self._ozet_yaz(harita)
-
-    def _ozet_yaz(self, harita):
-        if not harita or not harita.get("dugumler"):
-            self.ozet.setText("görev tanımı yok")
+        Y.yerlesim_temizle(self.bolum_alan)
+        self._bolumler = []
+        self.harita = harita
+        self._secili = None
+        self.detay._temizle()
+        if not harita or not harita.get("arsivler"):
+            self.alt.setText("görev tanımı yok")
             return
         o = harita["ozet"]
-        if o["tanimli"] == 0:
-            self.ozet.setText("%d görev · %d bölüm · tanımlar bekleniyor"
-                              % (o["toplam"], o["bolum"]))
-        else:
-            self.ozet.setText("%d / %d görev · %d tamamlandı · %d oynanabilir"
-                              % (o["tanimli"], o["toplam"], o["tamam"],
-                                 o["aktif"]))
+        oran = (o["tamam"] / float(o["toplam"])) if o["toplam"] else 0.0
+        self.baslik.setText("Görev İlerlemesi")
+        self.altBaslik.setText("%d / %d tamamlandı" % (o["tamam"], o["toplam"]))
+        self.yuzde.setText("%%%d" % round(oran * 100))
+        self.cubuk.set_oran(oran)
+        self.rozetBolum.deger.setText(str(o["bolum"]))
+        self.rozetAktif.deger.setText(str(o["aktif"]))
+        self.rozetTamam.deger.setText(str(o["tamam"]))
+        self._liste_kur(False)
 
-    def _ilk(self):
-        self.tuval.ilk_konuma_getir()
+    def _bolumu_kur(self, bolum, gruplar=None):
+        if bolum._kuruldu:
+            return
+        if gruplar is None:
+            gruplar = {}
+            for g in self.harita["dugumler"]:
+                gruplar.setdefault(g["arsiv"], []).append(g)
+        bolum.kur(gruplar.get(bolum.arsiv["anahtar"], []), acik=False)
 
-    def _odaklan(self):
-        self.tuval.oyuncuya_git(self.tuval.aktif_dugum())
+    def _gorev_sec(self, dugum):
+        self._secili = dugum
+        for b in self._bolumler:
+            for s in b.satirlar:
+                s.sec(s.dugum is dugum)
+        self.detay.goster(dugum, self._takip_degistir, self._baslat)
 
-    def _yaklastir(self):
-        self.tuval.olcek = min(EN_BUYUK, self.tuval.olcek * 1.25)
-        self.tuval._sinirla()
-        self.tuval.update()
+    def _takip_degistir(self, dugum):
+        try:
+            ayar = dict(self.h.ayar)
+            takip = ayar.get("takipGorev")
+            ayar["takipGorev"] = None if takip == dugum.get("no") else dugum.get("no")
+            from core import store as _S
+            _S.kaydet(ayar)
+            self.h.ayar = ayar
+        except Exception:
+            pass
+        self.detay.goster(dugum, self._takip_degistir, self._baslat)
 
-    def _uzaklastir(self):
-        self.tuval.olcek = max(EN_KUCUK, self.tuval.olcek / 1.25)
-        self.tuval._sinirla()
-        self.tuval.update()
+    def _baslat(self, dugum):
+        try:
+            from core import store as _S
+            ayar = dict(self.h.ayar)
+            ayar["takipGorev"] = dugum.get("no")
+            _S.kaydet(ayar)
+            self.h.ayar = ayar
+        except Exception:
+            pass
+        from PySide6.QtWidgets import QApplication
+        QApplication.clipboard().setText(dugum.get("ad") or "")
+        self.detay.goster(dugum, self._takip_degistir, self._baslat)
 
     def goster(self):
         if not self._yuklendi:
             self._yuklendi = True
             self._yukle()
-        self.tuval.setFocus(Qt.OtherFocusReason)
 
     def gizle(self):
-        self.tuval.kart.hide()
+        pass
+
+
+class Cubuk(QWidget):
+    """6px yuvarlak ilerleme çubuğu."""
+
+    def __init__(self, ebeveyn=None):
+        super().__init__(ebeveyn)
+        self.oran = 0.0
+        self.setFixedHeight(7)
+
+    def set_oran(self, oran):
+        self.oran = max(0.0, min(1.0, float(oran)))
+        self.update()
+
+    def paintEvent(self, olay):
+        boya = QPainter(self)
+        boya.setRenderHint(QPainter.Antialiasing, True)
+        h = self.height()
+        boya.setPen(Qt.NoPen)
+        boya.setBrush(QColor("#1B2421"))
+        boya.drawRoundedRect(QRectF(0, 0, self.width(), h), h / 2.0, h / 2.0)
+        if self.oran > 0:
+            boya.setBrush(QColor(YESIL))
+            boya.drawRoundedRect(QRectF(0, 0, max(h, self.width() * self.oran), h),
+                                 h / 2.0, h / 2.0)
+        boya.end()

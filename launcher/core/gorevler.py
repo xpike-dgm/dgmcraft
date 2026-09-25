@@ -79,6 +79,8 @@ def gorevleri_oku(kok):
         oncesi = []
         objektif = 0
         oduller = []
+        hedefler = []
+        hedef = None
         bolum = ""
         blok = ""
         odul_turu = ""
@@ -117,7 +119,16 @@ def gorevleri_oku(kok):
             # Her aşama bir 'stageType:' satırı taşır (stages ve endingStages).
             if anahtar.lower() == "stagetype" and deger:
                 objektif += 1
+                hedef = {"tip": deger.strip().upper(), "adet": 0, "ipucu": ""}
+                hedefler.append(hedef)
                 continue
+            if hedef is not None:
+                if anahtar.lower() == "customtext" and deger:
+                    hedef["ipucu"] = _temizle(deger)
+                elif anahtar.lower() == "amount" and not hedef["adet"]:
+                    sayi = re.search(r"\d+", deger)
+                    if sayi:
+                        hedef["adet"] = int(sayi.group())
             # Blok anahtarı: sayısal indeksler ("'0':") ebeveyn bağlamını bozmaz.
             if s.endswith(":") and not s.startswith("-"):
                 blok_adi = anahtar.lower()
@@ -157,7 +168,7 @@ def gorevleri_oku(kok):
             "id": kimlik, "no": numara,
             "ad": ad or kimlik, "aciklama": aciklama,
             "oncesi": oncesi, "objektif_sayisi": objektif,
-            "oduller": _tekrar(oduller)[:6],
+            "oduller": _tekrar(oduller)[:6], "hedefler": hedefler,
         })
     gorevler.sort(key=lambda g: (g["no"] is None, g["no"] or 0))
     return gorevler

@@ -85,13 +85,6 @@ QProgressBar#sihirCubuk {
     background: #1E2824; border: none; border-radius: 2px; height: 4px;
 }
 QProgressBar#sihirCubuk::chunk { background: %(vurgu)s; border-radius: 2px; }
-QFrame#agacKart {
-    background: #101715; border: 1px solid #2C3A34; border-radius: 12px;
-}
-QFrame#agacKart QLabel { background: transparent; }
-QLabel#kartBaslik {
-    font-family: "Chakra Petch"; font-size: 16px; font-weight: 700; color: %(yazi)s;
-}
 QLabel#ustBaslik { font-size: 17px; color: %(yazi)s; }
 QLabel#sayfaBaslik { font-size: 17px; color: %(yazi)s; font-weight: 500; }
 QLabel#bolumBaslik {
@@ -108,6 +101,55 @@ QLabel#komutAd {
 QLabel#sayac {
     font-family: "Chakra Petch"; font-size: 30px; font-weight: 700; color: %(yazi)s;
 }
+
+/* Görevler: ilerleme + bölüm listesi + detay kartı */
+QFrame#seffaf { background: transparent; border: none; }
+QFrame#listeKutu { background: #0F1513; border: 1px solid #1F2A26; border-radius: 13px; }
+QLabel#ilerlemeYuzde { font-size: 12px; font-weight: 700; color: %(yazi)s; }
+QLabel#rozetDeger { font-size: 16px; font-weight: 700; color: %(yazi)s; }
+QLabel#rozetEtiket { font-size: 10px; color: %(silik)s; }
+QLineEdit#aramaKutusu {
+    background: #0B100E; border: 1px solid #1F2A26; border-radius: 8px;
+    padding: 6px 10px; color: %(yazi)s; font-size: 12px;
+}
+QLineEdit#aramaKutusu:focus { border-color: #3A4A43; }
+QComboBox#durumSecim {
+    background: #0B100E; border: 1px solid #1F2A26; border-radius: 8px;
+    padding: 5px 9px; color: %(yazi)s; font-size: 12px;
+}
+QLabel#bolumAd { font-size: 12px; font-weight: 600; color: %(soluk)s; }
+QLabel#bolumSayi { font-size: 11px; color: %(silik)s; }
+QLabel#satirAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
+QFrame#gorevSatir {
+    background: transparent; border: 1px solid transparent; border-radius: 9px;
+}
+QFrame#gorevSatir:hover { background: #151D1A; border-color: #242F2B; }
+QFrame#gorevSecili {
+    background: #16211D; border: 1px solid %(yesil)s; border-radius: 9px;
+}
+QFrame#gorevSecili:hover { border-color: #4A5C54; }
+QFrame#bolumBaslik { background: transparent; border: none; border-radius: 7px; }
+QFrame#bolumBaslik:hover { background: #151D1A; }
+QLabel#satirAlt { font-size: 11px; color: %(silik)s; }
+QLabel#satirSag { font-size: 10px; color: #55635D; }
+QFrame#detayKart {
+    background: #0F1513; border: 1px solid #1F2A26; border-radius: 13px;
+}
+QLabel#detayBaslik {
+    font-family: "Chakra Petch"; font-size: 19px; font-weight: 700; color: %(yazi)s;
+}
+QLabel#detayAlt { font-size: 11px; color: %(silik)s; }
+QLabel#detayAlinti {
+    font-size: 13px; font-weight: 600; color: #7FC7A6; font-style: italic;
+}
+QLabel#detayBolum {
+    font-size: 10px; font-weight: 700; color: %(silik)s; letter-spacing: 1px;
+}
+QLabel#hedefKutu { font-size: 14px; color: #4A5A53; }
+QFrame#odulKutu {
+    background: #0B100E; border: 1px solid #1F2A26; border-radius: 9px;
+}
+QLabel#odulYazi { font-size: 12px; color: %(yazi)s; }
 
 /* Güncelleme penceresi */
 QFrame#guncKart {

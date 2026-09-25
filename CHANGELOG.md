@@ -774,10 +774,36 @@ Görevler sayfası 750 düğümlük haritaya dönüştü.
 ### Fixed
 - Görev okuyucu BeautyQuests 2.1.0 düzenini de okuyor (`manager.branches.stages`,
   `endRewards`, `questID`); eski `objectives`/`rewards` düzeni de çalışıyor.
+- Görev hedefleri (`stageType` + adet + ipucu) okunuyor; detay kartında listeleniyor.
 - Görev adı okunmuyordu (`name` satırı metadata filtresine takiliyordu).
 - Aşama sayısı 0 dönüyordu; artık `stageType` satırlarından doğru sayılıyor.
 - Ödül adları `itemreward` gibi ham yazılıyordu; artık "eşya", "başlık", "XP" olarak görünüyor.
-- WASD/ok tuşları ters yöne kaydırıyordu (D/A ve W/S yer değiştirmişti).
-- Izgara çizgileri ekran merkezinde üst üste biniyordu; artık dönmüş ızgara olarak çiziliyor.
-- Yakınlaştırma düğmelerinin yazısı görünmüyordu (genişlik dolgudan küçüktü).
-- Arka plan dokusu her karede yeniden ölçekleniyordu; önbelleğe alındı (çizim 6.7 ms).
+
+## [etiketsiz] - 2026-09-25
+
+Görevler sayfası yeniden tasarlandı: liste + detay kartı (iki sütun).
+
+### Added
+- Sol sütun: arama kutusu, durum seçimi ve Tümü/Oynanabilir/Tamamlandı/Kilitli filtreleri;
+  altında 14 bölümün açılıp kapanan görev listesi; en altta toplam sayacı.
+- Sağ sütun: seçili görevin detay kartı — bölüm/numara, hikâye alıntısı, açıklama,
+  hedefler, ön koşullar, ödül kutuları, "Takip et" ve "Göreve Başla" düğmeleri.
+- Başlıkta ilerleme çubuğu ve üç rozet: bölüm sayısı, oynanabilir, tamamlandı.
+- Durum rozetleri ve simgeler QPainter ile çizildi (bayrak, tamam, oyna, kilit, kitap,
+  arama, oklar) — harici görsel dosyası gerekmiyor.
+- "Takip et" seçimi ayar dosyasına yazılıp kalıcı; "Göreve Başla" görevi takip eder ve
+  adını panoya kopyalar (görev oyun içinde `/gorevler` ile başlatılır).
+
+### Changed
+- Kaydırılabilir düğüm haritası kaldırıldı; yerine liste + detay kartı geldi.
+- Kapalı bölümlerin satırları bellekte tutulmaz; açılınca üretilir. Açılış ~0.8 sn,
+  arama ~0.25 sn (750 görev).
+- Görevler tanımları geldiğinde satırlar gerçek ad, durum, hedef, ödül ve ön koşul
+  bilgisini otomatik alır; liste aynı yerde kalır.
+
+### Fixed
+- Kapalı bölümler filtre uygulanırken kayboluyordu; görünürlük artık veri üzerinden
+  hesaplanıyor, üretilmemiş satırlara bakılmıyor.
+- Filtre/arama alt bilgisi sonucu yansıtmıyordu.
+- Dolu durum dairelerinin içindeki simge görünmüyordu (simge zemine aynı renk çiziliyordu).
+- "Tanım bekleniyor" rozeti okunmuyordu (koyu gri metin koyu zeminde).

@@ -9,8 +9,6 @@ Görev dosyaları henüz yoksa iskelet gösterilir: harita boş değil, sadece
 "tanım bekleniyor" durumunda çizilir. Dosyalar geldiğinde düğümler isim,
 durum ve ödül bilgisini gerçek veriden alır; harita aynı yerde kalır.
 """
-import math
-
 from . import gorevler
 
 # Bölümler: (sıra, anahtar, ad, ana_görev, yan_görev, amblem, ozet)
@@ -114,7 +112,7 @@ def _onizleme(dugumler):
 
 
 def agac(kok, uuid=None, onizleme=False):
-    """Tam harita döner: {arsivler, dugumler, kenarlar, ozet, gercek}."""
+    """Görev haritası döner: {arsivler, dugumler, ozet, gercek}."""
     gercek = gorevler.gorevleri_oku(kok)
     ilerleme = {}
     if uuid:
@@ -140,6 +138,7 @@ def agac(kok, uuid=None, onizleme=False):
             g["aciklama"] = (kaynak or {}).get("aciklama") or ""
             g["oncesi"] = (kaynak or {}).get("oncesi") or []
             g["objektif"] = (kaynak or {}).get("objektif_sayisi") or 0
+            g["hedefler"] = (kaynak or {}).get("hedefler") or []
             g["odul"] = (kaynak or {}).get("oduller") or []
             g["gercek"] = kaynak is not None
             if kaynak is not None:
@@ -160,31 +159,10 @@ def agac(kok, uuid=None, onizleme=False):
     for arsiv in arsivler:
         arsiv["dugum"] = [g["no"] for g in arsiv["dugumler"]]
 
-    kenarlar = _kenarlar(arsivler)
     ozet = _ozet(dugumler)
-    return {"arsivler": arsivler, "dugumler": dugumler, "kenarlar": kenarlar,
-            "ozet": ozet, "gercek": len(gercek), "kimlikler": gercek_kimlik}
-
-
-def _kenarlar(arsivler):
-    """Ana hat zinciri + yan görev bağlantıları + bölüm geçişleri."""
-    kenarlar = []
-    for arsiv in arsivler:
-        ana = [g for g in arsiv["dugumler"] if g["ana"]]
-        for i in range(len(ana) - 1):
-            kenarlar.append((ana[i]["no"], ana[i + 1]["no"], "ana"))
-        for g in arsiv["dugumler"]:
-            if g["ana"] or not ana:
-                continue
-            kanca = ana[min(len(ana) - 1,
-                            (g["no"] * 5) % max(1, len(ana)))]
-            kenarlar.append((kanca["no"], g["no"], "yan"))
-    for i in range(len(arsivler) - 1):
-        oncekiler = [g for g in arsivler[i]["dugumler"] if g["ana"]]
-        sonrakiler = [g for g in arsivler[i + 1]["dugumler"] if g["ana"]]
-        if oncekiler and sonrakiler:
-            kenarlar.append((oncekiler[-1]["no"], sonrakiler[0]["no"], "bolum"))
-    return kenarlar
+    return {"arsivler": arsivler, "dugumler": dugumler,
+            "ozet": ozet, "gercek": len(gercek),
+            "kimlikler": gercek_kimlik}
 
 
 def _ozet(dugumler):
@@ -196,78 +174,3 @@ def _ozet(dugumler):
     return {"toplam": toplam, "tanimli": tanimli, "bolum": len(ARSIVLER),
             "tamam": say[DURUM_TAMAM], "aktif": say[DURUM_AKTIF],
             "kilitli": say[DURUM_KILITLI], "oran": (tanimli / float(toplam or 1))}
-
-
-# ---------------------------------------------------------------- yerleşim ---
-# Dünya birimleri (ekran değil): harita ~10.400 x 10.000 birim, ölçeklenerek görünür.
-SIRT = 14           # bir sütunda en fazla ana görev
-ADIM = 170.0        # sütun içi dikey aralık
-KUTU_S = 460.0      # ana sütunlar arası yatay aralık
-DAL_G = 190.0       # yan görev sütununun ana görevden uzaklığı
-DAL_I = 120.0       # ikinci yan görev kolonunun ek mesafesi
-IZGARA_X = 2900.0   # bölüm kümeleri arası yatay boşluk
-IZGARA_Y = 2700.0   # bölüm kümeleri arası dikey boşluk
-SUTUN = 4           # bölüm yerleşimi: 4 sütun x 4 satır
-
-
-def yerles(arsivler):
-    """Her bölümü 2B bir ağaç olarak konumlandırır; dünya koordinatı üretir."""
-    for sira, arsiv in enumerate(arsivler):
-        cx = (sira % SUTUN - (SUTUN - 1) / 2.0) * IZGARA_X
-        cy = (sira // SUTUN - (len(arsivler) / SUTUN - 1) / 2.0) * IZGARA_Y
-        if sira == len(arsivler) - 1:
-            cx = 0.0
-        _kume_yerlestir(arsiv["dugumler"], cx, cy)
-        _sinirlari_hesapla(arsiv)
-    return arsivler
-
-
-def _sinirlari_hesapla(arsiv):
-    """Küme sınır kutusu + etiket konumu (minimap ve bölüm adı için)."""
-    xs = [g["x"] for g in arsiv["dugumler"]]
-    ys = [g["y"] for g in arsiv["dugumler"]]
-    arsiv["sinir"] = (min(xs) - 230.0, min(ys) - 230.0,
-                      max(xs) + 230.0, max(ys) + 230.0)
-    arsiv["merkez"] = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
-    arsiv["ust"] = min(ys) - 150.0
-
-
-def _kume_yerlestir(dugumler, cx, cy):
-    ana = [g for g in dugumler if g["ana"]]
-    yan = [g for g in dugumler if not g["ana"]]
-
-    if not ana:
-        # Yalnız yan görevli bölüm (Epilog): tek sütunda zincir
-        adim = ADIM
-        bas = cy - (len(yan) - 1) * adim / 2.0
-        for i, g in enumerate(yan):
-            g["x"] = cx + (i % 2) * KUTU_S
-            g["y"] = bas + i * adim
-        return
-
-    sutun = max(1, int(math.ceil(len(ana) / float(SIRT))))
-    genislik = (sutun - 1) * KUTU_S
-    sol = cx - genislik / 2.0
-    ust = cy - (min(len(ana), SIRT) - 1) * ADIM / 2.0
-
-    for i, g in enumerate(ana):
-        col = i // SIRT
-        idx = i % SIRT
-        if col % 2:
-            idx = min(len(ana), SIRT) - 1 - idx
-        g["x"] = sol + col * KUTU_S
-        g["y"] = ust + idx * ADIM
-
-    gruplar = {}
-    for g in yan:
-        kanca = ana[min(len(ana) - 1, (g["no"] * 5) % max(1, len(ana)))]
-        gruplar.setdefault(kanca["no"], []).append(g)
-
-    for kanca in ana:
-        grup = gruplar.get(kanca["no"]) or []
-        if not grup:
-            continue
-        yon = 1 if kanca["no"] % 2 else -1
-        for i, g in enumerate(grup):
-            g["x"] = kanca["x"] + yon * (DAL_G + ((i + 1) // 2) * DAL_I)
-            g["y"] = kanca["y"] + (i % 2) * 60.0
