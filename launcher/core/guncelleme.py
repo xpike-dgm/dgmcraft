@@ -60,16 +60,16 @@ def denetle(ayar, timeout=15):
     if not repo:
         return {"kapali": True, "mesaj": "GitHub deposu ayarlanmamış (Ayarlar > GitHub repo)."}
     try:
-        taban = ((ayar or {}).get("launcherSurumu") or "").strip() or C.PAKET_SURUMU
+        taban = ((ayar or {}).get("launcherSurumu") or "").strip() or C.UYGULAMA_SURUMU
     except Exception:
-        taban = C.PAKET_SURUMU
+        taban = C.UYGULAMA_SURUMU
     tag, notlar, zip_url, asset_url = son_surum(repo, timeout)
     return {
         "kapali": False,
         "repo": repo,
         "mevcut": taban,
         "son": tag,
-        "guncelleme_var": tag != taban,
+        "guncelleme_var": bool(tag) and tag != taban,
         "notlar": (notlar or "")[:1500],
         "zip_url": zip_url,
         "asset_url": asset_url,

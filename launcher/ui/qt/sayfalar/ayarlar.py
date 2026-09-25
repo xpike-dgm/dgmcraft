@@ -56,17 +56,14 @@ class AyarlarSayfasi(QWidget):
     durum_mesaji = Signal(str)
     vpn_durumu = Signal(str)
     vpn_bitti = Signal(bool)
-    guncelleme_notu = Signal(str)
 
     def __init__(self, hizmetler, ebeveyn=None):
         super().__init__(ebeveyn)
         self.h = hizmetler
-        self.guncellemeNot = QLabel("")
         self._arayuz_kur()
         self.durum_mesaji.connect(self._mesaj)
         self.vpn_durumu.connect(self._vpn_goster)
         self.vpn_bitti.connect(self.vpn_bitti_uygula)
-        self.guncelleme_notu.connect(self._guncelleme_notu_goster)
         self._yenile()
 
     # ---------- kurulum ----------
@@ -107,12 +104,11 @@ class AyarlarSayfasi(QWidget):
         Y.yerlesim_temizle(self.izgara)
         self._profil_karti()      # 0,0
         self._baglanti_karti()    # 0,1
-        self._guncelleme_karti()  # 1,0
-        self._uygulama_karti()    # 1,1
-        self._sahip_karti()       # 2,0
+        self._uygulama_karti()    # 1,0
+        self._bilgi_karti()       # 1,1
         for i in range(2):
             self.izgara.setColumnStretch(i, 1)
-        self.izgara.setRowStretch(3, 1)
+        self.izgara.setRowStretch(2, 1)
 
     # ---------- kartlar ----------
     def _profil_karti(self):
@@ -138,30 +134,6 @@ class AyarlarSayfasi(QWidget):
         kart.govde.addLayout(satir)
         self.izgara.addWidget(kart, 0, 1)
 
-    def _guncelleme_karti(self):
-        kart = Kart("Güncelleme")
-        try:
-            from core import version as _V
-            v = _V.oku()
-            metin = str(v.get("surum") or "?")
-            if v.get("guncelleniyor"):
-                metin += " (güncelleme bekliyor)"
-        except Exception:
-            metin = "-"
-        self.guncellemeSatir = QLabel(metin)
-        self.guncellemeSatir.setObjectName("metin")
-        kart.satir("Sunucu sürümü", self.guncellemeSatir, None)
-        satir = QHBoxLayout()
-        satir.addWidget(self._dugme("Güncellemeleri Denetle", self._guncelleme_denetle,
-                                    birincil=True))
-        satir.addStretch(1)
-        kart.govde.addLayout(satir)
-        self.guncellemeNot = QLabel("")
-        self.guncellemeNot.setObjectName("minik")
-        self.guncellemeNot.setWordWrap(True)
-        kart.govde.addWidget(self.guncellemeNot)
-        self.izgara.addWidget(kart, 1, 0)
-
     def _uygulama_karti(self):
         kart = Kart("Uygulama")
         satir = QHBoxLayout()
@@ -172,26 +144,23 @@ class AyarlarSayfasi(QWidget):
         not_ = QLabel("Sunucu belleği Hub sayfasından ayarlanır.")
         not_.setObjectName("minik")
         kart.govde.addWidget(not_)
-        self.izgara.addWidget(kart, 1, 1)
+        self.izgara.addWidget(kart, 1, 0)
 
-    def _sahip_karti(self):
+    def _bilgi_karti(self):
+        kart = Kart("Güncelleme")
         try:
-            from core import store as _S
-            sahip = _S.sahip_mi(self.h.kok)
+            from core import version as _V
+            v = _V.oku()
+            metin = str(v.get("surum") or "?")
+            if v.get("guncelleniyor"):
+                metin += " — güncelleme bekliyor"
         except Exception:
-            sahip = False
-        if not sahip:
-            return
-        kart = Kart("Sahip")
-        kart.rozet.setText("bu makinede yayınlayabilirsin")
-        kart.rozet.setStyleSheet("color: %s; font-size: 11px;" % T.VURGU)
-        satir = QHBoxLayout()
-        satir.addWidget(self._dugme("Güncelleme Yayınla", self._yayinla,
-                                    birincil=True))
-        satir.addWidget(self._dugme("Bitir ve arkadaşlara aç", self._bitir))
-        satir.addStretch(1)
-        kart.govde.addLayout(satir)
-        self.izgara.addWidget(kart, 2, 0)
+            metin = "bilinmiyor"
+        durum = QLabel(metin)
+        durum.setObjectName("metin")
+        kart.satir("Sunucu sürümü", durum, "Uygulama açılışında güncelleme kendiliğinden denetlenir")
+        kart.rozet.setText("güncelleme yoksa ekran açılır")
+        self.izgara.addWidget(kart, 1, 1)
 
     # ---------- eylemler ----------
     def _mesaj(self, metin):
@@ -274,30 +243,6 @@ class AyarlarSayfasi(QWidget):
         except Exception as e:
             self._mesaj("Sihirbaz açılamadı: %s" % e)
 
-    def _guncelleme_denetle(self):
-        self.guncellemeNot.setText("Denetleniyor...")
-
-        def is_thread():
-            try:
-                from core import guncelleme as _G
-                sonuc = _G.denetle(self.h.ayar)
-            except Exception as e:
-                Y.guvenli_yayin(self.guncelleme_notu, "Denetleme hatası: %s" % e)
-                return
-            if sonuc.get("guncelleme_var"):
-                yeni = sonuc.get("son") or (sonuc.get("yeni") or {}).get("surum", "?")
-                Y.guvenli_yayin(
-                    self.guncelleme_notu,
-                    "Yeni sürüm bulundu: %s — kurulum için sunucuyu kapatıp "
-                    "güncellemeyi uygula." % yeni)
-            else:
-                Y.guvenli_yayin(self.guncelleme_notu, "Güncelleme yok, en son sürümdesin.")
-
-        threading.Thread(target=is_thread, daemon=True).start()
-
-    def _uzgulama_yer_tut(self, kart):
-        pass
-
     def _klasor_ac(self):
         try:
             if sys.platform.startswith("win"):
@@ -318,58 +263,6 @@ class AyarlarSayfasi(QWidget):
             self._mesaj(_K.kaldir_hazirla())
         except Exception as e:
             self._mesaj("Kaldırılamadı: %s" % e)
-
-    def _yayinla(self):
-        try:
-            from core import store as _S, version as _V, kilit as _K
-            if not _S.sahip_mi(self.h.kok):
-                self._mesaj("Yetki yok: güncelleme yalnızca sahip makineden yayınlanır.")
-                return
-            if self.h.host_mu():
-                self._mesaj("Önce sunucuyu Güvenli Kapat ile kapat.")
-                return
-            dolu, k = _K.kilit_dolu_mu(self.h.kok)
-            if dolu:
-                self._mesaj("%s sunucuyu açık tutuyor." % (k or {}).get("hostAdi", "Bir arkadaş"))
-                return
-            mevcut = _V.oku().get("surum", "")
-            yeni, tamam = self._surum_sor(mevcut)
-            if not tamam:
-                return
-            _V.yayinla(yeni, "")
-            self._mesaj("Sürüm %s yayınlandı. Bitir'e basınca arkadaşlar "
-                        "güncelleyebilir." % yeni)
-            self._yenile()
-        except Exception as e:
-            self._mesaj("Yayınlanamadı: %s" % e)
-
-    def _surum_sor(self, mevcut):
-        from PySide6.QtWidgets import QInputDialog
-        import time
-        oneri = mevcut or time.strftime("%Y.%m.%d-1")
-        yeni, tamam = QInputDialog.getText(self, "Yeni sürüm", "Sürüm damgası:",
-                                           text=oneri)
-        if not tamam:
-            return "", False
-        yeni = (yeni or "").strip()
-        return yeni, bool(yeni)
-
-    def _bitir(self):
-        try:
-            from core import store as _S, version as _V
-            if not _S.sahip_mi(self.h.kok):
-                self._mesaj("Yetki yok.")
-                return
-            if not _V.guncelleniyor_mu():
-                self._mesaj("Yayınlanmış bir güncelleme yok.")
-                return
-            surum = _V.bitir_guncelleme()
-            self.h.ayar["uygulananSurum"] = surum
-            _S.kaydet(self.h.ayar)
-            self._mesaj("Sürüm %s bitirildi; arkadaşlar güncelleyebilir." % surum)
-            self._yenile()
-        except Exception as e:
-            self._mesaj("Bitirilemedi: %s" % e)
 
     # ---------- yaşam döngüsü ----------
     def goster(self):
@@ -393,11 +286,3 @@ class AyarlarSayfasi(QWidget):
 
     def _vpn_goster(self, metin):
         self.vpnSatir.setText(metin)
-
-    def _guncelleme_notu_goster(self, metin):
-        """Sinyal bağlantısı _yenile() sonrası yeniden oluşan etikete yazmalı;
-        doğrudan etikete bağlanmak eski etikete gider."""
-        try:
-            self.guncellemeNot.setText(metin)
-        except Exception:
-            pass

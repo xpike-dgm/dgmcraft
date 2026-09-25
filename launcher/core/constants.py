@@ -20,4 +20,7 @@ TAILSCALE_SURUM = "1.62.0"
 SYNCTHING_INDIRME_ADRESI = "https://github.com/syncthing/syncthing/releases/download/v1.27.12/syncthing-windows-amd64-v1.27.12.zip"
 TAILSCALE_INDIRME_ADRESI = "https://pkgs.tailscale.com/stable/tailscale-setup-1.62.0-amd64.msi"
 PAKET_SURUMU = "2026.09.23-1"
+# Uygulamanın kendi sürümü: GitHub Release etiketiyle aynı dünyada olmalı,
+# yoksa uygulama her açılışta "güncelleme var" der.
+UYGULAMA_SURUMU = "v0.25.2"
 JAVA_INDIRME_ADRESI = "https://api.adoptium.net/v3/binary/latest/25/ga/windows/x64/jdk/hotspot/normal/eclipse"

@@ -422,6 +422,27 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-25
 
+VPN düzeltmesi, açılışta otomatik güncelleme ekranı, parola koruması.
+
+### Fixed
+- **VPN:** Tailscale kuruluysa Bağlan artık programı açıp **gerçekten bağlanıyor** (adres atanana kadar bekleniyor, Tailscale penceresi açılıyor). Adres gelmezse "bağlandı" yalanı yerine dürüst mesaj gösteriliyor. Tailscale'ın kendi teknik çıktısı artık ekrana hiç çıkmıyor.
+- **Her açılışta "yeni sürüm bulundu" çıkıyordu:** uygulama kendi sürümünü sunucu sürüm damgasıyla kıyaslıyordu, dünya geneli Release etiketiyle karşılaştırılmıyordu. Artık karşılaştırma doğru (`UYGULAMA_SURUMU`), yanlış alarm gitti.
+- **Güncelleme kartı kaldırıldı.** Güncelleme artık uygulama açılır açılmaz kendiliğinden denetlenir; varsa ana ekran yerine sadece güncelleme ekranı açılır: sürüm, notlar, parola alanı ve [Güncelle] düğmesi. Kurulum bitince uygulama kendiliğinden yeniden başlar.
+- Güncelleme hatasında ekran kapanmıyor, mesaj kalıyor ve [Tekrar Dene] çıkıyor.
+
+### Added
+- `core/sahiplik.py`: parola yalnızca tuzlanmış SHA-256 parmak iziyle saklanıyor (`launcher/core/owner-parola.txt`), düz parola hiçbir yerde tutulmuyor. Doğru parola girilirse güncelleme önce **herkese gönderiliyor** (sürüm kilidi), sonra bu bilgisayarda kuruluyor.
+- Bakım durumuna 6 saatlik süre: unutulmuş bir gönderim sunucuyu kalıcı kilitlemiyor.
+- Ayarlar kartları sadeleşti: Profil, Bağlantı, Uygulama, bilgi. "Bu bilgisayar sunucunun sahibi mi?" sorusu tamamen kaldırıldı.
+
+### Test
+- Tailscale kapatılarak bağlantı denendi: 3 saniyede gerçek adres alındı, durum "bağlı" oldu.
+- Güncelleme ekranı yapay yeni sürümle açıldı, [Güncelle] hata durumunda doğru mesajı gösterdi.
+- Parola doğru/yanlış ayrımı doğrulandı.
+- 8 sayfalık tam koşu geçti.
+
+## [etiketsiz] - 2026-09-25
+
 Ayarlar düzeltmeleri: VPN, sahiplik, kart temizliği.
 
 ### Fixed

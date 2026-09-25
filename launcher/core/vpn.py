@@ -118,6 +118,30 @@ def _log_ozeti(log_yolu):
     return ""
 
 
+def arayuz_ac():
+    """Tailscale penceresini açar (kullanıcı programı görsün)."""
+    try:
+        aday = os.path.join(program_files(), "Tailscale", "tailscale-ipn.exe")
+        if os.path.isfile(aday):
+            subprocess.Popen([aday], creationflags=CREATE_NO_WINDOW)
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def _ip_bekle(saniye=15):
+    """Adres atanana kadar bekler; gelirse IP, gelmezse boş dize."""
+    import time
+    bitis = time.time() + max(1, int(saniye))
+    while time.time() < bitis:
+        ip = vpn_ip_bul()
+        if ip:
+            return ip
+        time.sleep(1.0)
+    return ""
+
+
 def baglan(preauth_key, host_adi=""):
     """Tailscale'ı açar ve anahtarla bağlar.
 
@@ -142,10 +166,13 @@ def baglan(preauth_key, host_adi=""):
         return False, "Bağlantı başlatılamadı.", str(e)[:200]
     ham = ((pr.stdout or "") + (pr.stderr or "")).strip()
     if pr.returncode == 0:
-        ip = vpn_ip_bul()
+        arayuz_ac()
+        ip = _ip_bekle(15)
         if ip:
             return True, "Bağlandın! Arkadaşların bu adresten ulaşabilir: %s" % ip, ham
-        return True, "Bağlandın! Adresin birazdan hazırlanıyor.", ham
+        return (False,
+                "Bağlantı başlatıldı ama adresin henüz gelmedi. Tailscale "
+                "penceresini açıp biraz sonra tekrar dene.", ham)
     dusuk = ham.lower()
     if "auth" in dusuk or "key" in dusuk or "expired" in dusuk:
         return False, "Bağlantı anahtarı kabul edilmedi. Anahtarın geçerli mi?", ham

@@ -1,8 +1,9 @@
 """PySide6 kabuk: kendi başlık çubuğu + sol ray + yığın sayfalar.
 Tkinter v2 ayrı çalışmaya devam eder."""
 import sys
+import threading
 
-from PySide6.QtCore import QSize, Qt, QTimer
+from PySide6.QtCore import QSize, Qt, QTimer, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QHBoxLayout,
                                QLabel, QMainWindow, QPushButton, QStackedWidget,
@@ -11,6 +12,7 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QHBoxLayout,
 from . import ikonlar
 from . import tema as T
 from . import yardimci as Y
+from .guncelleme_ekrani import GuncellemeEkrani
 from .sayfalar import (ayarlar, durum, gorevler, hub, komutlar, konsol, siralama,
                       yetenekler)
 
@@ -75,6 +77,8 @@ class TahimatSayfasi(QWidget):
 
 
 class Kabuk(QMainWindow):
+    _guncelleme_sonuc = Signal(object)
+
     def __init__(self, kok, ayar):
         super().__init__()
         self.setWindowTitle(T.UYGULAMA)
@@ -92,28 +96,56 @@ class Kabuk(QMainWindow):
         self._sayfalar = {}
         self._ray_dugmeleri = {}
         self._aktif = None
+        self._guncelleme_penceresi = None
         self._arayuz_kur()
+        self._guncelleme_sonuc.connect(self._guncelleme_goster)
         QTimer.singleShot(0, self._ilk_ac)
         QTimer.singleShot(300, self._yerel_hazirligi)
 
     def _yerel_hazirligi(self):
-        """Uygulama açılışında iki şeyi garanti eder:
-        1) .stignore yazılır (yerel dosyalar arkadaşlara gitmesin)
-        2) Bu bilgisayarın sahip olup olmadığı bir kez sorulur."""
+        """Uygulama açılışında: eşitleme kurallarını yazar, güncelleme denetimi
+        başlatır, gerekirse güncelleme ekranını açar."""
         try:
             from core import esitleme as _E
             _E.stignore_yaz(self.hizmetler.kok)
         except Exception:
             pass
+        QTimer.singleShot(600, self._guncelleme_denetle)
+
+    def _guncelleme_denetle(self):
+        def is_thread():
+            try:
+                from core import guncelleme as _G
+                sonuc = _G.denetle(self.hizmetler.ayar)
+            except Exception:
+                return
+            if sonuc.get("guncelleme_var"):
+                Y.guvenli_yayin(self._guncelleme_sonuc, sonuc)
+
+        threading.Thread(target=is_thread, daemon=True).start()
+
+    def _guncelleme_goster(self, sonuc):
         try:
-            from core import store as _S
-            if _S.sahip_durumu(self.hizmetler.kok) == "bilinmiyor":
-                evet = Y.onay_sor(
-                    self, "Sunucunun sahibi misin?",
-                    "Bu bilgisayar sunucuyu yayınlayıp arkadaşlara güncelleme "
-                    "göndermek için kullanılacak mı?",
-                    tamam="Evet, bu benim bilgisayarım", iptal="Hayır")
-                _S.sahip_isaretle(self.hizmetler.kok, evet)
+            kap = self.centralWidget()
+            self._guncelleme_penceresi = GuncellemeEkrani(self.hizmetler, sonuc, kap)
+            self._guncelleme_penceresi.bitti.connect(self._guncelleme_bitti)
+            self._icerik.setVisible(False)
+            self._ray.setVisible(False)
+            self._guncelleme_penceresi.setGeometry(kap.rect())
+            self._guncelleme_penceresi.show()
+            self._guncelleme_penceresi.raise_()
+        except Exception:
+            pass
+
+    def _guncelleme_bitti(self, tamam):
+        try:
+            if self._guncelleme_penceresi is not None:
+                self._guncelleme_penceresi.hide()
+                self._guncelleme_penceresi.setParent(None)
+                self._guncelleme_penceresi.deleteLater()
+                self._guncelleme_penceresi = None
+            self._icerik.setVisible(True)
+            self._ray.setVisible(True)
         except Exception:
             pass
 
@@ -138,16 +170,17 @@ class Kabuk(QMainWindow):
         alt = QHBoxLayout()
         alt.setContentsMargins(0, 0, 0, 0)
         alt.setSpacing(0)
-        alt.addWidget(self._ray_kur())
-        sag = QFrame()
-        sag.setObjectName("icerik")
-        ic = QVBoxLayout(sag)
+        self._ray = self._ray_kur()
+        alt.addWidget(self._ray)
+        self._icerik = QFrame()
+        self._icerik.setObjectName("icerik")
+        ic = QVBoxLayout(self._icerik)
         ic.setContentsMargins(T.BOSLUK, 12, T.BOSLUK, T.BOSLUK)
         ic.setSpacing(0)
         self.yigin = QStackedWidget()
         self.yigin.setObjectName("icerik")
         ic.addWidget(self.yigin, 1)
-        alt.addWidget(sag, 1)
+        alt.addWidget(self._icerik, 1)
         govde.addLayout(alt, 1)
 
         for kimlik, baslik, _ikon in SAYFALAR:
