@@ -48,8 +48,15 @@ TAHIMAT = {
     "gorevler": "Görev ağacı ve ilerleme.",
     "yetenekler": "Yetenek seviyeleri ve sonraki ödüller.",
     "siralama": "Podyum ve sıralama tabloları.",
-    "ayarlar": "Profil, bağlantı, güncelleme ve sahip işlemleri.",
+    "ayarlar": "Profil, bağlantı ve uygulama işlemleri.",
 }
+
+
+def _ornek_sonuc():
+    """Görüntüleme amaçlı örnek (gerçek güncelleme yokken ekranı görmek için)."""
+    return {"son": "v0.26.0", "mevcut": "v0.25.2", "guncelleme_var": True,
+            "notlar": "### Yeni\n- Güncelleme ekranı görüntüleniyor\n- Parola koruması",
+            "zip_url": "", "asset_url": ""}
 
 
 class TahimatSayfasi(QWidget):
@@ -79,8 +86,9 @@ class TahimatSayfasi(QWidget):
 class Kabuk(QMainWindow):
     _guncelleme_sonuc = Signal(object)
 
-    def __init__(self, kok, ayar):
+    def __init__(self, kok, ayar, guncelleme_goster=False):
         super().__init__()
+        self._guncelleme_zorla = bool(guncelleme_goster)
         self.setWindowTitle(T.UYGULAMA)
         try:
             ico = Y.pixmap("brand", "DgmCraft-app-icon.ico")
@@ -118,9 +126,13 @@ class Kabuk(QMainWindow):
                 from core import guncelleme as _G
                 sonuc = _G.denetle(self.hizmetler.ayar)
             except Exception:
+                if self._guncelleme_zorla:
+                    Y.guvenli_yayin(self._guncelleme_sonuc, _ornek_sonuc())
                 return
-            if sonuc.get("guncelleme_var"):
-                Y.guvenli_yayin(self._guncelleme_sonuc, sonuc)
+            if sonuc.get("guncelleme_var") or self._guncelleme_zorla:
+                Y.guvenli_yayin(self._guncelleme_sonuc,
+                                sonuc if sonuc.get("guncelleme_var")
+                                else _ornek_sonuc())
 
         threading.Thread(target=is_thread, daemon=True).start()
 
@@ -319,7 +331,7 @@ class Kabuk(QMainWindow):
         super().closeEvent(olay)
 
 
-def calistir(kok, ayar):
+def calistir(kok, ayar, guncelleme_goster=False):
     app = QApplication.instance() or QApplication(sys.argv)
     app.setApplicationName(T.UYGULAMA)
     app.setStyle("Fusion")
@@ -328,6 +340,6 @@ def calistir(kok, ayar):
     palet.setColor(palet.ColorRole.Window, T.BG)
     app.setPalette(palet)
     app.setStyleSheet(T.qss())
-    pencere = Kabuk(kok, ayar)
+    pencere = Kabuk(kok, ayar, guncelleme_goster=guncelleme_goster)
     pencere.show()
     return app, pencere

@@ -11,7 +11,9 @@ def main():
     from ui.qt.kabuk import calistir
     kok = store.sunucu_kokunu_bul()
     ayar = store.yukle()
-    app, _pencere = calistir(kok, ayar)
+    # "--guncelleme" ekranı gerçek güncelleme olmadan da gösterir (görüntüleme)
+    goster = any("guncelleme" in a for a in sys.argv[1:])
+    app, _pencere = calistir(kok, ayar, guncelleme_goster=goster)
     return app.exec()
 
 
