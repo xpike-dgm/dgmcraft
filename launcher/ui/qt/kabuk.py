@@ -11,14 +11,16 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QHBoxLayout,
 from . import ikonlar
 from . import tema as T
 from . import yardimci as Y
-from .sayfalar import durum, hub, komutlar, konsol, siralama, yetenekler
+from .sayfalar import durum, gorevler, hub, komutlar, konsol, siralama, yetenekler
 
 SAYFA_SINIFI = {"hub": "HubSayfasi", "konsol": "KonsolSayfasi",
                 "komutlar": "KomutlarSayfasi", "durum": "DurumSayfasi",
-                "yetenekler": "YeteneklerSayfasi", "siralama": "SiralamaSayfasi"}
+                "yetenekler": "YeteneklerSayfasi", "siralama": "SiralamaSayfasi",
+                "gorevler": "GorevlerSayfasi"}
 SAYFA_MODUL = {"HubSayfasi": hub, "KonsolSayfasi": konsol,
                "KomutlarSayfasi": komutlar, "DurumSayfasi": durum,
-               "YeteneklerSayfasi": yetenekler, "SiralamaSayfasi": siralama}
+               "YeteneklerSayfasi": yetenekler, "SiralamaSayfasi": siralama,
+               "GorevlerSayfasi": gorevler}
 
 RAY_IKON = {
     "hub": "hub", "komutlar": "komutlar", "durum": "durum", "konsol": "konsol",

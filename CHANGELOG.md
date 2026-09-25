@@ -422,6 +422,22 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-25
 
+F7 — Görevler sayfası (PySide6).
+
+### Added
+- `core/gorevler.py`: BeautyQuests görev tanımları (ad, açıklama, hedef sayısı, ödüller, ön koşullar) + oyuncu ilerlemesi; bağımlılık grafiğinden durum (tamamlandı / aktif / kilitli).
+- Görevler sayfası: oyuncu seçici, 3'lü ızgara görev kartları (durum rozeti, hedef, ödül, gereken görevler), üst özet satırı.
+- Sunucuda görev tanımı yokken dürüst "Görevler yakında" durumu gösterilir.
+
+### Fixed
+- BeautyQuests oyuncu dosyası `0.yml` gibi adlandırılabiliyor; ilerleme araması dosya adıyla değil `identifier` alanıyla eşleşiyor (yoksa tüm ilerleme boş görünüyordu).
+- Ön koşulları tamamlanmış görev "kilitli" görünüyordu; artık "aktif".
+
+### Notlar
+- `plugins/BeautyQuests/quests/` şu an boş (görev içeriği ayrı çalışma kolundan geliyor). Parser, geçici klasörde örnek görev dosyalarıyla test edildi: tamamlandı → aktif → kilitli zinciri doğru çözüldü.
+
+## [etiketsiz] - 2026-09-25
+
 F6 — Sıralama sayfası (PySide6).
 
 ### Added
