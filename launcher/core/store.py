@@ -87,8 +87,16 @@ def anahtar_dosyasi():
 
 def anahtar_kaydet(key):
     yol = anahtar_dosyasi()
+    yeni = (key or "").strip()
+    eski = anahtar_oku()
+    if eski and eski != yeni:
+        try:
+            with open(yol + ".onceki", "w", encoding="utf-8") as f:
+                f.write(eski)
+        except Exception:
+            pass
     with open(yol, "w", encoding="utf-8") as f:
-        f.write((key or "").strip())
+        f.write(yeni)
     try:
         import subprocess
         ad = os.environ.get("USERNAME", "")
@@ -104,6 +112,11 @@ def anahtar_kaydet(key):
 def anahtar_oku():
     try:
         with open(anahtar_dosyasi(), "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except Exception:
+        pass
+    try:
+        with open(anahtar_dosyasi() + ".onceki", "r", encoding="utf-8") as f:
             return f.read().strip()
     except Exception:
         return ""

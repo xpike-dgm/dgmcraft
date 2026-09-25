@@ -297,19 +297,27 @@ class Sihirbaz(QWidget):
             "Bu kod seni arkadaşlarının özel oyun ağına bağlar. Sadece bu kodu "
             "bilenler girebilir.")
         self.anahtarGirdi = self._girdi("Davet kodunu yapıştır", gizli=True, genislik=380)
-        try:
-            from core import store as _S
-            kayitli = _S.anahtar_oku()
-            if kayitli:
-                self.anahtarGirdi.setText(kayitli)
-        except Exception:
-            pass
+        self.anahtarGirdi.textChanged.connect(self._anahtar_taslakla)
+        taslak = getattr(self, "_anahtar_taslak", "")
+        if taslak:
+            self.anahtarGirdi.setText(taslak)
+        else:
+            try:
+                from core import store as _S
+                kayitli = _S.anahtar_oku()
+                if kayitli:
+                    self.anahtarGirdi.setText(kayitli)
+            except Exception:
+                pass
         self.atlaDugmesi = QPushButton("Kodum yok, sonra eklerim")
         self.atlaDugmesi.setObjectName("hayaletDugme")
         self.atlaDugmesi.setCursor(Qt.PointingHandCursor)
         self.atlaDugmesi.clicked.connect(self._anahtar_atla)
         self.govde.addWidget(self.atlaDugmesi, 0, Qt.AlignLeft)
         self._not("Kodunu alınca Ayarlar > Bağlan ile bağlanırsın.")
+
+    def _anahtar_taslakla(self, metin):
+        self._anahtar_taslak = metin
 
     def _adim_sync(self):
         self._aciklama("Sunucu dosyaların arkadaşlarınla otomatik eşitlenir.")

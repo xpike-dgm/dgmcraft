@@ -732,3 +732,21 @@ GitHub dagitimi: repo + webinstaller + launcher guncelleme denetimi.
 
 ### Fixed
 - Ayarlar VPN dugmesi artik arayuzu dondurmuyor (thread + kuyruk).
+
+## [etiketsiz] - 2026-09-25
+
+Kurulum sihirbazi PySide6 ile yeniden yazildi.
+
+### Added
+- `launcher/ui/qt/sihirbaz.py`: 7 adimli kurulum sihirbazi (Hos geldin, Adin, Davet kodun, Dosya esitleme, Gizli ag, Arkadaslar, Hazir).
+- Sol adim ray'i, adim gostergesi, ilerleme cubugu, geri/ileri dugmeleri; kurulum bitince uygulama acilir.
+- Ilk acilista `kurulumTamam` yoksa sihirbaz tam ekran gorunur; ana pencere gizli bekler.
+
+### Changed
+- Gizli ag dugmesi duruma gore yaziyor: "Kur ve Baglan" / "Baglan" / "Baglandi" / "Tekrar Dene".
+- Davet kodu, adimlar arasinda bos birakilirsa kaybolmuyor.
+
+### Fixed
+- Sihirbaz başarısız baglanma sonrasi kilitli kalan dugmeyi kilitlemiyor.
+- Sihirbaza `×` veya Alt+F4 ile kapatmak uygulamayi yari gorunur birakmiyor.
+- Tailscale anahtari yazilirken oncekisi `tailscale.key.onceki` olarak saklanir; dosya silinirse anahtar otomatik geri okunur.
