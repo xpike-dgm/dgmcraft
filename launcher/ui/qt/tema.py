@@ -71,6 +71,20 @@ QLabel#pencereBaslik {
 }
 QLabel#kasaAd { font-size: 13px; color: #C7D0CC; }
 QLabel#raySurum { font-size: 9px; color: #55635D; }
+QLabel#sihirBaslik {
+    font-family: "Chakra Petch"; font-size: 26px; font-weight: 700; color: %(yazi)s;
+}
+QLabel#sihirAciklama { font-size: 14px; color: %(soluk)s; }
+QFrame#sihirNot {
+    background: #131A18; border: 1px solid #1F2A26; border-radius: 10px;
+}
+QFrame#sihirDurum {
+    background: #131A18; border: 1px solid #1F2A26; border-radius: 10px;
+}
+QProgressBar#sihirCubuk {
+    background: #1E2824; border: none; border-radius: 2px; height: 4px;
+}
+QProgressBar#sihirCubuk::chunk { background: %(vurgu)s; border-radius: 2px; }
 QLabel#ustBaslik { font-size: 17px; color: %(yazi)s; }
 QLabel#sayfaBaslik { font-size: 17px; color: %(yazi)s; font-weight: 500; }
 QLabel#bolumBaslik {

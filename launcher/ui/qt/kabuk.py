@@ -13,6 +13,7 @@ from . import ikonlar
 from . import tema as T
 from . import yardimci as Y
 from .guncelleme_ekrani import GuncellemeEkrani
+from .sihirbaz import Sihirbaz
 from .sayfalar import (ayarlar, durum, gorevler, hub, komutlar, konsol, siralama,
                       yetenekler)
 
@@ -107,8 +108,42 @@ class Kabuk(QMainWindow):
         self._guncelleme_penceresi = None
         self._arayuz_kur()
         self._guncelleme_sonuc.connect(self._guncelleme_goster)
-        QTimer.singleShot(0, self._ilk_ac)
+        QTimer.singleShot(120, self._acilis_kontrol)
+
+    def _acilis_kontrol(self):
+        """Kurulumu yapmamış kullanıcıya sihirbazı gösterir; herkes için
+        güncelleme denetimini başlatır."""
+        try:
+            kurulu = bool(self.hizmetler.ayar.get("kurulumTamam"))
+        except Exception:
+            kurulu = False
+        self._sihirbaz_acik = not kurulu
+        if self._sihirbaz_acik:
+            try:
+                self._sihirbaz = Sihirbaz(self.hizmetler.kok, self.hizmetler.ayar)
+                self._sihirbaz.tamamlandi.connect(self._sihirbaz_bitti)
+                self._sihirbaz.ciz()
+                self._sihirbaz.show()
+                self.hide()
+                QTimer.singleShot(300, self._yerel_hazirligi)
+                return
+            except Exception:
+                pass
+        self._ilk_ac()
         QTimer.singleShot(300, self._yerel_hazirligi)
+
+    def _sihirbaz_bitti(self):
+        try:
+            if getattr(self, "_sihirbaz", None) is not None:
+                self._sihirbaz.close()
+                self._sihirbaz = None
+            self._icerik.setVisible(True)
+            self._ray.setVisible(True)
+            self.show()
+            self.raise_()
+        except Exception:
+            pass
+        self._ilk_ac()
 
     def _yerel_hazirligi(self):
         """Uygulama açılışında: eşitleme kurallarını yazar, güncelleme denetimi
