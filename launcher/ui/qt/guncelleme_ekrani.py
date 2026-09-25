@@ -72,6 +72,14 @@ class GuncellemePenceresi(QWidget):
         rozet = QLabel("GÜNCELLEME")
         rozet.setObjectName("rozetUst")
         ust.addWidget(rozet)
+        ust.addSpacing(10)
+        self.kapatDugmesi = QPushButton("×")
+        self.kapatDugmesi.setObjectName("kapatDugme")
+        self.kapatDugmesi.setToolTip("Uygulamayı kapat")
+        self.kapatDugmesi.setFixedSize(30, 30)
+        self.kapatDugmesi.setCursor(Qt.PointingHandCursor)
+        self.kapatDugmesi.clicked.connect(self._kapat)
+        ust.addWidget(self.kapatDugmesi)
         ic.addLayout(ust)
         ic.addSpacing(26)
 
@@ -129,9 +137,11 @@ class GuncellemePenceresi(QWidget):
         ic.addWidget(self.dugme)
         ic.addSpacing(12)
 
-        ipucu = QLabel("Uygulama güncellenmeden kullanılamaz.")
+        ipucu = QLabel("Güncellemeden uygulamaya girilemez. İstemiyorsan penceredeki "
+                       "× ile kapatabilirsin.")
         ipucu.setObjectName("minik")
         ipucu.setAlignment(Qt.AlignCenter)
+        ipucu.setWordWrap(True)
         ic.addWidget(ipucu)
 
     # ---------- sürükleme / kapatma engeli ----------
@@ -149,8 +159,13 @@ class GuncellemePenceresi(QWidget):
         self._surukle = None
 
     def closeEvent(self, olay):
-        """Güncelleme bitene kadar kapatılamaz."""
-        olay.ignore()
+        """Güncelleme bitene kadar uygulamaya girilemez; ama kullanıcı
+        istemezse uygulamayı kapatabilir."""
+        olay.accept()
+        QTimer.singleShot(0, QGuiApplication.quit)
+
+    def _kapat(self):
+        QTimer.singleShot(0, QGuiApplication.quit)
 
     def kapatilabilir_mi(self):
         return self._bitti_mi
@@ -191,7 +206,7 @@ class GuncellemePenceresi(QWidget):
             _G.uygula(self.h.kok, sonuc, durum_yaz=self._durum_gunvenli,
                       ilerleme=self._ilerleme)
         except Exception as e:
-            Y.guvenli_yayin(self.durum_mesaji, "Güncelleme kurulamadı: %s" % e)
+            Y.guvenli_yayin(self.durum_mesaji, _hata_mesaji(e))
             try:
                 self.dugme.setEnabled(True)
                 self.dugme.setText("Tekrar Dene")
@@ -204,6 +219,26 @@ class GuncellemePenceresi(QWidget):
 
     def _durum_gunvenli(self, metin):
         Y.guvenli_yayin(self.durum_mesaji, metin)
+
+
+def _hata_mesaji(hata):
+    """Teknik hataları günlük diliyle anlatır."""
+    s = str(hata or "")
+    dusuk = s.lower()
+    if "404" in dusuk or "not found" in dusuk:
+        return ("Güncelleme dosyası bulunamadı. Bu sürüm henüz yayınlanmamış "
+                "olabilir; biraz sonra tekrar dene.")
+    if "urlopen error" in dusuk or "connection" in dusuk or "timeout" in dusuk \
+            or "zaman aşımı" in dusuk or "ssl" in dusuk:
+        return "İnternet bağlantısı yok. Bağlandıktan sonra tekrar dene."
+    if "zip" in dusuk or "zipfile" in dusuk or "paket doğrulanamadı" in dusuk:
+        return "Güncelleme dosyası bozuk geldi. Tekrar indirmeyi dene."
+    if "izin" in dusuk or "access is denied" in dusuk or "permission" in dusuk:
+        return ("Dosyalara yazma izni yok. Uygulamayı yönetici olarak "
+                "çalıştırmayı dene.")
+    if "kilit" in dusuk or "lock" in dusuk:
+        return "Uygulama dosyaları kullanımda. Uygulamayı kapatıp tekrar dene."
+    return "Güncelleme kurulamadı: %s" % s[:160]
 
 
 def _dogrudan_paket_url(sonuc):

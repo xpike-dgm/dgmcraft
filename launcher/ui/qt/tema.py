@@ -119,6 +119,13 @@ QProgressBar#guncCubuk {
 QProgressBar#guncCubuk::chunk {
     background: %(vurgu)s; border-radius: 3px;
 }
+QPushButton#kapatDugme {
+    background: transparent; border: 1px solid transparent; border-radius: 9px;
+    color: #6E7F76; font-size: 17px; padding: 0;
+}
+QPushButton#kapatDugme:hover {
+    background: #2A1A18; border-color: #4A2A26; color: #F08C8C;
+}
 
 QLabel#heroBaslik { font-size: 26px; color: %(yazi)s; font-weight: 600; }
 QLabel#heroMetin { font-size: 13px; color: %(soluk)s; }
