@@ -422,6 +422,18 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-25
 
+F5 — Yetenekler sayfası (PySide6).
+
+### Added
+- `core/yetenekler.py`: AuraSkills userdata'dan 11 yeteneğin seviye/XP'si, sunucunun kendi `xp_requirements.yml` formülüyle sonraki seviye XP'si, `abilities.yml`'den "Sv. N'de kaç yetenek açılır" özeti.
+- Yetenekler sayfası: oyuncu seçici, 11 yetenek kartı (ikon, seviye, XP çubuğu, kalan XP), ilerlemeye göre sıralı.
+
+### Notlar
+- AuraSkills iç anahtarları ile ikon adları 3 yerde farklı (fighting/combat, enchanting/magic, foraging/woodcutting); eşleme `core/yetenekler.py` içinde tanımlı.
+- Yetenek açılış sayısı sunucu genelindir; kartlarda değil üst özet satırında gösterilir.
+
+## [etiketsiz] - 2026-09-25
+
 F4 — Durum sayfası (PySide6) + RCON ve host akışı düzeltmeleri.
 
 ### Added
