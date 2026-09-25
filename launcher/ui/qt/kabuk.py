@@ -137,27 +137,22 @@ class Kabuk(QMainWindow):
         threading.Thread(target=is_thread, daemon=True).start()
 
     def _guncelleme_goster(self, sonuc):
+        """Güncelleme ekranı ayrı, kapatılamayan pencerede açılır."""
         try:
-            kap = self.centralWidget()
-            self._guncelleme_penceresi = GuncellemeEkrani(self.hizmetler, sonuc, kap)
-            self._guncelleme_penceresi.bitti.connect(self._guncelleme_bitti)
+            self._guncelleme_penceresi = GuncellemeEkrani(self.hizmetler, sonuc)
+            self._guncelleme_penceresi.kurulum_bitti.connect(self._guncelleme_tamam)
             self._icerik.setVisible(False)
             self._ray.setVisible(False)
-            self._guncelleme_penceresi.setGeometry(kap.rect())
             self._guncelleme_penceresi.show()
-            self._guncelleme_penceresi.raise_()
         except Exception:
             pass
 
-    def _guncelleme_bitti(self, tamam):
+    def _guncelleme_tamam(self, tamam):
         try:
-            if self._guncelleme_penceresi is not None:
+            if tamam and self._guncelleme_penceresi is not None:
                 self._guncelleme_penceresi.hide()
                 self._guncelleme_penceresi.setParent(None)
-                self._guncelleme_penceresi.deleteLater()
                 self._guncelleme_penceresi = None
-            self._icerik.setVisible(True)
-            self._ray.setVisible(True)
         except Exception:
             pass
 

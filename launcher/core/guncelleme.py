@@ -85,17 +85,25 @@ def _kok_bul(ayiklanan):
     raise ValueError("Paket doğrulanamadı (launcher/app.py yok).")
 
 
-def _indir(url, hedef, timeout=120):
-    req = urllib.request.Request(url, headers={"User-Agent": "DgmCraft"})
-    with urllib.request.urlopen(req, timeout=timeout) as r, open(hedef, "wb") as f:
+def _indir(url, hedef, timeout=120, ilerleme=None):
+    istek = urllib.request.Request(url, headers={"User-Agent": "DgmCraft"})
+    with urllib.request.urlopen(istek, timeout=timeout) as r, open(hedef, "wb") as f:
+        toplam = int(r.headers.get("Content-Length", "0") or 0)
+        okunan = 0
         while True:
-            parca = r.read(512 * 1024)
+            parca = r.read(256 * 1024)
             if not parca:
                 break
             f.write(parca)
+            okunan += len(parca)
+            if ilerleme is not None and toplam:
+                try:
+                    ilerleme(min(70, int(okunan * 70 / toplam)))
+                except Exception:
+                    pass
 
 
-def uygula(kok, sonuc, durum_yaz=None, timeout=120):
+def uygula(kok, sonuc, durum_yaz=None, timeout=120, ilerleme=None):
     """Paketi indirip uygular. Sunucu çalışırken çağrılmamalı (UI kontrol eder).
     Kaynaktan çalışıyorsa dosyaların üstüne yazar (hedef, exe_mi=False).
     Exe ile çalışıyorsa staging + kapatınca-uygula scripti hazırlar
@@ -116,8 +124,13 @@ def uygula(kok, sonuc, durum_yaz=None, timeout=120):
     _yaz("Paket indiriliyor...")
     tmp = tempfile.mkdtemp(prefix="dgm-upd-")
     zip_yolu = os.path.join(tmp, "paket.zip")
-    _indir(zip_url, zip_yolu, timeout)
+    _indir(zip_url, zip_yolu, timeout, ilerleme=ilerleme)
     _yaz("Paket doğrulanıyor...")
+    if ilerleme is not None:
+        try:
+            ilerleme(75)
+        except Exception:
+            pass
     with zipfile.ZipFile(zip_yolu, "r") as z:
         z.extractall(tmp)
     kaynak = _kok_bul(tmp)
@@ -139,6 +152,12 @@ def uygula(kok, sonuc, durum_yaz=None, timeout=120):
             except Exception:
                 pass
         _yaz("%s güncelleniyor..." % klasor)
+        if ilerleme is not None:
+            try:
+                ilerleme(min(95, 80 + int(15 * UYGULANACAK_KLASORLER.index(klasor)
+                                      / max(1, len(UYGULANACAK_KLASORLER)))))
+            except Exception:
+                pass
         for kok2, _, dosyalar in os.walk(kyn):
             for ad in dosyalar:
                 s = os.path.join(kok2, ad)

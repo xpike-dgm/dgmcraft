@@ -88,6 +88,38 @@ QLabel#sayac {
     font-family: "Chakra Petch"; font-size: 30px; font-weight: 700; color: %(yazi)s;
 }
 
+/* Güncelleme penceresi */
+QFrame#guncKart {
+    background: %(yuzey)s; border: 1px solid #223029; border-radius: 16px;
+}
+QLabel#markaAd {
+    font-family: "Chakra Petch"; font-size: 15px; font-weight: 700;
+    color: %(yazi)s; letter-spacing: 2px;
+}
+QLabel#rozetUst {
+    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
+    background: #1C1710; border: 1px solid #3A2D14; border-radius: 8px;
+    padding: 4px 9px;
+}
+QLabel#guncBaslik {
+    font-family: "Chakra Petch"; font-size: 27px; font-weight: 700; color: %(yazi)s;
+}
+QLabel#guncSurum { font-size: 13px; }
+QLabel#guncDurum { font-size: 12px; color: %(soluk)s; }
+QFrame#notKutu {
+    background: #0E1513; border: 1px solid #1F2A26; border-radius: 12px;
+}
+QTextBrowser#notMetin {
+    background: transparent; border: none; padding: 14px 16px;
+    font-size: 12px; color: %(soluk)s;
+}
+QProgressBar#guncCubuk {
+    background: #1E2824; border: none; border-radius: 3px; height: 6px;
+}
+QProgressBar#guncCubuk::chunk {
+    background: %(vurgu)s; border-radius: 3px;
+}
+
 QLabel#heroBaslik { font-size: 26px; color: %(yazi)s; font-weight: 600; }
 QLabel#heroMetin { font-size: 13px; color: %(soluk)s; }
 QLabel#rozetYazi { font-size: 11px; color: %(soluk)s; letter-spacing: 1px; }

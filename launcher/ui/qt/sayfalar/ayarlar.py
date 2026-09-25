@@ -105,7 +105,7 @@ class AyarlarSayfasi(QWidget):
         self._profil_karti()      # 0,0
         self._baglanti_karti()    # 0,1
         self._uygulama_karti()    # 1,0
-        self._bilgi_karti()       # 1,1
+        self._guncelleme_karti()  # 1,1
         for i in range(2):
             self.izgara.setColumnStretch(i, 1)
         self.izgara.setRowStretch(2, 1)
@@ -146,21 +146,94 @@ class AyarlarSayfasi(QWidget):
         kart.govde.addWidget(not_)
         self.izgara.addWidget(kart, 1, 0)
 
-    def _bilgi_karti(self):
+    def _guncelleme_karti(self):
+        """Yayınlama parolayla korunur; parolasız gönderim yapılamaz."""
         kart = Kart("Güncelleme")
         try:
             from core import version as _V
             v = _V.oku()
             metin = str(v.get("surum") or "?")
-            if v.get("guncelleniyor"):
-                metin += " — güncelleme bekliyor"
+            bakim = bool(_V.guncelleniyor_mu())
         except Exception:
-            metin = "bilinmiyor"
-        durum = QLabel(metin)
+            metin, bakim = "bilinmiyor", False
+        durum = QLabel(metin + (" — arkadaşlara gönderildi" if bakim else ""))
         durum.setObjectName("metin")
-        kart.satir("Sunucu sürümü", durum, "Uygulama açılışında güncelleme kendiliğinden denetlenir")
-        kart.rozet.setText("güncelleme yoksa ekran açılır")
+        kart.satir("Sunucu sürümü", durum,
+                   "Uygulama açılışında kendi güncellemesini kendisi denetler")
+
+        satir = QHBoxLayout()
+        satir.setContentsMargins(0, 0, 0, 0)
+        satir.setSpacing(8)
+        self.parolaGirdi = QLineEdit()
+        self.parolaGirdi.setPlaceholderText("Parola")
+        self.parolaGirdi.setEchoMode(QLineEdit.Password)
+        self.parolaGirdi.setFixedWidth(130)
+        self.parolaGirdi.setStyleSheet(
+            "QLineEdit { background: #0F1513; border: 1px solid %s; border-radius: 9px;"
+            " padding: 8px 10px; color: %s; font-size: 12px; }"
+            "QLineEdit:focus { border-color: %s; }" % (T.CERCEVE, T.YAZI, T.VURGU))
+        satir.addWidget(self.parolaGirdi)
+        self.yayinlaDugmesi = self._dugme("Güncelleme Yayınla", self._yayinla,
+                                           birincil=True)
+        satir.addWidget(self.yayinlaDugmesi)
+        satir.addStretch(1)
+        kart.govde.addLayout(satir)
+
+        satir2 = QHBoxLayout()
+        satir2.setContentsMargins(0, 0, 0, 0)
+        self.bitirDugmesi = self._dugme("Güncellemeyi Tamamla", self._bitir)
+        satir2.addWidget(self.bitirDugmesi)
+        satir2.addStretch(1)
+        kart.govde.addLayout(satir2)
         self.izgara.addWidget(kart, 1, 1)
+
+    def _yayinla(self):
+        parola = self.parolaGirdi.text().strip()
+        try:
+            from core import sahiplik as _S
+        except Exception as e:
+            self._mesaj("Parola denetimi yok: %s" % e)
+            return
+        if not _S.parola_var_mi():
+            self._mesaj("Parola tanımlı değil. Genel yöneticiden iste.")
+            return
+        if not parola:
+            self._mesaj("Yayınlamak için parolayı gir.")
+            return
+        if not _S.parola_dogru(parola):
+            self._mesaj("Parola hatalı. Yayınlanmadı.")
+            return
+        if self.h.host_mu():
+            self._mesaj("Önce sunucuyu Güvenli Kapat ile kapat.")
+            return
+        try:
+            from core import kilit as _K, version as _V
+            dolu, k = _K.kilit_dolu_mu(self.h.kok)
+            if dolu and (k or {}).get("hostAdi") != self.h.kullanici:
+                self._mesaj("%s sunucuyu açık tutuyor." % (k or {}).get("hostAdi",
+                                                                      "Bir arkadaş"))
+                return
+            mevcut = _V.oku().get("surum", "")
+        except Exception as e:
+            self._mesaj("Kontrol edilemedi: %s" % e)
+            return
+        ok, mesaj = _S.herkese_gonder(mevcut)
+        self._mesaj(mesaj)
+        self.parolaGirdi.clear()
+        if ok:
+            self._yenile()
+
+    def _bitir(self):
+        try:
+            from core import version as _V
+            if not _V.guncelleniyor_mu():
+                self._mesaj("Gönderilmiş bir güncelleme yok.")
+                return
+            surum = _V.bitir_guncelleme()
+            self._mesaj("Sürüm %s tamamlandı; arkadaşlar sunucuyu açabilir." % surum)
+            self._yenile()
+        except Exception as e:
+            self._mesaj("Tamamlanamadı: %s" % e)
 
     # ---------- eylemler ----------
     def _mesaj(self, metin):

@@ -422,6 +422,21 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-25
 
+Güncelleme ekranı sıfırdan yeniden tasarlandı; yayınlama parolayla Ayarlar'a taşındı.
+
+### Changed
+- **Güncelleme ekranı** artık ayrı, çerçevesiz, kapatılamayan bir pencere: kart içinde logo + marka, "GÜNCELLEME" rozeti, büyük başlık, `eski → yeni` sürüm satırı, çerçeveli sürüm notu kutusu, ilerleme çubuğu, tam genişlikte turuncu [Güncelle] ve altında "Uygulama güncellenmeden kullanılamaz." notu.
+- **"Şimdi değil" kaldırıldı.** Pencere kapatılamaz (Alt+F4 ve çarpı yok); sürüm güncel olmadan uygulamaya girilemez. Kurulum bitince uygulama kendiliğinden yeniden açılır.
+- Yayınlama işlemi **güncelleme ekranından çıkarıldı**: artık Ayarlar > Güncelleme > **parola alanı + [Güncelleme Yayınla]** ve [Güncellemeyi Tamamla]. Parola olmadan yayın yapılamaz (ayarlarda denendi: "Yayınlamak için parolayı gir." / "Parola hatalı. Yayınlanmadı.").
+- Güncelleme sırasında indirme yüzdesi çubukta gösteriliyor.
+
+### Test
+- Güncelleme penceresi açıldı, kapatma denemesi reddedildi (pencere görünür kaldı).
+- Parola doğru/yanlış/boş durumları doğrulandı.
+- 8 sayfalık tam koşu geçti.
+
+## [etiketsiz] - 2026-09-25
+
 VPN düzeltmesi, açılışta otomatik güncelleme ekranı, parola koruması.
 
 ### Fixed
