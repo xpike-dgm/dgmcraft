@@ -68,6 +68,24 @@ def kod_gecerli_mi(kod):
     return len(t) >= 52 and re.fullmatch(r"[A-Z0-9]+", t) is not None
 
 
+def stignore_yaz(sunucu_koku):
+    """Eşitlenmesi gerekmeyen dosyaları Syncthing'e bildirir.
+    Klasör ayarı uygulanmasa bile dosya mevcut olmalı; aksi halde `.sahip`
+    gibi yerel dosyalar arkadaşlara kopyalanır."""
+    try:
+        yol = os.path.join(sunucu_koku, ".stignore")
+        icerik = "\n".join(C.ESITLEME_DISLAMA) + "\n"
+        if os.path.isfile(yol):
+            with open(yol, "r", encoding="utf-8", errors="replace") as f:
+                if f.read() == icerik:
+                    return True
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(icerik)
+        return True
+    except Exception:
+        return False
+
+
 class SyncthingYonetici:
     def __init__(self, sunucu_koku):
         self.kok = sunucu_koku
@@ -190,9 +208,5 @@ class SyncthingYonetici:
             hedef["devices"] = cihaz_refs
         cfg["folders"] = klasorler
         self._istek("/rest/config", veri=cfg, method="POST")
-        try:
-            with open(os.path.join(self.kok, ".stignore"), "w", encoding="utf-8") as f:
-                f.write("\n".join(C.ESITLEME_DISLAMA) + "\n")
-        except Exception:
-            pass
+        stignore_yaz(self.kok)
         return True

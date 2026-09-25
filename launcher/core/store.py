@@ -146,11 +146,44 @@ def kurulum_anahtari_oto_bul(sunucu_koku):
         return ""
 
 
-def sahip_mi(sunucu_koku):
-    """Sahip kipi: sunucu kökündeki .sahip dosyası varsa açıktır.
-    Dosya eşitlenmez (.stignore) ve repoya girmez (.gitignore)."""
+def sahip_durumu(sunucu_koku):
+    """'evet' | 'hayir' | 'bilinmiyor'
+
+    Eşitlenen `.sahip` dosyası tek başına yeterli değil: Syncthing onu
+    arkadaşlara da kopyalayabiliyor. Bu yüzden karar, yalnızca bu bilgisayarda
+    duran yerel bir işaretle verilir; ilk kez çalışınca kullanıcıya bir kez
+    sorulur."""
     try:
         from . import constants as _C
-        return os.path.isfile(os.path.join(sunucu_koku, _C.SAHIP_DOSYASI))
+        isaret = os.path.join(veri_dizini(), _C.SAHIP_DOSYASI)
+        if os.path.isfile(isaret):
+            try:
+                with open(isaret, "r", encoding="utf-8") as f:
+                    return (f.read().strip() or "hayir")
+            except Exception:
+                return "hayir"
+        if os.path.isfile(os.path.join(sunucu_koku, _C.SAHIP_DOSYASI)):
+            return "bilinmiyor"
     except Exception:
-        return False
+        pass
+    return "hayir"
+
+
+def sahip_isaretle(sunucu_koku, deger):
+    """Bu bilgisayarın sahip olup olmadığını kalıcı olarak işaretler."""
+    try:
+        from . import constants as _C
+        isaret = os.path.join(veri_dizini(), _C.SAHIP_DOSYASI)
+        deger = "evet" if deger in (True, "evet", "yes", 1) else "hayir"
+        os.makedirs(veri_dizini(), exist_ok=True)
+        with open(isaret, "w", encoding="utf-8") as f:
+            f.write(deger)
+        return deger
+    except Exception:
+        return "hayir"
+
+
+def sahip_mi(sunucu_koku):
+    """Sahip kipi: yalnızca bu bilgisayar sahip olarak işaretlenmişse True.
+    Arkadaşların makinelerinde `.sahip` eşitlenmiş olsa bile False döner."""
+    return sahip_durumu(sunucu_koku) == "evet"

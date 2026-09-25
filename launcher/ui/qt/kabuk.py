@@ -94,6 +94,28 @@ class Kabuk(QMainWindow):
         self._aktif = None
         self._arayuz_kur()
         QTimer.singleShot(0, self._ilk_ac)
+        QTimer.singleShot(300, self._yerel_hazirligi)
+
+    def _yerel_hazirligi(self):
+        """Uygulama açılışında iki şeyi garanti eder:
+        1) .stignore yazılır (yerel dosyalar arkadaşlara gitmesin)
+        2) Bu bilgisayarın sahip olup olmadığı bir kez sorulur."""
+        try:
+            from core import esitleme as _E
+            _E.stignore_yaz(self.hizmetler.kok)
+        except Exception:
+            pass
+        try:
+            from core import store as _S
+            if _S.sahip_durumu(self.hizmetler.kok) == "bilinmiyor":
+                evet = Y.onay_sor(
+                    self, "Sunucunun sahibi misin?",
+                    "Bu bilgisayar sunucuyu yayınlayıp arkadaşlara güncelleme "
+                    "göndermek için kullanılacak mı?",
+                    tamam="Evet, bu benim bilgisayarım", iptal="Hayır")
+                _S.sahip_isaretle(self.hizmetler.kok, evet)
+        except Exception:
+            pass
 
     def _arayuz_kur(self):
         dis = QWidget(self)

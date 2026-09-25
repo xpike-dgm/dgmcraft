@@ -422,6 +422,22 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-25
 
+Ayarlar düzeltmeleri: VPN, sahiplik, kart temizliği.
+
+### Fixed
+- **VPN Bağlan** artık Tailscale'ı otomatik açıp bağlanıyor; Tailscale kurulu değilse kullanıcı onayıyla indirip kuruyor. Ekrana ham Tailscale çıktısı (ör. "Update available: 1.62.0 -> ...") gelmiyor; her sonuç günlük diliyle anlatılıyor ("Bağlandın! Arkadaşların bu adresten ulaşabilir: 100.x.x.x").
+- **Sahip kartı arkadaşlarda görünüyordu:** Syncthing `.sahip` dosyasını kopyalıyordu çünkü `.stignore` hiç oluşmamıştı. Artık `.stignore` uygulama açılışında yazılıyor (`(?d).sahip`) ve karar yalnızca bu bilgisayarda tutulan yerel bir işaretle veriliyor. İlk açılışta "Bu bilgisayar sunucunun sahibi mi?" diye bir kez soruluyor.
+- **Yapay zeka (OpenAI anahtarı) kartı kaldırıldı** — istenmeyen bölüm ayarlarda yok.
+- **Ayarlardaki bellek kaydırıcısı kaldırıldı** — sunucu belleği zaten Hub'da; Uygulama kartına yönlendirme notu eklendi.
+- Profil kartı Bağlantı kartının altında kalıyordu (ikisi de aynı hücredeydi); kart yerleşimi düzeltildi.
+- Pencere açılışında var olmayan bir başlık çubuğu fonksiyonu çağrılıyordu.
+
+### Test
+- VPN bağlantısı canlı denendi: Tailscale kurulu, Bağlan → "Bağlandın! Arkadaşların bu adresten ulaşabilir: 100.73.226.29".
+- 8 sayfalık tam koşu iki kez üst üste hatasız geçti.
+
+## [etiketsiz] - 2026-09-25
+
 F9 — Cila ve tam test (8 sayfa).
 
 ### Fixed

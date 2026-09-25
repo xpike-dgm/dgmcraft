@@ -55,6 +55,7 @@ class Kart(QFrame):
 class AyarlarSayfasi(QWidget):
     durum_mesaji = Signal(str)
     vpn_durumu = Signal(str)
+    vpn_bitti = Signal(bool)
     guncelleme_notu = Signal(str)
 
     def __init__(self, hizmetler, ebeveyn=None):
@@ -64,6 +65,7 @@ class AyarlarSayfasi(QWidget):
         self._arayuz_kur()
         self.durum_mesaji.connect(self._mesaj)
         self.vpn_durumu.connect(self._vpn_goster)
+        self.vpn_bitti.connect(self.vpn_bitti_uygula)
         self.guncelleme_notu.connect(self._guncelleme_notu_goster)
         self._yenile()
 
@@ -103,12 +105,11 @@ class AyarlarSayfasi(QWidget):
 
     def _yenile(self):
         Y.yerlesim_temizle(self.izgara)
-        self._profil_karti()
-        self._yz_karti()
-        self._baglanti_karti()
-        self._guncelleme_karti()
-        self._uygulama_karti()
-        self._sahip_karti()
+        self._profil_karti()      # 0,0
+        self._baglanti_karti()    # 0,1
+        self._guncelleme_karti()  # 1,0
+        self._uygulama_karti()    # 1,1
+        self._sahip_karti()       # 2,0
         for i in range(2):
             self.izgara.setColumnStretch(i, 1)
         self.izgara.setRowStretch(3, 1)
@@ -123,32 +124,19 @@ class AyarlarSayfasi(QWidget):
         kart.govde.addWidget(kaydet, 0, Qt.AlignLeft)
         self.izgara.addWidget(kart, 0, 0)
 
-    def _yz_karti(self):
-        kart = Kart("Yapay zeka")
-        self.aiGirdi = self._giris()
-        self.aiGirdi.setEchoMode(QLineEdit.Password)
-        kart.satir("OpenAI anahtarı", self.aiGirdi,
-                   "Site yapay zekâ asistanı için; isteğe bağlı")
-        satir = QHBoxLayout()
-        goster = self._dugme("Göster", self._ai_goster)
-        temizle = self._dugme("Temizle", self._ai_temizle)
-        satir.addWidget(goster)
-        satir.addWidget(temizle)
-        satir.addStretch(1)
-        kart.govde.addLayout(satir)
-        self.izgara.addWidget(kart, 0, 1)
-
     def _baglanti_karti(self):
         kart = Kart("Bağlantı")
-        self.vpnSatir = QLabel("-")
+        self.vpnSatir = QLabel("Bağlanmadı")
         self.vpnSatir.setObjectName("metin")
-        kart.satir("VPN (Tailscale)", self.vpnSatir, "Arkadaşların bağlanabilmesi için")
+        kart.satir("Arkadaş bağlantısı (Tailscale)", self.vpnSatir,
+                   "Arkadaşların sunucuya bu bağlantı üzerinden ulaşır")
         satir = QHBoxLayout()
-        satir.addWidget(self._dugme("VPN Bağlan", self._vpn_baglan, birincil=True))
+        self.vpnDugmesi = self._dugme("Bağlan", self._vpn_baglan, birincil=True)
+        satir.addWidget(self.vpnDugmesi)
         satir.addWidget(self._dugme("Kurulum Sihirbazı", self._sihirbaz_ac))
         satir.addStretch(1)
         kart.govde.addLayout(satir)
-        self.izgara.addWidget(kart, 1, 0)
+        self.izgara.addWidget(kart, 0, 1)
 
     def _guncelleme_karti(self):
         kart = Kart("Güncelleme")
@@ -172,25 +160,19 @@ class AyarlarSayfasi(QWidget):
         self.guncellemeNot.setObjectName("minik")
         self.guncellemeNot.setWordWrap(True)
         kart.govde.addWidget(self.guncellemeNot)
-        self.izgara.addWidget(kart, 1, 1)
+        self.izgara.addWidget(kart, 1, 0)
 
     def _uygulama_karti(self):
         kart = Kart("Uygulama")
-        self.heapKaydirici = Y.BellekKaydirici(
-            ["%dG" % gb for gb in (2, 3, 4, 6)],
-            (2, 3, 4, 6).index(self.h.heap_al())
-            if self.h.heap_al() in (2, 3, 4, 6) else 1)
-        self.heapKaydirici.deger_degisti.connect(self._heap_degisti)
-        kart.govde.addWidget(self.heapKaydirici)
-        not_ = QLabel("Sunucu belleği — sonraki başlatmada geçerli")
-        not_.setObjectName("minik")
-        kart.govde.addWidget(not_)
         satir = QHBoxLayout()
-        satir.addWidget(self._dugme("Klasörü Aç", self._klasor_ac))
-        satir.addWidget(self._dugme("Kaldır", self._kaldir))
+        satir.addWidget(self._dugme("Sunucu Klasörünü Aç", self._klasor_ac))
+        satir.addWidget(self._dugme("Uygulamayı Kaldır", self._kaldir))
         satir.addStretch(1)
         kart.govde.addLayout(satir)
-        self.izgara.addWidget(kart, 2, 0)
+        not_ = QLabel("Sunucu belleği Hub sayfasından ayarlanır.")
+        not_.setObjectName("minik")
+        kart.govde.addWidget(not_)
+        self.izgara.addWidget(kart, 1, 1)
 
     def _sahip_karti(self):
         try:
@@ -209,7 +191,7 @@ class AyarlarSayfasi(QWidget):
         satir.addWidget(self._dugme("Bitir ve arkadaşlara aç", self._bitir))
         satir.addStretch(1)
         kart.govde.addLayout(satir)
-        self.izgara.addWidget(kart, 2, 1)
+        self.izgara.addWidget(kart, 2, 0)
 
     # ---------- eylemler ----------
     def _mesaj(self, metin):
@@ -229,44 +211,52 @@ class AyarlarSayfasi(QWidget):
             return
         self._mesaj("Kullanıcı adı kaydedildi: %s" % ad)
 
-    def _ai_goster(self):
-        try:
-            from core import store as _S
-            anahtar = _S.ai_anahtar_oku() or ""
-        except Exception:
-            anahtar = ""
-        self.aiGirdi.setText(anahtar)
-        self.aiGirdi.setEchoMode(QLineEdit.Normal if anahtar else QLineEdit.Password)
-        self._mesaj("Anahtar kayıtlı." if anahtar else "Kayıtlı anahtar yok.")
-
-    def _ai_temizle(self):
-        try:
-            from core import store as _S
-            _S.ai_anahtar_kaydet("")
-        except Exception as e:
-            self._mesaj("Silinemedi: %s" % e)
-            return
-        self.aiGirdi.clear()
-        self.aiGirdi.setEchoMode(QLineEdit.Password)
-        self._mesaj("Anahtar silindi.")
-
     def _vpn_baglan(self):
+        """Tailscale kuruluysa otomatik açar ve bağlanır; kurulu değilse
+        kullanıcıya sorup indirip kurar. İlerleme ve sonuç bildirim kutusunda."""
+        try:
+            self.vpnDugmesi.setEnabled(False)
+        except Exception:
+            pass
+
+        def ilerleme(metin):
+            Y.guvenli_yayin(self.durum_mesaji, metin)
+
+        def izin():
+            evet = Y.onay_sor(
+                self, "Tailscale kurulu değil",
+                "Arkadaşların bağlanabilmesi için Tailscale gerekiyor. "
+                "Şimdi indirip kursam mı?",
+                tamam="Evet, indir ve kur", iptal="Şimdi değil")
+            Y.guvenli_yayin(self.durum_mesaji,
+                            "Tailscale indiriliyor..." if evet
+                            else "Kurulum iptal edildi.")
+            return evet
+
         def is_thread():
             try:
                 from core import store as _S, vpn as _V
                 anahtar = _S.anahtar_oku() or _S.kurulum_anahtari_oto_bul(self.h.kok)
                 if not anahtar:
-                    Y.guvenli_yayin(self.durum_mesaji, 
-                        "Kurulum anahtarı yok (kurulum-anahtari.txt).")
+                    Y.guvenli_yayin(
+                        self.durum_mesaji,
+                        "Bağlantı anahtarı yok. Genel yöneticinden iste.")
                     return
-                Y.guvenli_yayin(self.durum_mesaji, "VPN bağlanıyor...")
-                ok, mesaj = _V.baglan(anahtar, self.h.kullanici)
-                Y.guvenli_yayin(self.durum_mesaji, mesaj or ("Bağlandı." if ok else "Bağlanamadı."))
+                ok, mesaj, _teknik = _V.baglan_veya_kur(
+                    anahtar, self.h.kullanici, ilerleme=ilerleme, izin=izin)
             except Exception as e:
-                Y.guvenli_yayin(self.durum_mesaji, "VPN hatası: %s" % e)
-            self._vpn_durum()
+                ok, mesaj = False, "Bağlantı kurulamadı: %s" % e
+            Y.guvenli_yayin(self.durum_mesaji, mesaj)
+            Y.guvenli_yayin(self.vpn_bitti, bool(ok))
 
         threading.Thread(target=is_thread, daemon=True).start()
+
+    def vpn_bitti_uygula(self, basarili):
+        try:
+            self.vpnDugmesi.setEnabled(True)
+        except Exception:
+            pass
+        self._vpn_durum()
 
     def _sihirbaz_ac(self):
         try:
@@ -305,10 +295,8 @@ class AyarlarSayfasi(QWidget):
 
         threading.Thread(target=is_thread, daemon=True).start()
 
-    def _heap_degisti(self, deger):
-        gb = (2, 3, 4, 6)[max(0, min(3, int(deger)))]
-        self.h.heap_kaydet(gb)
-        self._mesaj("Bellek %dG olarak kaydedildi (sonraki başlatmada geçerli)." % gb)
+    def _uzgulama_yer_tut(self, kart):
+        pass
 
     def _klasor_ac(self):
         try:

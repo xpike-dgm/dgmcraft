@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import urllib.request
 from . import constants as C
 
@@ -118,21 +119,63 @@ def _log_ozeti(log_yolu):
 
 
 def baglan(preauth_key, host_adi=""):
+    """Tailscale'ı açar ve anahtarla bağlar.
+
+    Döner: (basarili_mi, kullanici_icin_mesaj, teknik_gunluk)
+    Kullanıcı mesajı her zaman günlük diliyle; ham Tailscale çıktısı
+    (ör. 'Update available: ...') asla gösterilmez."""
     exe = tailscale_exe()
     if not exe:
-        return False, "Tailscale kurulu değil."
+        return False, "Tailscale bu bilgisayarda kurulu değil.", "kurulu değil"
     key = (preauth_key or "").strip()
     if not key:
-        return False, "Bağlantı anahtarı girilmedi. Genel yöneticiden al."
+        return False, "Bağlantı anahtarı girilmemiş. Genel yöneticiden iste.", "anahtar yok"
     cmd = [exe, "up", "--authkey=" + key]
     if host_adi:
         cmd.append("--hostname=" + re.sub(r"[^A-Za-z0-9-]", "-", host_adi)[:30])
     try:
-        pr = subprocess.run(cmd, capture_output=True, text=True, timeout=90, creationflags=CREATE_NO_WINDOW)
-        out = ((pr.stdout or "") + (pr.stderr or ""))[:600]
-        return (pr.returncode == 0), (out or "Bağlandı.")
+        pr = subprocess.run(cmd, capture_output=True, text=True, timeout=90,
+                            creationflags=CREATE_NO_WINDOW)
+    except subprocess.TimeoutExpired:
+        return False, "Bağlantı zaman aşımına uğradı. Biraz sonra tekrar dene.", "zaman aşımı"
     except Exception as e:
-        return False, str(e)[:400]
+        return False, "Bağlantı başlatılamadı.", str(e)[:200]
+    ham = ((pr.stdout or "") + (pr.stderr or "")).strip()
+    if pr.returncode == 0:
+        ip = vpn_ip_bul()
+        if ip:
+            return True, "Bağlandın! Arkadaşların bu adresten ulaşabilir: %s" % ip, ham
+        return True, "Bağlandın! Adresin birazdan hazırlanıyor.", ham
+    dusuk = ham.lower()
+    if "auth" in dusuk or "key" in dusuk or "expired" in dusuk:
+        return False, "Bağlantı anahtarı kabul edilmedi. Anahtarın geçerli mi?", ham
+    if "denied" in dusuk or "access" in dusuk:
+        return False, "Sunucu erişimi reddedildi. Anahtarı genel yöneticiden al.", ham
+    if "internet" in dusuk or "offline" in dusuk or "network" in dusuk:
+        return False, "İnternet bağlantısı yok. Bağlandıktan sonra tekrar dene.", ham
+    return False, "Bağlantı kurulamadı. Genel yöneticiden yardım iste.", ham
+
+
+def baglan_veya_kur(preauth_key, host_adi="", ilerleme=None, izin=None):
+    """Tailscale kurulu değilse indirip kurar, sonra bağlanır.
+
+    izin: kurulumdan önce kullanıcı onayı isteyen çağrılabilir.
+    Döner: (basarili_mi, kullanici_icin_mesaj, teknik_gunluk)"""
+    if not kurulu_mu():
+        if izin is not None and not izin():
+            return False, "Kurulum iptal edildi.", "iptal"
+        if ilerleme:
+            ilerleme("Tailscale indiriliyor...")
+        try:
+            msi = msi_indir(os.path.join(tempfile.gettempdir(), "dgmcraft-vpn"))
+        except Exception as e:
+            return False, "Tailscale indirilemedi. İnternet bağlantını kontrol et.", str(e)[:200]
+        if ilerleme:
+            ilerleme("Tailscale kuruluyor...")
+        ok, mesaj = sessiz_kur(msi)
+        if not ok:
+            return False, "Tailscale kurulamadı: %s" % mesaj, mesaj
+    return baglan(preauth_key, host_adi)
 
 
 def durum_json():
