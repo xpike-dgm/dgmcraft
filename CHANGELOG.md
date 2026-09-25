@@ -420,6 +420,20 @@ v2 F0: sıfırdan kabuk.
 - Gömülü fontlar (Inter + Chakra Petch, OFL): pencere öncesi ctypes kaydı, adminsuz.
 - `launcher/v2.py` + `DgmCraft-v2.bat`: eski uygulama aynen durur, v2 ayrı girişten açılır.
 
+## [etiketsiz] - 2026-09-25
+
+F3 — Komutlar sayfası (PySide6).
+
+### Added
+- `core/komutlar.py`: `docs/kilavuz.md` → katalog ayrıştırıcı (27 kategori, 342 komut, ~25 ms, önbellek dosyası yok).
+- Komutlar sayfası: arama kutusu (Türkçe duyarsız: "anıt" = "anit"), kategori listesi (kaydırmalı, komut sayılı), komut satırları, detay paneli.
+- Detay paneli: Ne ise yarar / Örnek / Orijinal komutu / Dikkat alanları; her alanda Kopyala düğmesi.
+- Kategoriye tıklayınca arama temizlenir; arama sonuçlarında kategori etiketi görünür.
+
+### Fixed
+- Belgede "Orjinal Komutu" yazımıyla geçen alan boş geliyordu (288 kayıtta eksikti); eşleştirme düzeltildi, 342 kaydın tamamında alanlar dolu.
+- "Dikkat" notu olan 54 komut artık detayda uyarı kutusu olarak görünüyor.
+
 ## [etiketsiz] - 2026-09-24
 
 F2 — Konsol sayfası (PySide6) + kapatma düzeltmesi.

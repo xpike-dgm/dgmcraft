@@ -334,6 +334,24 @@ class BellekKaydirici(QWidget):
         boya.end()
 
 
+def yerlesim_temizle(yerlesim):
+    """Yerleşimdeki tüm çocukları anında kaldırır.
+    deleteLater() ertelendiği için tek karede üst üste biner; setParent(None)
+    ile hemen görünmez yapılır, sonra silinir."""
+    try:
+        while yerlesim.count():
+            oge = yerlesim.takeAt(0)
+            for parca in (oge.widget(),):
+                if parca is not None:
+                    parca.setParent(None)
+                    parca.deleteLater()
+            alt = oge.layout()
+            if alt is not None:
+                yerlesim_temizle(alt)
+    except Exception:
+        pass
+
+
 def onay_sor(baba, baslik, metin, tamam="Çalıştır", iptal="Vazgeç"):
     """Koyu temalı onay penceresi. True dönerse tamamlandı."""
     try:

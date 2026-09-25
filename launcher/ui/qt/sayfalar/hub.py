@@ -403,11 +403,7 @@ class HubSayfasi(QWidget):
 
     def _oyuncu_uygula(self, oyuncular):
         try:
-            while self.oyuncuListe.count():
-                o = self.oyuncuListe.takeAt(0)
-                w = o.widget()
-                if w is not None:
-                    w.deleteLater()
+            Y.yerlesim_temizle(self.oyuncuListe)
             self.oyuncuBos.setVisible(not oyuncular)
             self.oyuncuSayac.setText("%d/3" % len(oyuncular))
             self._bilgi_guncelle(len(oyuncular))

@@ -81,6 +81,9 @@ QLabel#ikincil { font-size: 12px; color: %(soluk)s; }
 QLabel#soluk { font-size: 12px; color: %(soluk)s; }
 QLabel#minik { font-size: 11px; color: %(silik)s; }
 QLabel#kucuk { font-size: 11px; color: %(silik)s; }
+QLabel#komutAd {
+    font-family: "Consolas"; font-size: 13px; color: %(vurgu)s; font-weight: 600;
+}
 
 QLabel#heroBaslik { font-size: 26px; color: %(yazi)s; font-weight: 600; }
 QLabel#heroMetin { font-size: 13px; color: %(soluk)s; }
