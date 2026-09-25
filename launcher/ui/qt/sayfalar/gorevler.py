@@ -98,7 +98,7 @@ class GorevlerSayfasi(QWidget):
             ozet = _G.ilerleme_ozeti(dugumler)
         except Exception as e:
             dugumler = [{"hata": str(e)[:200]}]
-        self.veri_hazir.emit(oyuncular, dugumler, ozet)
+        Y.guvenli_yayin(self.veri_hazir, oyuncular, dugumler, ozet)
 
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
@@ -149,7 +149,7 @@ class GorevlerSayfasi(QWidget):
                 ozet = _G.ilerleme_ozeti(dugumler)
             except Exception:
                 pass
-            self.veri_hazir.emit(self._oyuncular, dugumler, ozet)
+            Y.guvenli_yayin(self.veri_hazir, self._oyuncular, dugumler, ozet)
 
         threading.Thread(target=oku, daemon=True).start()
 

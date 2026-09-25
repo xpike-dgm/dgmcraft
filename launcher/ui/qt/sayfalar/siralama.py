@@ -96,7 +96,7 @@ class SiralamaSayfasi(QWidget):
             tablolar, canli = _S.tablolar(self.h.kok)
         except Exception:
             pass
-        self.veri_hazir.emit(tablolar, canli)
+        Y.guvenli_yayin(self.veri_hazir, tablolar, canli)
 
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)

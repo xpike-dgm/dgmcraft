@@ -64,7 +64,7 @@ class AyarlarSayfasi(QWidget):
         self._arayuz_kur()
         self.durum_mesaji.connect(self._mesaj)
         self.vpn_durumu.connect(self._vpn_goster)
-        self.guncelleme_notu.connect(self.guncellemeNot.setText)
+        self.guncelleme_notu.connect(self._guncelleme_notu_goster)
         self._yenile()
 
     # ---------- kurulum ----------
@@ -256,14 +256,14 @@ class AyarlarSayfasi(QWidget):
                 from core import store as _S, vpn as _V
                 anahtar = _S.anahtar_oku() or _S.kurulum_anahtari_oto_bul(self.h.kok)
                 if not anahtar:
-                    self.durum_mesaji.emit(
+                    Y.guvenli_yayin(self.durum_mesaji, 
                         "Kurulum anahtarı yok (kurulum-anahtari.txt).")
                     return
-                self.durum_mesaji.emit("VPN bağlanıyor...")
+                Y.guvenli_yayin(self.durum_mesaji, "VPN bağlanıyor...")
                 ok, mesaj = _V.baglan(anahtar, self.h.kullanici)
-                self.durum_mesaji.emit(mesaj or ("Bağlandı." if ok else "Bağlanamadı."))
+                Y.guvenli_yayin(self.durum_mesaji, mesaj or ("Bağlandı." if ok else "Bağlanamadı."))
             except Exception as e:
-                self.durum_mesaji.emit("VPN hatası: %s" % e)
+                Y.guvenli_yayin(self.durum_mesaji, "VPN hatası: %s" % e)
             self._vpn_durum()
 
         threading.Thread(target=is_thread, daemon=True).start()
@@ -292,14 +292,16 @@ class AyarlarSayfasi(QWidget):
                 from core import guncelleme as _G
                 sonuc = _G.denetle(self.h.ayar)
             except Exception as e:
-                self.guncelleme_notu.emit("Denetleme hatası: %s" % e)
+                Y.guvenli_yayin(self.guncelleme_notu, "Denetleme hatası: %s" % e)
                 return
             if sonuc.get("guncelleme_var"):
-                yeni = (sonuc.get("yeni") or {}).get("surum", "?")
-                self.guncelleme_notu.emit("Yeni sürüm bulundu: %s — kurulum için "
-                                          "sunucuyu kapatıp güncellemeyi uygula." % yeni)
+                yeni = sonuc.get("son") or (sonuc.get("yeni") or {}).get("surum", "?")
+                Y.guvenli_yayin(
+                    self.guncelleme_notu,
+                    "Yeni sürüm bulundu: %s — kurulum için sunucuyu kapatıp "
+                    "güncellemeyi uygula." % yeni)
             else:
-                self.guncelleme_notu.emit("Güncelleme yok, en son sürümdesin.")
+                Y.guvenli_yayin(self.guncelleme_notu, "Güncelleme yok, en son sürümdesin.")
 
         threading.Thread(target=is_thread, daemon=True).start()
 
@@ -397,9 +399,17 @@ class AyarlarSayfasi(QWidget):
                 metin = ("bağlı · %s" % ip) if bagli and ip else "bağlı değil"
             except Exception as e:
                 metin = "bilinmiyor (%s)" % e
-            self.vpn_durumu.emit(metin)
+            Y.guvenli_yayin(self.vpn_durumu, metin)
 
         threading.Thread(target=is_thread, daemon=True).start()
 
     def _vpn_goster(self, metin):
         self.vpnSatir.setText(metin)
+
+    def _guncelleme_notu_goster(self, metin):
+        """Sinyal bağlantısı _yenile() sonrası yeniden oluşan etikete yazmalı;
+        doğrudan etikete bağlanmak eski etikete gider."""
+        try:
+            self.guncellemeNot.setText(metin)
+        except Exception:
+            pass

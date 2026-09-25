@@ -108,7 +108,7 @@ class YeteneklerSayfasi(QWidget):
                 yetenekler = _Y.yetenekler(self.h.kok, oyuncular[0]["uuid"])
         except Exception as e:
             yetenekler = [{"hata": str(e)[:200]}]
-        self.veri_hazir.emit(oyuncular, yetenekler)
+        Y.guvenli_yayin(self.veri_hazir, oyuncular, yetenekler)
 
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
@@ -158,7 +158,7 @@ class YeteneklerSayfasi(QWidget):
                 liste = _Y.yetenekler(self.h.kok, oyuncu["uuid"])
             except Exception:
                 liste = []
-            self.veri_hazir.emit(self._oyuncular, liste)
+            Y.guvenli_yayin(self.veri_hazir, self._oyuncular, liste)
 
         threading.Thread(target=oku_ve_yolla, daemon=True).start()
 

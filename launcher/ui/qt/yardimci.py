@@ -334,6 +334,17 @@ class BellekKaydirici(QWidget):
         boya.end()
 
 
+def guvenli_yayin(sinyal, *degerler):
+    """Pencere kapanırken arka plan iş parçacığından gelen yayın patlamasın.
+    (Signal source has been deleted) hatasını yutar."""
+    try:
+        sinyal.emit(*degerler)
+    except (RuntimeError, AttributeError):
+        pass
+    except Exception:
+        pass
+
+
 def yerlesim_temizle(yerlesim):
     """Yerleşimdeki tüm çocukları anında kaldırır.
     deleteLater() ertelendiği için tek karede üst üste biner; setParent(None)

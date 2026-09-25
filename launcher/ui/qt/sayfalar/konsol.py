@@ -219,9 +219,9 @@ class KonsolSayfasi(QWidget):
             ok, cevap = self.h.sunucu_al().komut_gonder(komut)
         except Exception as e:
             ok, cevap = False, str(e)
-        self.cikti_hazir.emit(
+        Y.guvenli_yayin(self.cikti_hazir, 
             cevap or ("Gönderildi." if ok else "Gönderilemedi."), RENK_CEVAP)
-        self.tamamlandi.emit()
+        Y.guvenli_yayin(self.tamamlandi)
 
     def _gonder_bitti(self):
         try:

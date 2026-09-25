@@ -422,6 +422,19 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-25
 
+F9 — Cila ve tam test (8 sayfa).
+
+### Fixed
+- Arka plan iş parçacıkları pencere kapanırken sinyal yayınlıyordu ("Signal source has been deleted" istisnası). Tüm sayfalarda `Y.guvenli_yayin` kullanılıyor.
+- Ayarlar'daki güncelleme notu hiç görünmüyordu: sinyal, `_yenile()` ile yeniden oluşturulan etikete değil eskisine bağlıydı.
+- Güncelleme denetimi sonucu yanlış anahtardan okunuyordu (`yeni` yerine `son`).
+
+### Test
+- 8 sayfa açılıp kapanma, arama (claim → 19 sonuç), komut detayı, durum sayaçları, yetenek kartları (11), sıralama tabloları (4), konsol kuyruğu + gizliyken tamponlama, ayar kartları (6) ve iki turlu sayfa geçişi otomatik koşu ile doğrulandı: tüm testler geçti.
+- Canlı doğrulama: sunucu açıkken TPS 20.0, RCON açık, konsol 507 satır, komut cevabı Türkçe geldi.
+
+## [etiketsiz] - 2026-09-25
+
 F8 — Ayarlar sayfası (PySide6).
 
 ### Added

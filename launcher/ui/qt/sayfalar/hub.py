@@ -312,9 +312,9 @@ class HubSayfasi(QWidget):
         try:
             from core import kilit as _K, version as _V
             if _V.guncelleniyor_mu():
-                self.durum_hazir.emit("BAKIMDA")
-                self.durum_eylem.emit("bakim", "")
-                self.oyuncular_hazir.emit([])
+                Y.guvenli_yayin(self.durum_hazir, "BAKIMDA")
+                Y.guvenli_yayin(self.durum_eylem, "bakim", "")
+                Y.guvenli_yayin(self.oyuncular_hazir, [])
                 return
             calisiyor = False
             try:
@@ -331,11 +331,11 @@ class HubSayfasi(QWidget):
                 oyuncular = self._oyuncu_oku()
         except Exception:
             pass
-        self.durum_hazir.emit(durum)
-        self.durum_eylem.emit({
+        Y.guvenli_yayin(self.durum_hazir, durum)
+        Y.guvenli_yayin(self.durum_eylem, {
             "HAZIR": "baslatilabilir", "YAYINDA": "host",
             "MİSAFİR": "misafir"}.get(durum, "baslatilabilir"), host)
-        self.oyuncular_hazir.emit(oyuncular)
+        Y.guvenli_yayin(self.oyuncular_hazir, oyuncular)
         self._calisiyor = False
 
     def _durum_uygula(self, durum):
@@ -378,7 +378,7 @@ class HubSayfasi(QWidget):
 
     def _oyuncu_oku_tam(self):
         try:
-            self.oyuncular_hazir.emit(self._oyuncu_oku())
+            Y.guvenli_yayin(self.oyuncular_hazir, self._oyuncu_oku())
         except Exception:
             pass
 
@@ -447,7 +447,7 @@ class HubSayfasi(QWidget):
                 hata = mesaj
         except Exception as e:
             hata = str(e)
-        self.baslat_sonuc.emit(hata)
+        Y.guvenli_yayin(self.baslat_sonuc, hata)
 
     def _baslat_bitti(self, hata):
         self._baslatiliyor = False
@@ -473,7 +473,7 @@ class HubSayfasi(QWidget):
                 hata = mesaj
         except Exception as e:
             hata = str(e)
-        self.kapat_sonuc.emit(hata)
+        Y.guvenli_yayin(self.kapat_sonuc, hata)
 
     def _kapat_bitti(self, hata):
         self.eylemDugmesi.setEnabled(True)

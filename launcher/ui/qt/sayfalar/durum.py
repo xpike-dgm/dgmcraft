@@ -212,7 +212,7 @@ class DurumSayfasi(QWidget):
             veri = _D.durum_topla(self.h.kok)
         except Exception as e:
             veri = {"hata": str(e)[:200], "canli": False, "ornekler": []}
-        self.veri_hazir.emit(veri)
+        Y.guvenli_yayin(self.veri_hazir, veri)
 
     def _uygula(self, veri):
         self._son = veri

@@ -113,7 +113,7 @@ class KomutlarSayfasi(QWidget):
             veri = _K.katalog_oku(self.h.kok)
         except Exception as e:
             veri["hata"] = str(e)[:200]
-        self.veri_hazir.emit(veri)
+        Y.guvenli_yayin(self.veri_hazir, veri)
 
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
