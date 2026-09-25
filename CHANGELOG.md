@@ -807,3 +807,28 @@ Görevler sayfası yeniden tasarlandı: liste + detay kartı (iki sütun).
 - Filtre/arama alt bilgisi sonucu yansıtmıyordu.
 - Dolu durum dairelerinin içindeki simge görünmüyordu (simge zemine aynı renk çiziliyordu).
 - "Tanım bekleniyor" rozeti okunmuyordu (koyu gri metin koyu zeminde).
+- Görev okuyucu kök seviyedeki `- id:` satırlarını bölüm adı sanıp ön koşul ve ödül
+  listesini bozuyordu; gerçek veriyle 750 görevin tamamı okunuyor.
+
+## [etiketsiz] - 2026-09-25
+
+750 görev kuruldu ve çalışma zamanında doğrulandı.
+
+### Added
+- `plugins/BeautyQuests/quests/`: 750 görev (13 bölüm + epilog, 1.575 aşama, 45.900₺,
+  30 başlık, 33 üç kişilik ritüel). Yükleme: `750 quests and 0 pools loaded`, hata yok.
+- `cikti/`: TASARIM.md, MANIFEST.csv, 00-OKUBENI.md, kurulum belgeleri ve üretici betik.
+
+### Fixed
+- 16 görev `minecraft:fence` ve `minecraft:chain` eşyaları 26.2'de olmadığı için
+  yüklenmiyordu; `oak_fence` ve `copper_chain` ile değiştirildi.
+- `CHAIN` malzemesi eklentinin XMaterial listesinde yok; 30 görevin ikonu ve 2 görevin
+  `INTERACT_BLOCK` hedefi sessizce bozuktu; `COPPER_CHAIN` ile değiştirildi.
+
+### Notlar
+- BeautyQuests hatalı dosyaları kendi yedeklerini (`*-backup*.yml`) klasöre yazıyor;
+  bunlar kurulum sırasında silindi.
+- `data.yml:lastID` test görevlerinden kalan 9101 değerini taşıyor (dosya "do not edit"
+  içeriyor). Kimlikler 1-750 aralığında ve doğru; yeni görevler 9102'den devam eder.
+- AuraSkills yetenek şartı 14 görevde `placeholderRequired` ile bağlı; oyun içinde
+  doğrulanmalı (`/papi parse %auraskills_farming%`).

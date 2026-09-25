@@ -100,17 +100,23 @@ def gorevleri_oku(kok):
             deger = deger.strip()
 
             if girinti == 0:
-                bolum = anahtar.lower()
-                blok = ""
-                odul_turu = ""
-                if bolum == "name":
-                    ad = _temizle(deger)
-                elif bolum == "description":
-                    aciklama = _temizle(deger)
-                    aciklama_ekli = bool(deger)
-                elif bolum == "firework":
-                    oduller.append("ışık efekti")
-                continue
+                # Kök seviyedeki liste girdileri ("- id: ...") bölüm değiştirmez.
+                if not s.startswith("-"):
+                    bolum = anahtar.lower()
+                    blok = ""
+                    odul_turu = ""
+                    if bolum == "name":
+                        ad = _temizle(deger)
+                    elif bolum == "description":
+                        aciklama = _temizle(deger)
+                        aciklama_ekli = bool(deger)
+                    elif bolum == "firework":
+                        oduller.append("ışık efekti")
+                    continue
+                anahtar = anahtar.lstrip("- ").strip().strip("'\"")
+                deger = deger.strip()
+                if not anahtar:
+                    continue
 
             if bolum == "description" and aciklama_ekli:
                 aciklama = (aciklama + " " + _temizle(s)).strip()
