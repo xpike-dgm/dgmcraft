@@ -750,3 +750,34 @@ Kurulum sihirbazi PySide6 ile yeniden yazildi.
 - Sihirbaz başarısız baglanma sonrasi kilitli kalan dugmeyi kilitlemiyor.
 - Sihirbaza `×` veya Alt+F4 ile kapatmak uygulamayi yari gorunur birakmiyor.
 - Tailscale anahtari yazilirken oncekisi `tailscale.key.onceki` olarak saklanir; dosya silinirse anahtar otomatik geri okunur.
+
+## [etiketsiz] - 2026-09-25
+
+Görevler sayfası 750 düğümlük haritaya dönüştü.
+
+### Added
+- `launcher/core/gorev_agaci.py`: 13 bölüm + epilog, 750 görev iskeleti (580 ana + 170 yan),
+  otomatik 2B ağaç yerleşimi ve bağımlılık grafiği.
+- Görevler sayfası artık kaydırılabilir harita: fare sürükleme, WASD/ok tuşları, tekerlekle
+  yakınlaştırma (0.26-1.35), Q/E ile döndürme, F ile oynanabilir göreve odaklanma.
+- Düğümün üstüne gelince detay kartı (ad, bölüm, özet, ödül, ön koşul); kart ekran
+  kenarına gelince yön değiştirip içeride kalıyor. Tıklama kartı sabitler.
+- 20 görev simgesi + 13 bölüm amblemi QPainter ile çizildi (dosya gerektirmiyor).
+- Sağ altta minimap: tüm harita + o anki görüş alanı.
+- `--gorev-onizleme` bayrağı: görev dosyaları gelene kadar haritayı yapay ilerleme ile gösterir.
+
+### Changed
+- Görev listesi yerine harita; üstte oyuncu seçici + ilerleme özeti, altta durum lejantı.
+- Görevler tanımları geldiğinde aynı düğümler gerçek ad, durum, ödül ve ön koşul bilgisini
+  otomatik alır; harita yerinde kalır.
+
+### Fixed
+- Görev okuyucu BeautyQuests 2.1.0 düzenini de okuyor (`manager.branches.stages`,
+  `endRewards`, `questID`); eski `objectives`/`rewards` düzeni de çalışıyor.
+- Görev adı okunmuyordu (`name` satırı metadata filtresine takiliyordu).
+- Aşama sayısı 0 dönüyordu; artık `stageType` satırlarından doğru sayılıyor.
+- Ödül adları `itemreward` gibi ham yazılıyordu; artık "eşya", "başlık", "XP" olarak görünüyor.
+- WASD/ok tuşları ters yöne kaydırıyordu (D/A ve W/S yer değiştirmişti).
+- Izgara çizgileri ekran merkezinde üst üste biniyordu; artık dönmüş ızgara olarak çiziliyor.
+- Yakınlaştırma düğmelerinin yazısı görünmüyordu (genişlik dolgudan küçüktü).
+- Arka plan dokusu her karede yeniden ölçekleniyordu; önbelleğe alındı (çizim 6.7 ms).

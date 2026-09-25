@@ -13,7 +13,10 @@ def main():
     ayar = store.yukle()
     # "--guncelleme" ekranı gerçek güncelleme olmadan da gösterir (görüntüleme)
     goster = any("guncelleme" in a for a in sys.argv[1:])
-    app, _pencere = calistir(kok, ayar, guncelleme_goster=goster)
+    # "--gorev-onizleme" görev ağacını yapay ilerleme ile doldurur (görüntüleme)
+    onizleme = any("gorev-onizleme" in a for a in sys.argv[1:])
+    app, _pencere = calistir(kok, ayar, guncelleme_goster=goster,
+                             gorev_onizleme=onizleme)
     return app.exec()
 
 

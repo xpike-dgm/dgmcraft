@@ -4,9 +4,10 @@ import threading
 
 
 class Hizmetler:
-    def __init__(self, kok, ayar):
+    def __init__(self, kok, ayar, gorev_onizleme=False):
         self.kok = kok
         self.ayar = ayar
+        self.gorev_onizleme = bool(gorev_onizleme)
         self.log_kuyrugu = _q.Queue(maxsize=5000)
         self.sunucu = None
         try:

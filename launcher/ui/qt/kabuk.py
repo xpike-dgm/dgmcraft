@@ -87,7 +87,7 @@ class TahimatSayfasi(QWidget):
 class Kabuk(QMainWindow):
     _guncelleme_sonuc = Signal(object)
 
-    def __init__(self, kok, ayar, guncelleme_goster=False):
+    def __init__(self, kok, ayar, guncelleme_goster=False, gorev_onizleme=False):
         super().__init__()
         self._guncelleme_zorla = bool(guncelleme_goster)
         self.setWindowTitle(T.UYGULAMA)
@@ -98,7 +98,7 @@ class Kabuk(QMainWindow):
         except Exception:
             pass
         from core.hizmetler import Hizmetler
-        self.hizmetler = Hizmetler(kok, ayar)
+        self.hizmetler = Hizmetler(kok, ayar, gorev_onizleme=gorev_onizleme)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setFixedSize(T.GENISLIK + T.GOLGE, T.YUKSEKLIK + T.GOLGE)
@@ -361,7 +361,7 @@ class Kabuk(QMainWindow):
         super().closeEvent(olay)
 
 
-def calistir(kok, ayar, guncelleme_goster=False):
+def calistir(kok, ayar, guncelleme_goster=False, gorev_onizleme=False):
     app = QApplication.instance() or QApplication(sys.argv)
     app.setApplicationName(T.UYGULAMA)
     app.setStyle("Fusion")
@@ -370,6 +370,7 @@ def calistir(kok, ayar, guncelleme_goster=False):
     palet.setColor(palet.ColorRole.Window, T.BG)
     app.setPalette(palet)
     app.setStyleSheet(T.qss())
-    pencere = Kabuk(kok, ayar, guncelleme_goster=guncelleme_goster)
+    pencere = Kabuk(kok, ayar, guncelleme_goster=guncelleme_goster,
+                    gorev_onizleme=gorev_onizleme)
     pencere.show()
     return app, pencere

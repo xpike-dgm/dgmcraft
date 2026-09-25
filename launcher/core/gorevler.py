@@ -45,47 +45,132 @@ def _temizle(metin):
     return s.replace("'", "").replace('"', "").strip()
 
 
+def _tamsayi(deger):
+    """'0037-gece-nobeti' → 37 ; '37' → 37 ; olmayan → None"""
+    sayi = re.match(r"^(\d+)", str(deger or "").strip())
+    return int(sayi.group(1)) if sayi else None
+
+
+def anahtar_temizle(satir):
+    """'- id: moneyReward' → 'id' ; 'questID: 31' → 'questID'"""
+    s = (satir or "").strip().lstrip("-").strip()
+    return s.split(":", 1)[0].strip().strip("'\"").lower()
+
+
+_ODUL_ADI = {"moneyreward": "para", "expreward": "XP", "itemreward": "eşya",
+             "titlereward": "başlık", "textreward": "not",
+             "tpreward": "ışınlama", "commandreward": "komut", "wait": "bekleme",
+             "randomreward": "rastgele ödül", "checkpointreward": "kilit noktası"}
+
+
 def gorevleri_oku(kok):
-    """[{id, ad, aciklama, oncesi, objektif_sayisi, oduller}]"""
+    """[{id, no, ad, aciklama, oncesi, objektif_sayisi, oduller}]
+
+    Hem eski (kökte objectives/rewards) hem BeautyQuests 2.1.0
+    (manager.branches -> stages) düzenini okur.
+    """
     gorevler = []
     for yol in _dosyalar(kok, QUESTS_DIZIN):
         kimlik = os.path.splitext(os.path.basename(yol))[0]
         if kimlik.startswith("_"):
             continue
+        numara = _tamsayi(kimlik)
         ad = aciklama = ""
         oncesi = []
         objektif = 0
         oduller = []
         bolum = ""
+        blok = ""
+        odul_turu = ""
+        aciklama_ekli = False
         for satir in _oku(yol):
             ham = satir
             s = satir.strip()
             girinti = len(ham) - len(ham.lstrip())
             if not s or s.startswith("#"):
+                if aciklama_ekli and not s and aciklama:
+                    aciklama_ekli = False
                 continue
+            if anahtar_temizle(s) in ("provider", "identifier", "uuid", "completed"):
+                continue
+            anahtar, _, deger = s.partition(":")
+            anahtar = anahtar.strip().strip("'\"")
+            deger = deger.strip()
+
             if girinti == 0:
-                bolum = s.split(":", 1)[0].strip().lower()
-                deger = s.split(":", 1)[1].strip() if ":" in s else ""
+                bolum = anahtar.lower()
+                blok = ""
+                odul_turu = ""
                 if bolum == "name":
                     ad = _temizle(deger)
                 elif bolum == "description":
                     aciklama = _temizle(deger)
+                    aciklama_ekli = bool(deger)
+                elif bolum == "firework":
+                    oduller.append("ışık efekti")
                 continue
-            if bolum == "objectives" and re.match(r"^'?[\w-]+'?:$", s):
+
+            if bolum == "description" and aciklama_ekli:
+                aciklama = (aciklama + " " + _temizle(s)).strip()
+                continue
+
+            # Her aşama bir 'stageType:' satırı taşır (stages ve endingStages).
+            if anahtar.lower() == "stagetype" and deger:
                 objektif += 1
-            elif bolum == "requirements" and s.startswith("-"):
-                oge = _temizle(s.lstrip("- "))
-                if oge:
-                    oncesi.append(oge)
-            elif bolum in ("rewards", "rewardslist") and s.startswith("-"):
-                oduller.append(_temizle(s.lstrip("- ")))
+                continue
+            # Blok anahtarı: sayısal indeksler ("'0':") ebeveyn bağlamını bozmaz.
+            if s.endswith(":") and not s.startswith("-"):
+                blok_adi = anahtar.lower()
+                if not re.match(r"^['\"]?\d+['\"]?$", blok_adi):
+                    if bolum == "objectives":
+                        objektif += 1
+                    blok = blok_adi
+                continue
+            if bolum == "requirements":
+                if anahtar.lower() == "questid" and deger:
+                    no = _tamsayi(deger)
+                    if no and no not in oncesi:
+                        oncesi.append(no)
+                elif s.startswith("- id:"):
+                    blok = deger.lower()
+            elif bolum in ("endrewards", "rewards", "rewardslist", "startrewards"):
+                if s.startswith("- id:"):
+                    odul_turu = deger.lower()
+                    if odul_turu not in ("moneyreward", "expreward"):
+                        oduller.append(_ODUL_ADI.get(odul_turu, odul_turu))
+                elif odul_turu == "moneyreward" and anahtar.lower() == "money":
+                    oduller.append("%s₺" % deger)
+                    odul_turu = ""
+                elif odul_turu == "expreward" and anahtar.lower() in ("xp_amount", "xp"):
+                    oduller.append("%s XP" % deger)
+                    odul_turu = ""
+                elif s.startswith("-") and ":" not in s:
+                    # eski düzen: "- money 30"
+                    parca = _temizle(s.lstrip("- ")).split(" ", 1)
+                    if len(parca) == 2 and parca[0].lower() in ("money", "para", "eco"):
+                        oduller.append("%s₺" % parca[1])
+                    elif parca:
+                        oduller.append(parca[0])
         if not ad and not aciklama:
             continue
         gorevler.append({
-            "id": kimlik, "ad": ad or kimlik, "aciklama": aciklama,
-            "oncesi": oncesi, "objektif_sayisi": objektif, "oduller": oduller[:6],
+            "id": kimlik, "no": numara,
+            "ad": ad or kimlik, "aciklama": aciklama,
+            "oncesi": oncesi, "objektif_sayisi": objektif,
+            "oduller": _tekrar(oduller)[:6],
         })
+    gorevler.sort(key=lambda g: (g["no"] is None, g["no"] or 0))
     return gorevler
+
+
+def _tekrar(liste):
+    gorulen = set()
+    sonuc = []
+    for x in liste:
+        if x and x not in gorulen:
+            gorulen.add(x)
+            sonuc.append(x)
+    return sonuc
 
 
 def oyuncular(kok):

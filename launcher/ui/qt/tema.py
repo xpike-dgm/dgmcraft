@@ -85,6 +85,13 @@ QProgressBar#sihirCubuk {
     background: #1E2824; border: none; border-radius: 2px; height: 4px;
 }
 QProgressBar#sihirCubuk::chunk { background: %(vurgu)s; border-radius: 2px; }
+QFrame#agacKart {
+    background: #101715; border: 1px solid #2C3A34; border-radius: 12px;
+}
+QFrame#agacKart QLabel { background: transparent; }
+QLabel#kartBaslik {
+    font-family: "Chakra Petch"; font-size: 16px; font-weight: 700; color: %(yazi)s;
+}
 QLabel#ustBaslik { font-size: 17px; color: %(yazi)s; }
 QLabel#sayfaBaslik { font-size: 17px; color: %(yazi)s; font-weight: 500; }
 QLabel#bolumBaslik {
@@ -164,6 +171,14 @@ QPushButton#hayaletDugme {
 }
 QPushButton#hayaletDugme:hover { border-color: %(cerceveParlak)s; background: #18201D; }
 QPushButton#hayaletDugme:pressed { background: #1C2422; }
+
+QPushButton#zoomDugme {
+    background: transparent; color: %(yazi)s; border: 1px solid %(cerceve)s;
+    border-radius: 18px; font-size: 17px; font-weight: 700; padding: 0px;
+    min-width: 36px; max-width: 36px; min-height: 36px; max-height: 36px;
+}
+QPushButton#zoomDugme:hover { border-color: %(cerceveParlak)s; background: #18201D; }
+QPushButton#zoomDugme:pressed { background: #1C2422; }
 
 QPushButton#ikonDugme {
     background: transparent; border: none; border-radius: 8px; padding: 6px;
