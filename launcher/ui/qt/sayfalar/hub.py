@@ -442,7 +442,9 @@ class HubSayfasi(QWidget):
     def _baslat_is(self):
         hata = ""
         try:
-            self.h.sunucu_al().baslat(heap_gb=self.h.heap_al())
+            ok, mesaj = self.h.sunucu_baslat()
+            if not ok:
+                hata = mesaj
         except Exception as e:
             hata = str(e)
         self.baslat_sonuc.emit(hata)
@@ -466,7 +468,9 @@ class HubSayfasi(QWidget):
         try:
             def ilerleme(metin):
                 self.h.log_kuyrugu.put("[konsol] " + str(metin))
-            self.h.sunucu_al().guvenli_kapat(ilerleme)
+            kapandi, mesaj = self.h.sunucu_kapat(ilerleme)
+            if not kapandi:
+                hata = mesaj
         except Exception as e:
             hata = str(e)
         self.kapat_sonuc.emit(hata)

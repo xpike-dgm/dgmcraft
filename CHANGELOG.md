@@ -422,6 +422,19 @@ v2 F0: sıfırdan kabuk.
 
 ## [etiketsiz] - 2026-09-25
 
+F4 — Durum sayfası (PySide6) + RCON ve host akışı düzeltmeleri.
+
+### Added
+- `core/durum.py`: Plan'ın SQLite veritabanından (plan_tps) TPS/MSPT/CPU/RAM/varlık/chunk/disk, RCON'dan oyuncu listesi, kilitten çalışma süresi.
+- Durum sayfası: 4 sayaç (TPS renkli, MSPT, bellek, çevrimiçi), sönümlü TPS grafiği (son 60 örnek), sunucu bilgileri, oyuncu listesi; 5 saniyede bir yenilenir.
+
+### Fixed
+- **RCON hiç çalışmıyordu:** paket uzunluğu 2 bayt eksik hesaplanıyordu, ayrıca sunucu cevabı bitirmediğinde döngü hata veriyordu. Paketleme/paket okuma yeniden yazıldı, sonlandırma paketi gelmezse sessizce bitiyor.
+- RCON cevaplarındaki `§` renk kodları temizlenmiyordu.
+- PySide6 Hub sunucuyu kilit almadan başlatıyordu (arkadaşlarla çakışma riski, çalışma süresi 0 görünüyordu). `core/hizmetler.py` içine `sunucu_baslat` / `sunucu_kapat` / `host_mu` eklendi: kilit al, kalp atışı başlat, site otomatik açıl; kapanışta kilit bırak.
+
+## [etiketsiz] - 2026-09-25
+
 F3 — Komutlar sayfası (PySide6).
 
 ### Added

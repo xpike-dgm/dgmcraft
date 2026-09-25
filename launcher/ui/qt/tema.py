@@ -84,6 +84,9 @@ QLabel#kucuk { font-size: 11px; color: %(silik)s; }
 QLabel#komutAd {
     font-family: "Consolas"; font-size: 13px; color: %(vurgu)s; font-weight: 600;
 }
+QLabel#sayac {
+    font-family: "Chakra Petch"; font-size: 30px; font-weight: 700; color: %(yazi)s;
+}
 
 QLabel#heroBaslik { font-size: 26px; color: %(yazi)s; font-weight: 600; }
 QLabel#heroMetin { font-size: 13px; color: %(soluk)s; }

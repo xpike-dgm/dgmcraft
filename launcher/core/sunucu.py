@@ -90,14 +90,55 @@ def server_properties_oku(sunucu_koku):
 
 
 class RconIstemcisi:
+    """Minecraft RCON istemcisi (saf stdlib).
+
+    Paket biçimi: [int32 boyut][int32 istek][int32 tip][gövde][\\x00\\x00]
+    'boyut' alanı kendinden sonraki tüm baytları sayar: 4 + 4 + len(gövde) + 2.
+    """
+
     def __init__(self, host="127.0.0.1", port=25575, sifre=""):
         self.host = host
         self.port = int(port)
-        self.sifre = sifre
+        self.sifre = sifre or ""
 
     def _paket(self, req_id, tip, govde):
-        data = govde.encode("utf-8") + b"\x00\x00"
-        return struct.pack("<iii", len(data) + 6, req_id, tip) + data
+        veri = govde.encode("utf-8") + b"\x00\x00"
+        ic = struct.pack("<ii", req_id, tip) + veri
+        return struct.pack("<i", len(ic)) + ic
+
+    def _paket_oku(self, s, timeout):
+        """Tek yanıt paketini okur. (istek, tip, gövde) veya None."""
+        s.settimeout(timeout)
+        bas = b""
+        while len(bas) < 4:
+            parca = s.recv(4 - len(bas))
+            if not parca:
+                return None
+            bas += parca
+        boyut = struct.unpack("<i", bas)[0]
+        if boyut < 10 or boyut > 8 * 1024 * 1024:
+            return None
+        veri = b""
+        while len(veri) < boyut:
+            parca = s.recv(boyut - len(veri))
+            if not parca:
+                break
+            veri += parca
+        if len(veri) < 8:
+            return None
+        req_id, tip = struct.unpack("<ii", veri[:8])
+        govde = veri[8:].rstrip(b"\x00").decode("utf-8", errors="replace")
+        return req_id, tip, govde
+
+    @staticmethod
+    def _renkleri_temizle(metin):
+        """§a gibi renk kodlarını ve gövde sonundaki boşlukları temizler."""
+        try:
+            import re
+            s = re.sub("§[0-9A-FK-ORa-fk-orx]", "", metin or "")
+            return s.replace("§", "").strip()
+        except Exception:
+            return (metin or "").strip()
 
     def komut(self, komut, timeout=8):
         import random
@@ -107,24 +148,31 @@ class RconIstemcisi:
         try:
             s.connect((self.host, self.port))
             s.sendall(self._paket(rid, 3, self.sifre))
-            auth = s.recv(4096)
-            if len(auth) < 12 or struct.unpack("<i", auth[8:12])[0] == -1:
+            cevap = self._paket_oku(s, timeout)
+            if cevap is None:
+                return False, "RCON kimlik doğrulama cevabı gelmedi."
+            _rid, _tip, _govde = cevap
+            if _rid == -1:
                 return False, "RCON şifresi kabul edilmedi."
             s.sendall(self._paket(rid, 2, komut))
             parcalar = []
-            s.settimeout(4)
-            try:
-                while True:
-                    chunk = s.recv(8192)
-                    if not chunk:
-                        break
-                    if len(chunk) >= 12:
-                        parcalar.append(chunk[12:].rstrip(b"\x00").decode("utf-8", errors="replace"))
-                    if len(chunk) < 8192:
-                        break
-            except socket.timeout:
-                pass
-            return True, "".join(parcalar)
+            while True:
+                # Sunucu cevabı bitirmek için boş gövdeli paket gönderir;
+                # göndermezse sessizce biter (zaman aşımı hata değildir).
+                try:
+                    cevap = self._paket_oku(s, 3)
+                except socket.timeout:
+                    break
+                if cevap is None:
+                    break
+                _rid, _tip, govde = cevap
+                if govde:
+                    parcalar.append(govde)
+                if not govde:
+                    break
+            return True, self._renkleri_temizle("".join(parcalar))
+        except socket.timeout:
+            return False, "RCON zaman aşımı."
         except Exception as e:
             return False, str(e)[:500]
         finally:
