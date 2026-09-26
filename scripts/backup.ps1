@@ -50,7 +50,25 @@ Compress-Archive -Path $ItemsToZip -DestinationPath $ZipPath -CompressionLevel O
 Write-Host "Yedek tamamlandi: $ZipPath"
 
 # 7 gunluk rotasyon
-$Limit = (Get-Date).AddDays(-7)
+# 2026-09-26: her yedek ~160 MB (plugins/ + world*) ve 12 dosya 1,9 GB'e ulasti.
+# Sayi sinirla: 5 tanesini gecmis, 2 tanesini bugun (gun degisince artar).
+$KeepOld = 5
+$KeepToday = 2
+$Bugun = (Get-Date -Format 'yyyy-MM-dd')
+$All = Get-ChildItem -LiteralPath $BackupDir -Filter 'dgmcraft_*.zip' | Sort-Object LastWriteTime -Descending
+$Oncekiler = $All | Where-Object { $_.Name -notlike "dgmcraft_$Bugun*" }
+$Bugunkiler = $All | Where-Object { $_.Name -like "dgmcraft_$Bugun*" }
+foreach ($f in ($Oncekiler | Select-Object -Skip $KeepOld)) {
+    Write-Host ("Siliniyor (eski yedek, " + $KeepOld + " gecmis siniri): " + $f.Name)
+    Remove-Item -LiteralPath $f.FullName -Force
+}
+foreach ($f in ($Bugunkiler | Select-Object -Skip $KeepToday)) {
+    Write-Host ("Siliniyor (bugun, " + $KeepToday + " adet siniri): " + $f.Name)
+    Remove-Item -LiteralPath $f.FullName -Force
+}
+
+# 30 gunluk rotasyon
+$Limit = (Get-Date).AddDays(-30)
 $OldBackups = Get-ChildItem -LiteralPath $BackupDir -Filter 'dgmcraft_*.zip' | Where-Object { $_.LastWriteTime -lt $Limit }
 foreach ($old in $OldBackups) {
     Write-Host ("Siliniyor (7 gunden eski): " + $old.FullName)

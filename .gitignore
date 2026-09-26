@@ -2,8 +2,7 @@
 
 # Dünya ve çalışma verisi (Syncthing ile taşınır)
 world/
-world_nether/
-world_the_end/
+world*/                 # world-26.2-yedek ve benzeri yedek dünya klasörleri
 backups/
 logs/
 **/logs/
@@ -55,3 +54,11 @@ test-build/
 
 # Site yedeği
 site/assets/data.js.bak
+
+# 2026-09-26 temizlik: site/ kullanılmıyor, diskten kaldırıldı.
+# Commit edilmiş hali git geçmişinde duruyor (2e2b61e). Geri almak için:
+#   git checkout 2e2b61e -- site/
+site/
+
+# Görev projesi kaynak kopyası tek arşivde tutulur
+arsiv/*.zip

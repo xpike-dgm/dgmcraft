@@ -2,6 +2,43 @@
 
 Format: `Added / Changed / Fixed` başlıkları altında kısa maddeler.
 
+## [0.2.1] — 2026-09-26 — Klasör temizliği
+
+### Removed
+- **`site/` (55 MB, 112 dosya) kaldırıldı.** Kullanıcı site'yi kullanmıyor. İçindeki commit
+  edilmemiş 14 dosyalık değişiklik ve 94 yeni marka görseli önce `2e2b61e` commit'i ile
+  git geçmişine alındı — **iş kaybolmadı**. Geri almak için: `git checkout 2e2b61e -- site/`
+- **`cikti/` (756 dosya) kaldırıldı.** 750 görevin kaynak kopyası tek arşive toplandı:
+  `arsiv/gorev-projesi-750.zip` (0,68 MB). Silmeden önce arşivin `plugins/BeautyQuests/quests/`
+  ile **750/750 birebir aynı** olduğu MD5 ile doğrulandı.
+- 11 adet 26.1.2 öncesi yedek silindi (1,73 GB). Kalan 2 yedek:
+  `dgmcraft_2026-09-26_18-02.zip` (temizlik öncesi), `dgmcraft_2026-09-26_18-15.zip` (temizlik sonrası).
+- `embedded/` (boş), `site-link.txt`, `permissions.yml` (boş) silindi.
+- `logs/` altındaki 61 eski döndürülmüş log silindi, son 5'i korundu.
+
+### Added
+- `arsiv/` klasörü — sıkıştırılmış kaynak arşivleri tek yerde.
+- `docs/temizlik.md` — kök klasör düzeni, hangi klasör ne işe yarar, neden silindi.
+
+### Changed
+- **`scripts/backup.ps1` rotasyonu sayı sınırlı.** 7 günlük tek kural 12 dosyada 1,89 GB
+  biriktiriyordu. Artık: 5 eski yedek + 2 bugünkü yedek tutulur, fazlası anında silinir.
+  Gün limiti 7'den 30 güne çıkarıldı.
+- **`launcher/core/site.py`**: `site_link_yaz()` artık yalnızca `site/` klasörü gerçekten
+  varsa çalışır. Site sunucusu başlatıldığında köke `site-link.txt` yeniden yazılmasın diye.
+  Klasör yokken sunucu zaten `bekleme_sayfasi()` servis ediyor (`site.py:379`), doğrulandı.
+- `.gitignore`: `world_nether/` / `world_the_end/` yerine `world*/` deseni (yedek dünya
+  klasörleri de artık kapsam dışı), `site/` ve `arsiv/*.zip` eklendi.
+
+### Doğrulama
+- Sunucu 26.1.2 build 2592: 4 dakika, 8/8 örnekte RCON ayakta, **0 ERROR/SEVERE**, temiz kapanış.
+- Launcher tam test paketi: `TÜM TESTLER GEÇTİ`.
+- `site_klasoru_bul()` klasör yokken `None` dönüyor → bekleme sayfası (462 bayt) çalışıyor.
+- `scripts/backup.ps1` gerçek çalıştırmada rotasyonu doğru uyguladı (3. yedeği "bugün, 2 adet
+  sınırı" kuralıyla sildi), PowerShell sözdizimi geçerli.
+- Disk: **1,73 GB yedek + 55 MB site + 1,5 MB cikti** silindi. Kök klasör 22 → 19,
+  kök dosya 32 → 30.
+
 ## [0.2.0] — 2026-09-26 — Purpur 26.2 → 26.1.2 sürüm düşürme
 
 ### Changed

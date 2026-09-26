@@ -451,10 +451,11 @@ class SiteSunucusu:
             self.adres = "http://%s:%s" % (vpn_ip, port)
             self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
             self.thread.start()
-            try:
-                site_link_yaz(self.kok, vpn_ip, port, gonderici)
-            except Exception:
-                pass
+            if site_klasoru_bul(self.kok):
+                try:
+                    site_link_yaz(self.kok, vpn_ip, port, gonderici)
+                except Exception:
+                    pass
             return True, self.adres
         except Exception as e:
             return False, "Site açılamadı: %s" % str(e)[:400]
