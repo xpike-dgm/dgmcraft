@@ -2,6 +2,66 @@
 
 Format: `Added / Changed / Fixed` başlıkları altında kısa maddeler.
 
+## [0.3.0] — 2026-09-26 — 05-night arayüz dönüşümü
+
+`newui/DgmCraft-05-Night-Tasarim-Sartnamesi.md` + `newui/dgmcraft-six/05-night/` görselleri
+doğrultusunda launcher arayüzü yeniden tasarlandı. **İş mantığı, veri kaynakları ve eylemler
+korundu; yalnızca görünür arayüz değişti.** 17 görünümün tamamı 1280×800 referansında çalışıyor.
+
+### Changed
+- **Ölçü**: 1180×720 → **1280×800** (`tema.py`: `GENISLIK`, `YUKSEKLIK`, `UST_YUKSEKLIK=82`).
+- **Palet**: `#0B0F0E/#F0A202` yeşilimli aile → 05-night (`#111517` zemin, `#1B2225` kart,
+  `#080B0D` siyah panel, `#3A4346` kenar, **`#FF9B2C` aksan**, `#F4F5F1` metin,
+  `#B0B8B8` ikincil). Tipografi **Segoe UI**.
+- **Gezinme**: 68px dikey sol ray → **82px üst çubukta tek satır yatay gezinme**
+  (Hub · Komutlar · Durum · Konsol · Görevler · Yetenekler · Sıralama · Ayarlar).
+  Aktif sekmede turuncu metin + 4px alt çizgi. `kabuk.py` içindeki `RayDugmesi` kaldırıldı.
+- **Ortak bileşenler** (`tema.py`): `BaslikAlani`, `MetrikBandi`/`Metrik`, `BolumBasligi`,
+  `ListeSatiri`, `AramaKutusu`, `IlerlemeSatiri`, `MarkaKarti`, `BosDurum`, `Sekmeler`,
+  `ayirici`, `dugme`, `etiket`, `kart`, `svg_ikon`, `mark_pixmap`.
+- **8 ana sayfa**: her birine tutarlı başlık alanı (turuncu üst etiket / 28pt başlık /
+  açıklama / sağda `DGMCRAFT / SAYFA`) ve 36px iç pay eklendi.
+  - **Hub**: siyah hero (8px turuncu şerit, 32pt iki satırlık mesaj, gerçek amblem) +
+    turuncu durum kartı + bellek/sunucu/haber kartları yeniden yazıldı.
+  - **Komutlar**: siyah 57px arama bandı, **yatay kaydırmalı kategori sekmeleri** (27 kategori),
+    793px komut listesi + 397px **siyah detay paneli**. Liste artık solda, detay sağda.
+  - **Durum**: 4'lü **siyah metrik bandı** (132px) + **çubuk grafikli** TPS geçmiş kartı (786px)
+    + sistem bilgisi kartı (404px) + çevrimiçi oyuncu kartı.
+  - **Konsol**: tek **siyah panel**, "SUNUCU ÇIKTISI" başlığı + canlı bağlantı durumu noktası.
+  - **Görevler**: 108px **siyah ilerleme bandı** (tamamlanan / çubuk / % / bölüm / oynanabilir /
+    tamamlandı). Çift başlık giderildi.
+  - **Yetenekler**: 4 sütunlu yetenek ızgarası (15×12 px aralık).
+  - **Sıralama**: 4 yatay sekme + 779px ana kart + 411px **siyah "Diğer zirveler"** kartı.
+  - **Ayarlar**: Profil / Bağlantı / Uygulama / Güncelleme kartları yeni paletle.
+- **Kurulum sihirbazı** (`sihirbaz.py`): 1280×800 çerçeveye alındı — 82px üst çubuk
+  (DGMCRAFT · KURULUM · "7 ADIMDA HAZIR"), 84px yatay 7 adım şeridi, 787px giriş kartı +
+  403px siyah marka kartı, 52px siyah alt şerit (adım no + Geri + turuncu Devam).
+  Adım mantığı, zorunlu/isteğe bağlı kurallar ve geri dönüşte değer koruma **aynen korundu**.
+- **Güncelleme ekranı** (`guncelleme_ekrani.py`): 620×540 → 1280×800. Turuncu eski→yeni sürüm
+  kartı (560×277) + "Güncellemeyi başlat" + 617px siyah sürüm notları kartı. Sürümler ve
+  maddeler güncelleme verisinden gelir, örnek değer sabitlenmedi.
+- **Varlıklar**: 12 SVG + gerçek amblem `newui/dgmcraft-six/05-night/assets/` → `launcher/assets/night/`
+  kopyalandı. **Masaüstü mutlak yol bağımlılığı yok** (şartname §8.8).
+- `core/haber.py`: CHANGELOG başlıkları em-dash (`—`) de kullandığı için regex genişletildi;
+  özet metinlerinden `**kalın**` ve `` `kod` `` işaretleri soyulur (Haber kartında ham markdown görünüyordu).
+
+### Fixed
+- Durum sayfası canlı güncellemesi iki hata veriyordu: `Metrik` eski `SayacKarti.yaz(deger, alt, renk)`
+  imzasını çağırıyordu (imza uyuşmazlığı) ve sistem satırları sözlüğü 6 anahtarla kurulup
+  8 anahtar beklediği için `KeyError` veriyordu. İkisi de düzeltildi, `_uygula` elle doğrulandı.
+- Komutlar kategori sekmeleri 27 adet olduğu için yatayda taşıyordu; `QScrollArea` +
+  metinden hesaplanan sabit genişlik + `activate()` ile yatay kaydırma çözüldü.
+- Sıralama "Diğer zirveler" kartı ham float gösteriyordu (`1790031841393.0`); artık veri
+  kaynağının hazırladığı `metin` alanını kullanıyor (`4 gün önce`, `150 ₺`).
+- Görevler sayfasında başlık iki kez görünüyordu (yeni başlık alanı + eski "Görev İlerlemesi").
+
+### Doğrulama
+- Launcher tam test paketi: **`TÜM TESTLER GEÇTİ`** (8 sayfa, arama, görev seçimi, yetenek
+  kartları, sıralama tabloları, konsol tamponu, ayar kartları).
+- 17 görünümün tamamı 1280×800 ekran görüntüsü alındı ve referans PNG'leriyle karşılaştırıldı.
+- Canlı veri doğrulandı: 750 görev / 14 bölüm, 27 kategori / 90 komut, 11 yetenek,
+  4 sıralama tablosu, TPS 20.0, 150 ₺.
+
 ## [0.2.1] — 2026-09-26 — Klasör temizliği
 
 ### Removed

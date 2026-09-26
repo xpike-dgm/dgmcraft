@@ -7,7 +7,7 @@ import threading
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QLineEdit, QProgressBar,
-                               QPushButton, QScrollArea, QVBoxLayout, QWidget)
+                               QPushButton, QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
 
 from . import tema as T
 from . import yardimci as Y
@@ -26,6 +26,36 @@ ADIMLAR = [
 ]
 
 ONIZLEME = os.environ.get("DGM_SIHIRBAZ_GEC", "0") == "1"
+
+BASLIKLAR = [
+    "Kendi dünyanı kur.",
+    "Nasıl görünmek istersin?",
+    "Davet kodunu ekle.",
+    "Dosyaları aynı kalılsın.",
+    "Gizli ağa bağlı.",
+    "Arkadaşlarını ekle.",
+    "Her şey hazır.",
+]
+
+MARKA_BASLIKLARI = [
+    "Yedi adım. Tek dünya.",
+    "Bu ada ait, sen ol.",
+    "Bu ada ait.",
+    "Herkese aynı.",
+    "Bağlantı doğrulandı.",
+    "Kodları birleştirdik.",
+    "Dünyana hoş geldin.",
+]
+
+MARKA_ACIKLAMALARI = [
+    "Bu sunucu üç kişi ve sadece onlar için. Aynı sunucuda oynayacaksınız, ayrı ayrı kopyalar değil. Sadece bir kez kurarsın, arkadaşların için güncelleme otomatik kurulur.",
+    "Oyuncu adın sunucu kayıtlarında, arkadaş bağlantısında ve ilk giriş ekranında görünür. Sonradan değiştirebilirsin.",
+    "Sunucu, yalnız arkadaşlarının girebileceği ağda çalışır. Davet kodunu şimdi girersen kurulum bitince hemen bağlanırsın. Kodun yoksa sonra Ayarlar bölümünden eklersin.",
+    "Dünya dosyaları arkadaşlarınla otomatik olarak eşitlenir. Eşitleme ilk kurulumda yapılır, sonra arka planda çalışmaya devam eder.",
+    "Bu program bilgisayarları dışarıdan görünmeyen bir ağda birbirine bağlar. Yani oyun yalnız sizin ağınızdan açılır. Dünya ayarı kapalıyken değişmez.",
+    "Arkadaşlarının cihaz kodu tek bir kutuya yaz. Sunucu kurulmadan önce bir kez eşleştirme kurulur, sonra ağ otomatik olarak açılır.",
+    "Kurulum bitti. Artık arkadaşların bağlandığında oyun otomatik açılır ve her gün aynı dünyada buluşursunuz.",
+]
 
 
 class Sihirbaz(QWidget):
@@ -71,113 +101,171 @@ class Sihirbaz(QWidget):
         govde.setSpacing(0)
         govde.addWidget(self._baslik_kur())
 
-        alt = QHBoxLayout()
-        alt.setContentsMargins(0, 0, 0, 0)
-        alt.setSpacing(0)
-        alt.addWidget(self._ray_kur())
+        icKutu = QFrame()
+        icKutu.setObjectName("sayfa")
+        icDikey = QVBoxLayout(icKutu)
+        icDikey.setContentsMargins(0, 0, 0, 0)
+        icDikey.setSpacing(0)
+        icDikey.addWidget(self._ray_kur())
+        icDikey.addWidget(self._govde_kur(), 1)
+        govde.addWidget(icKutu, 1)
 
-        self.sag = QFrame()
-        self.sag.setObjectName("icerik")
-        sagDikey = QVBoxLayout(self.sag)
-        sagDikey.setContentsMargins(30, 24, 30, 22)
-        sagDikey.setSpacing(0)
-        self.ustYazi = QLabel("")
-        self.ustYazi.setObjectName("minik")
-        sagDikey.addWidget(self.ustYazi)
-        sagDikey.addSpacing(6)
-        self.baslikYazi = QLabel("")
-        self.baslikYazi.setObjectName("sihirBaslik")
-        sagDikey.addWidget(self.baslikYazi)
-        sagDikey.addSpacing(14)
-
-        self.kaydirma = QScrollArea()
-        self.kaydirma.setWidgetResizable(True)
-        self.kaydirma.setFrameShape(QFrame.NoFrame)
-        self.govdeIcerik = QWidget()
-        self.govde = QVBoxLayout(self.govdeIcerik)
-        self.govde.setContentsMargins(0, 0, 0, 0)
-        self.govde.setSpacing(12)
-        self.govde.setAlignment(Qt.AlignTop)
-        self.kaydirma.setWidget(self.govdeIcerik)
-        sagDikey.addWidget(self.kaydirma, 1)
-        sagDikey.addSpacing(12)
-        self.cubuk = QProgressBar()
-        self.cubuk.setObjectName("sihirCubuk")
-        self.cubuk.setRange(0, 100)
-        self.cubuk.setTextVisible(False)
-        self.cubuk.setFixedHeight(4)
-        sagDikey.addWidget(self.cubuk)
-        sagDikey.addSpacing(14)
-        sagDikey.addLayout(self._alt_kur())
-        alt.addWidget(self.sag, 1)
-        govde.addLayout(alt, 1)
+        govde.addWidget(self._alt_kur())
 
     def _baslik_kur(self):
-        cubuk = Y.BaslikCubugu()
-        cubuk.setFixedWidth(T.GENISLIK)
+        cubuk = QFrame()
+        cubuk.setObjectName("ustCubuk")
+        cubuk.setFixedWidth(T.GENISLIK + 2)
+        cubuk.setFixedHeight(T.UST_YUKSEKLIK)
         satir = QHBoxLayout(cubuk)
-        satir.setContentsMargins(12, 0, 8, 0)
+        satir.setContentsMargins(25, 0, 18, 3)
         satir.setSpacing(10)
-        logo = Y.pixmap("brand", "mark-480.png")
-        if logo is not None and not logo.isNull():
-            lb = QLabel()
-            lb.setPixmap(logo.scaled(26, 26, Qt.KeepAspectRatio,
-                                     Qt.SmoothTransformation))
-            lb.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-            satir.addWidget(lb)
-        ad = QLabel("KURULUM")
-        ad.setObjectName("pencereBaslik")
+        logo = QLabel()
+        pm = T.mark_pixmap(43)
+        if not pm.isNull():
+            logo.setPixmap(pm)
+        logo.setFixedSize(43, 43)
+        logo.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        satir.addWidget(logo)
+        satir.addSpacing(10)
+        ad = QLabel("DGMCRAFT")
+        ad.setObjectName("markaAd")
         ad.setAttribute(Qt.WA_TransparentForMouseEvents, True)
         satir.addWidget(ad)
+        satir.addSpacing(14)
+        self.bolumYazi = QLabel("KURULUM")
+        self.bolumYazi.setObjectName("markaAlt")
+        self.bolumYazi.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        satir.addWidget(self.bolumYazi)
         satir.addStretch(1)
+        self.hazirYazi = QLabel("7 ADIMDA HAZIR")
+        self.hazirYazi.setObjectName("yardimciEtiket")
+        self.hazirYazi.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        satir.addWidget(self.hazirYazi)
+        satir.addSpacing(16)
         kapat = Y.BaslikDugmesi("kapat")
         kapat.clicked.connect(self._kapat)
         satir.addWidget(kapat)
         return cubuk
 
     def _ray_kur(self):
-        ray = QFrame()
-        ray.setObjectName("ray")
-        ray.setFixedWidth(220)
-        dis = QVBoxLayout(ray)
-        dis.setContentsMargins(16, 24, 16, 20)
-        dis.setSpacing(6)
+        """1208x84 yatay 7 adim ilerleme satiri."""
+        serit = QFrame()
+        serit.setFixedHeight(84)
+        dis = QHBoxLayout(serit)
+        dis.setContentsMargins(T.IC_PAY, 18, T.IC_PAY, 18)
+        dis.setSpacing(0)
         self.rayEtiketleri = []
         for i, (ad, _sure) in enumerate(ADIMLAR):
-            satir = QHBoxLayout()
-            satir.setContentsMargins(0, 0, 0, 0)
-            satir.setSpacing(10)
+            huc = QWidget()
+            hucSatir = QVBoxLayout(huc)
+            hucSatir.setContentsMargins(0, 0, 0, 0)
+            hucSatir.setSpacing(6)
             nokta = QLabel(str(i + 1))
-            nokta.setFixedSize(22, 22)
+            nokta.setFixedSize(24, 24)
             nokta.setAlignment(Qt.AlignCenter)
-            satir.addWidget(nokta)
+            hucSatir.addWidget(nokta)
             yazi = QLabel(ad)
-            satir.addWidget(yazi)
-            dis.addLayout(satir)
+            yazi.setFixedWidth(150)
+            yazi.setStyleSheet("background: transparent;")
+            hucSatir.addWidget(yazi)
+            dis.addWidget(huc)
             self.rayEtiketleri.append((nokta, yazi))
+            if i < len(ADIMLAR) - 1:
+                cizgi = QFrame()
+                cizgi.setObjectName("bolucu")
+                cizgi.setFixedHeight(1)
+                cizgi.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+                dis.addWidget(cizgi)
+                dis.addSpacing(6)
         dis.addStretch(1)
-        ipucu = QLabel("Her adım bir sonrakini açar.\nİstediğin zaman geri dönebilirsin.")
-        ipucu.setObjectName("minik")
-        ipucu.setWordWrap(True)
-        dis.addWidget(ipucu)
-        return ray
+        return serit
+
+    def _govde_kur(self):
+        """Sol 787 giris karti + sag 403 siyah marka karti."""
+        govde = QWidget()
+        satir = QHBoxLayout(govde)
+        satir.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
+        satir.setSpacing(14)
+
+        self.sag = QFrame()
+        self.sag.setObjectName("kart")
+        self.sag.setFixedWidth(787)
+        sagDikey = QVBoxLayout(self.sag)
+        sagDikey.setContentsMargins(0, 0, 0, 0)
+        sagDikey.setSpacing(0)
+        self.ustYazi = T.etiket("", "ustYazi")
+        self.ustYazi.setContentsMargins(24, 20, 24, 0)
+        sagDikey.addWidget(self.ustYazi)
+        self.baslikYazi = T.etiket("", "sayfaBaslik")
+        self.baslikYazi.setContentsMargins(24, 6, 24, 0)
+        sagDikey.addWidget(self.baslikYazi)
+        T.ayirici().setContentsMargins(0, 0, 0, 0)
+        ayrac = T.ayirici()
+        ayrac.setStyleSheet("background: %s; border: none; max-height: 1px;"
+                            " min-height: 1px;" % T.CERCEVE)
+        ustAy = QHBoxLayout()
+        ustAy.setContentsMargins(24, 16, 24, 16)
+        ustAy.addWidget(ayrac)
+        sagDikey.addLayout(ustAy)
+
+        self.kaydirma = QScrollArea()
+        self.kaydirma.setWidgetResizable(True)
+        self.kaydirma.setFrameShape(QFrame.NoFrame)
+        self.govdeIcerik = QWidget()
+        self.govde = QVBoxLayout(self.govdeIcerik)
+        self.govde.setContentsMargins(24, 0, 24, 24)
+        self.govde.setSpacing(12)
+        self.govde.setAlignment(Qt.AlignTop)
+        self.kaydirma.setWidget(self.govdeIcerik)
+        sagDikey.addWidget(self.kaydirma, 1)
+
+        self.markaKart = QFrame()
+        self.markaKart.setObjectName("siyahKart")
+        self.markaKart.setFixedWidth(403)
+        markaDikey = QVBoxLayout(self.markaKart)
+        markaDikey.setContentsMargins(28, 24, 28, 24)
+        markaDikey.setSpacing(12)
+        markaDikey.addStretch(1)
+        self.markaAd = QLabel("DGMCRAFT / KURULUM")
+        self.markaAd.setObjectName("bolumBaslik")
+        markaDikey.addWidget(self.markaAd)
+        self.markaBaslik = T.etiket("", "kartBaslik")
+        self.markaBaslik.setWordWrap(True)
+        self.markaBaslik.setObjectName("sihirKartBaslik")
+        markaDikey.addWidget(self.markaBaslik)
+        self.markaAciklama = T.etiket("", "soluk")
+        self.markaAciklama.setWordWrap(True)
+        markaDikey.addWidget(self.markaAciklama)
+        markaDikey.addSpacing(16)
+        self.markaGorsel = QLabel()
+        self.markaGorsel.setPixmap(T.mark_pixmap(150))
+        self.markaGorsel.setAlignment(Qt.AlignCenter)
+        markaDikey.addWidget(self.markaGorsel)
+        markaDikey.addStretch(1)
+        satir.addWidget(self.sag, 1)
+        satir.addWidget(self.markaKart, 0)
+        return govde
 
     def _alt_kur(self):
-        satir = QHBoxLayout()
-        satir.setContentsMargins(0, 0, 0, 0)
-        satir.setSpacing(10)
-        self.geriDugmesi = QPushButton("← Geri")
-        self.geriDugmesi.setObjectName("hayaletDugme")
-        self.geriDugmesi.setCursor(Qt.PointingHandCursor)
+        serit = QFrame()
+        serit.setObjectName("ustCubuk")
+        serit.setFixedWidth(T.GENISLIK + 2)
+        serit.setFixedHeight(52)
+        satir = QHBoxLayout(serit)
+        satir.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
+        satir.setSpacing(12)
+        self.adimYazi = T.etiket("", "yardimciEtiket")
+        satir.addWidget(self.adimYazi)
+        satir.addStretch(1)
+        self.geriDugmesi = T.dugme("← Geri", "kontrast")
         self.geriDugmesi.clicked.connect(self._geri)
         satir.addWidget(self.geriDugmesi)
-        satir.addStretch(1)
-        self.ileriDugmesi = QPushButton("Devam Et →")
-        self.ileriDugmesi.setObjectName("anaDugme")
-        self.ileriDugmesi.setCursor(Qt.PointingHandCursor)
+        self.ileriDugmesi = T.dugme("Devam Et →", "ana")
+        self.ileriDugmesi.setFixedWidth(168)
         self.ileriDugmesi.clicked.connect(self._ileri)
         satir.addWidget(self.ileriDugmesi)
-        return satir
+        return serit
 
     def _kapat(self):
         self.close()
@@ -195,24 +283,28 @@ class Sihirbaz(QWidget):
             aktif = i == self.adim
             tamam = i < self.adim
             if tamam:
-                renk, yazi_rengi = T.YESIL, T.SOLUK
+                zemin, yazi_rengi = T.VURGU, T.VURGU_YAZI
             elif aktif:
-                renk, yazi_rengi = T.VURGU, T.YAZI
+                zemin, yazi_rengi = T.VURGU, T.VURGU_YAZI
             else:
-                renk, yazi_rengi = "#2A3530", T.SILIK
+                zemin, yazi_rengi = "#20272A", T.PASIF_NAV
             nokta.setStyleSheet(
-                "background: %s; color: %s; border-radius: 11px; font-size: 11px;"
-                " font-weight: 700;" % (renk, "#10100C" if (tamam or aktif) else T.SILIK))
-            yazi.setStyleSheet("color: %s; font-size: 12px; font-weight: %s;"
-                              " background: transparent;"
-                              % (yazi_rengi, "600" if aktif else "400"))
+                "background: %s; color: %s; border-radius: 12px; font-size: 11px;"
+                " font-weight: 700;" % (zemin, yazi_rengi))
+            yazi.setStyleSheet("color: %s; font-size: 11px; font-weight: %s;"
+                               " background: transparent;"
+                               % (T.VURGU if (tamam or aktif) else T.PASIF_NAV,
+                                  "700" if aktif else "600"))
         ad, sure = ADIMLAR[self.adim]
-        self.ustYazi.setText("ADIM %d / %d  •  %s" % (self.adim + 1, len(ADIMLAR), sure))
-        self.baslikYazi.setText(ad)
-        self.cubuk.setValue(int(100 * (self.adim + 1) / len(ADIMLAR)))
+        self.ustYazi.setText(ad.upper())
+        self.baslikYazi.setText(BASLIKLAR[self.adim])
+        self.markaAd.setText("DGMCRAFT / KURULUM")
+        self.markaBaslik.setText(MARKA_BASLIKLARI[self.adim])
+        self.markaAciklama.setText(MARKA_ACIKLAMALARI[self.adim])
+        self.adimYazi.setText("ADIM %d / %d" % (self.adim + 1, len(ADIMLAR)))
         self.geriDugmesi.setVisible(self.adim > 0)
-        self.ileriDugmesi.setText("Bitir ve Başla" if self.adim == len(ADIMLAR) - 1
-                                 else "Devam Et →")
+        self.ileriDugmesi.setText("Bitir ve başla" if self.adim == len(ADIMLAR) - 1
+                                  else "Devam Et →")
         Y.yerlesim_temizle(self.govde)
         getattr(self, "_adim_" + ("hosgeldin", "ad", "anahtar", "sync", "vpn",
                                   "arkadas", "hazir")[self.adim])()

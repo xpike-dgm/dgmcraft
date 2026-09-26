@@ -69,6 +69,10 @@ def _elips(etiket):
         metin = metin[:-1]
     etiket.setText(metin + "…")
 
+UST_ETIKET = "MACERA YOLU"
+SAYFA_BASLIK = "750 görev. Tek yolculuk."
+SAYFA_ACIKLAMA = "14 bölümde nereden oynadığına ve sıradaki hedefe gider."
+
 
 class Cizgi(QFrame):
     """1px ayraç."""
@@ -611,11 +615,25 @@ class GorevlerSayfasi(QWidget):
         Y.guvenli_yayin(self.veri_hazir, oyuncular, harita)
 
     # ------------------------------------------------------------ arayüz ----
+    def baslik_alani_guncelle(self, ust, baslik, aciklama):
+        self.baslikAlani.ustYazi.setText(ust.upper())
+        self.baslikAlani.baslikYazi.setText(baslik)
+        self.baslikAlani.aciklamaYazi.setText(aciklama)
+
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
-        dis.setContentsMargins(T.BOSLUK, T.BOSLUK, T.BOSLUK, T.BOSLUK)
-        dis.setSpacing(12)
-        dis.addWidget(self._baslik_kismi())
+        dis.setContentsMargins(0, 0, 0, 0)
+        dis.setSpacing(0)
+        self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
+                                        SAYFA_ACIKLAMA, "DGMCRAFT / GÖREVLER")
+        dis.addWidget(self.baslikAlani)
+
+        icKutu = QWidget()
+        dis.addWidget(icKutu, 1)
+        ic = QVBoxLayout(icKutu)
+        ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
+        ic.setSpacing(12)
+        ic.addWidget(self._baslik_kismi())
 
         govde = QHBoxLayout()
         govde.setContentsMargins(0, 0, 0, 0)
@@ -623,40 +641,41 @@ class GorevlerSayfasi(QWidget):
         govde.addWidget(self._sol_sutun(), 58)
         self.detay = DetayKarti()
         govde.addWidget(self.detay, 42)
-        dis.addLayout(govde, 1)
+        ic.addLayout(govde, 1)
 
     def _baslik_kismi(self):
+        """1208x108 siyah ilerleme bandi: tamamlanan, çubuk, %, bölüm, oynanabilir."""
         kutu = QFrame()
-        kutu.setObjectName("seffaf")
+        kutu.setObjectName("siyahKart")
+        kutu.setFixedHeight(108)
         satir = QHBoxLayout(kutu)
-        satir.setContentsMargins(2, 0, 2, 0)
+        satir.setContentsMargins(20, 14, 20, 14)
         satir.setSpacing(18)
 
         sol = QVBoxLayout()
         sol.setContentsMargins(0, 0, 0, 0)
-        sol.setSpacing(2)
-        self.baslik = QLabel("Görev İlerlemesi")
-        self.baslik.setObjectName("sayfaBaslik")
-        sol.addWidget(self.baslik)
-        self.altBaslik = QLabel("0 / 0 tamamlandı")
-        self.altBaslik.setObjectName("kucuk")
+        sol.setSpacing(6)
+        sol.addWidget(T.etiket("TAMAMLANAN", "bolumBaslik"))
+        self.altBaslik = T.etiket("0 / 0 tamamlandı", "kartSayacKucuk")
         sol.addWidget(self.altBaslik)
         cubukSatir = QHBoxLayout()
-        cubukSatir.setContentsMargins(0, 5, 0, 0)
+        cubukSatir.setContentsMargins(0, 4, 0, 0)
         cubukSatir.setSpacing(10)
         self.cubuk = Cubuk()
         cubukSatir.addWidget(self.cubuk, 1)
-        self.yuzde = QLabel("%0")
-        self.yuzde.setObjectName("ilerlemeYuzde")
+        self.yuzde = T.etiket("0%", "satirSag")
+        self.yuzde.setStyleSheet("color: %s; font-size: 14px; font-weight: 700;"
+                                 % T.YAZI)
         cubukSatir.addWidget(self.yuzde)
         sol.addLayout(cubukSatir)
         satir.addLayout(sol, 1)
+        satir.addWidget(T.ayirici(dikey=True))
 
-        self.rozetBolum = OzetRozet("kitap", T.SOLUK)
+        self.rozetBolum = OzetRozet("kitap", T.IKINCIL)
         self.rozetBolum.etiket.setText("bölüm")
-        self.rozetAktif = OzetRozet("oyna", YESIL)
+        self.rozetAktif = OzetRozet("oyna", T.VURGU)
         self.rozetAktif.etiket.setText("oynanabilir")
-        self.rozetTamam = OzetRozet("tamam", YESIL)
+        self.rozetTamam = OzetRozet("tamam", T.IKINCIL)
         self.rozetTamam.etiket.setText("tamamlandı")
         for r in (self.rozetBolum, self.rozetAktif, self.rozetTamam):
             satir.addWidget(r, 0, Qt.AlignVCenter)
@@ -823,7 +842,6 @@ class GorevlerSayfasi(QWidget):
             return
         o = harita["ozet"]
         oran = (o["tamam"] / float(o["toplam"])) if o["toplam"] else 0.0
-        self.baslik.setText("Görev İlerlemesi")
         self.altBaslik.setText("%d / %d tamamlandı" % (o["tamam"], o["toplam"]))
         self.yuzde.setText("%%%d" % round(oran * 100))
         self.cubuk.set_oran(oran)

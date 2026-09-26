@@ -2,7 +2,17 @@
 import os
 import re
 
-_DESKI = re.compile(r"\[([^\]]+)\]\s*-\s*(\d{4})-(\d{2})-(\d{2})")
+# Sürüm başlıkları hem kısa tire hem de em/en dash kullanabiliyor.
+_DESKI = re.compile(r"\[([^\]]+)\]\s*[-\u2013\u2014]\s*(\d{4})-(\d{2})-(\d{2})")
+_KALIN = re.compile(r"\*\*(.+?)\*\*")
+_TIRNAK = re.compile(r"[`*_]+")
+
+
+def _duz(metin):
+    """Ham markdown işaretlerini soyup düz metne çevirir."""
+    if not metin:
+        return ""
+    return _TIRNAK.sub("", _KALIN.sub(r"\1", metin)).strip()
 
 
 def surum_anahtari(baslik):
@@ -30,18 +40,19 @@ def changelog_oku(kok, adet=3):
                 s = satir.strip()
                 if s.startswith("## "):
                     if baslik:
-                        haberler.append((baslik, "; ".join(maddeler[:2])))
+                        haberler.append((baslik, _duz("; ".join(maddeler[:2]))))
                     baslik = s[3:].strip()
                     maddeler = []
                 elif s.startswith("- ") and baslik:
                     maddeler.append(s[2:].strip()[:120])
             if baslik:
-                haberler.append((baslik, "; ".join(maddeler[:2])))
+                haberler.append((baslik, _duz("; ".join(maddeler[:2]))))
     except Exception:
         pass
     try:
         haberler.sort(key=lambda h: surum_anahtari(h[0]), reverse=True)
     except Exception:
         pass
-    etiketli = [h for h in haberler if surum_anahtari(h[0]) != ((0, 0, 0), (0, 0, 0))]
-    return etiketli[:max(1, int(adet))]
+    etiketli = [h for h in haberler
+                if surum_anahtari(h[0]) != ((0, 0, 0), (0, 0, 0))]
+    return [(b, o) for b, o in (etiketli or haberler)[:max(1, int(adet))]]

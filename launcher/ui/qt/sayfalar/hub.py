@@ -1,14 +1,18 @@
-"""PySide6 Hub: hero + başlat/kapat + bellek slider + çevrimiçi + haberler."""
+"""PySide6 Hub (05-night): siyah hero + turuncu durum kartı + üç bilgi kartı.
+Sunucu başlatma, RAM, çevrimiçi ve haber mantığı korunur."""
 import threading
 
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QPushButton,
-                               QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QScrollArea,
+                               QSizePolicy, QVBoxLayout, QWidget)
 
 from .. import tema as T
 from .. import yardimci as Y
 
 BASLIK = "Hub"
+UST_ETIKET = "SUNUCU MERKEZİ"
+SAYFA_BASLIK = "Dünyan hazır."
+SAYFA_ACIKLAMA = "Arkadaşların aynı dünyada tek dokunuşla oynadığı yer."
 
 HEAP_SECENEKLERI = (2, 3, 4, 6)
 
@@ -38,71 +42,39 @@ class HubSayfasi(QWidget):
         self._arayuz_kur()
 
     # ---------- kurulum ----------
+    def baslik_alani_guncelle(self, ust, baslik, aciklama):
+        self.baslikAlani.ustYazi.setText(ust.upper())
+        self.baslikAlani.baslikYazi.setText(baslik)
+        self.baslikAlani.aciklamaYazi.setText(aciklama)
+
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
-        dis.setSpacing(T.KART_ARALIK)
+        dis.setSpacing(0)
 
-        self.hero = Y.HeroCerceve(
-            self, T.HERO_UST, T.HERO_ALT, T.VURGU, guc=0.15,
-            gorsel=Y.pixmap("v2", "hub-hero-soft.png"))
-        if self.hero._gorsel is not None and not self.hero._gorsel.isNull():
-            self.hero._gorsel = self.hero._gorsel.scaledToHeight(
-                182, Qt.SmoothTransformation)
-        dis.addWidget(self.hero)
+        self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK, SAYFA_ACIKLAMA,
+                                         "DGMCRAFT / HUB")
+        dis.addWidget(self.baslikAlani)
 
-        katman = QVBoxLayout(self.hero)
-        katman.setContentsMargins(26, 24, 26, 20)
-        katman.setSpacing(0)
-        katman.addStretch(1)
+        govde = QVBoxLayout()
+        govde.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
+        govde.setSpacing(14)
 
-        self.rozet = Y.rozet(self.hero, "HAZIR", T.YESIL)
-        self.rozetKutu = QHBoxLayout()
-        self.rozetKutu.setContentsMargins(0, 0, 0, 0)
-        self.rozetKutu.addWidget(self.rozet)
-        self.rozetKutu.addStretch(1)
-        katman.addLayout(self.rozetKutu)
-        katman.addSpacing(12)
+        # --- üst satır: siyah hero + turuncu durum kartı (262px) ---
+        ust = QHBoxLayout()
+        ust.setSpacing(14)
+        ust.addWidget(self._hero_kart(), 756)
+        ust.addWidget(self._durum_kart(), 436)
+        govde.addLayout(ust)
 
-        self.baslik = QLabel("Sunucuyu Başlat")
-        self.baslik.setObjectName("heroBaslik")
-        katman.addWidget(self.baslik)
-        katman.addSpacing(4)
-
-        self.aciklama = QLabel("3 kişilik özel Survival+ sunucun.")
-        self.aciklama.setObjectName("heroMetin")
-        self.aciklama.setWordWrap(True)
-        self.aciklama.setMaximumWidth(430)
-        katman.addWidget(self.aciklama)
-        katman.addSpacing(18)
-
-        self.eylemSatiri = QHBoxLayout()
-        self.eylemSatiri.setContentsMargins(0, 0, 0, 0)
-        self.eylemSatiri.setSpacing(10)
-        self.eylemDugmesi = QPushButton("Sunucuyu Başlat")
-        self.eylemDugmesi.setObjectName("anaDugme")
-        self.eylemDugmesi.setCursor(Qt.PointingHandCursor)
-        self.eylemDugmesi.clicked.connect(self._eylem_tik)
-        self.eylemSatiri.addWidget(self.eylemDugmesi)
-        self.eylemDugmesi.setVisible(False)
-        self.eylemYazi = QLabel("Durum okunuyor...")
-        self.eylemYazi.setObjectName("kucuk")
-        self.eylemSatiri.addWidget(self.eylemYazi)
-        self.eylemSatiri.addStretch(1)
-        katman.addLayout(self.eylemSatiri)
-        katman.addStretch(1)
-
+        # --- alt satır: üç kart (262px) ---
         alt = QHBoxLayout()
-        alt.setSpacing(T.KART_ARALIK)
-        sol = QVBoxLayout()
-        sol.setSpacing(T.KART_ARALIK)
-        sol.addWidget(self._bellek_kart())
-        self.haberKart = self._haber_kart()
-        sol.addWidget(self.haberKart)
-        sol.addWidget(self._bilgi_kart(), 1)
-        alt.addLayout(sol, 1)
-        alt.addWidget(self._oyuncu_kart(), 0)
-        dis.addLayout(alt, 1)
+        alt.setSpacing(14)
+        alt.addWidget(self._bellek_kart(), 1)
+        alt.addWidget(self._bilgi_kart(), 1)
+        alt.addWidget(self._haber_kart(), 1)
+        govde.addLayout(alt, 1)
+        dis.addLayout(govde, 1)
 
         self.durum_hazir.connect(self._durum_uygula)
         self.durum_eylem.connect(self._eylem_uygula)
@@ -110,33 +82,137 @@ class HubSayfasi(QWidget):
         self.baslat_sonuc.connect(self._baslat_bitti)
         self.kapat_sonuc.connect(self._kapat_bitti)
 
-    def _kart(self, ebeveyn=None):
-        k = QFrame(ebeveyn or self)
-        k.setObjectName("kart")
-        return k
+    # ---------- siyah hero (756x262) ----------
+    def _hero_kart(self):
+        hero = QFrame()
+        hero.setObjectName("siyahKart")
+        hero.setFixedHeight(262)
+
+        dis = QHBoxLayout(hero)
+        dis.setContentsMargins(0, 0, 0, 0)
+        dis.setSpacing(0)
+
+        # 8px turuncu sol şerit
+        self.serit = QFrame()
+        self.serit.setFixedWidth(8)
+        self.serit.setStyleSheet("background: %s; border: none;" % T.VURGU)
+        dis.addWidget(self.serit)
+
+        sol = QVBoxLayout()
+        sol.setContentsMargins(24, 22, 12, 22)
+        sol.setSpacing(0)
+        sol.addStretch(1)
+
+        self.rozet = QFrame()
+        self.rozet.setFixedHeight(22)
+        self.rozet.setStyleSheet(
+            "background: %s; border-radius: 3px;" % T.YESIL)
+        self.rozet.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        rozetSatir = QHBoxLayout(self.rozet)
+        rozetSatir.setContentsMargins(9, 0, 9, 0)
+        self.rozetYazi = QLabel("HAZIR")
+        self.rozetYazi.setObjectName("rozetYazi")
+        self.rozetYazi.setStyleSheet(
+            "color: %s; font-size: 10px; font-weight: 700;"
+            " letter-spacing: 2px; background: transparent;" % T.YAZI)
+        rozetSatir.addWidget(self.rozetYazi)
+        sol.addWidget(self.rozet)
+        sol.addSpacing(14)
+
+        self.baslik = QLabel("Oyunu başlat,\ndünyayı paylaş.")
+        self.baslik.setObjectName("heroBaslik")
+        self.baslik.setStyleSheet(
+            "font-size: 32px; font-weight: 700; color: %s; line-height: 118%%;"
+            % T.YAZI)
+        sol.addWidget(self.baslik)
+        sol.addSpacing(8)
+
+        self.aciklama = QLabel("3 kişilik özel Survival+ sunucun.")
+        self.aciklama.setObjectName("heroMetin")
+        self.aciklama.setStyleSheet("font-size: 12px; color: %s;" % T.IKINCIL)
+        self.aciklama.setWordWrap(True)
+        self.aciklama.setMaximumWidth(430)
+        sol.addWidget(self.aciklama)
+        sol.addSpacing(18)
+
+        self.eylemSatiri = QHBoxLayout()
+        self.eylemSatiri.setContentsMargins(0, 0, 0, 0)
+        self.eylemSatiri.setSpacing(10)
+        self.eylemDugmesi = T.dugme("▸  Sunucuyu başlat", "ana")
+        self.eylemDugmesi.setFixedHeight(36)
+        self.eylemDugmesi.clicked.connect(self._eylem_tik)
+        self.eylemDugmesi.setVisible(False)
+        self.eylemSatiri.addWidget(self.eylemDugmesi)
+        self.eylemYazi = T.etiket("Durum okunuyor...", "kucuk")
+        self.eylemSatiri.addWidget(self.eylemYazi)
+        self.eylemSatiri.addStretch(1)
+        sol.addLayout(self.eylemSatiri)
+        sol.addStretch(1)
+        dis.addLayout(sol, 1)
+
+        # sağdaki gerçek amblem
+        marka = QLabel()
+        marka.setPixmap(T.mark_pixmap(120))
+        marka.setAlignment(Qt.AlignCenter)
+        marka.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        dis.addWidget(marka, 0, Qt.AlignCenter)
+        return hero
+
+    # ---------- turuncu durum kartı (436x262) ----------
+    def _durum_kart(self):
+        kart = QFrame()
+        kart.setObjectName("vurguKart")
+        kart.setFixedHeight(262)
+        govde = QVBoxLayout(kart)
+        govde.setContentsMargins(24, 22, 24, 22)
+        govde.setSpacing(0)
+        govde.addWidget(T.etiket("BUGÜN", "vurguUst"))
+        govde.addSpacing(10)
+        self.durumSayac = QLabel("0")
+        self.durumSayac.setObjectName("vurguSayac")
+        govde.addWidget(self.durumSayac)
+        govde.addWidget(T.etiket("çevrimiçi oyuncu", "vurguAlt"))
+        govde.addStretch(1)
+        self.durumSatiri = T.ayirici("#C97C1C")
+        govde.addWidget(self.durumSatiri)
+        govde.addSpacing(10)
+        alt = QHBoxLayout()
+        alt.setContentsMargins(0, 0, 0, 0)
+        self.baglantiYazi = T.etiket("Bağlantı", "vurguAlt")
+        self.baglantiYazi.setObjectName("vurguAltKalin")
+        alt.addWidget(self.baglantiYazi)
+        alt.addStretch(1)
+        self.durumMetin = T.etiket("Sunucu kapalı", "vurguAlt")
+        self.durumMetin.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        alt.addWidget(self.durumMetin)
+        govde.addLayout(alt)
+        return kart
 
     # ---------- bellek kartı ----------
     def _bellek_kart(self):
-        kart = self._kart()
+        kart = T.kart()
+        kart.setFixedHeight(262)
         govde = QVBoxLayout(kart)
-        govde.setContentsMargins(16, 14, 16, 14)
-        govde.setSpacing(2)
+        govde.setContentsMargins(20, 18, 20, 18)
+        govde.setSpacing(6)
 
         ust = QHBoxLayout()
         ust.setContentsMargins(0, 0, 0, 0)
-        etiket = QLabel("SUNUCU BELLEĞİ")
-        etiket.setObjectName("bolumBaslik")
-        ust.addWidget(etiket)
+        ust.addWidget(T.etiket("01 / BELLEK", "bolumBaslik"))
         ust.addStretch(1)
-        self.bellekRozet = QLabel("3G")
-        self.bellekRozet.setStyleSheet("color: %s; font-size: 12px; font-weight: 600;" % T.VURGU)
-        ust.addWidget(self.bellekRozet)
         govde.addLayout(ust)
+        govde.addSpacing(6)
 
-        ipucu = QLabel("Sunucuya ayrılacak maksimum RAM miktarı")
-        ipucu.setObjectName("kucuk")
-        govde.addWidget(ipucu)
-        govde.addSpacing(10)
+        self.bellekDeger = QLabel("%d GB" % self.h.heap_al())
+        self.bellekDeger.setObjectName("kartSayac")
+        govde.addWidget(self.bellekDeger)
+        self.bellekAlt = T.etiket("Sunucuya ayrılan RAM", "metrikAlt")
+        govde.addWidget(self.bellekAlt)
+        govde.addSpacing(14)
+
+        self.bellekCubuk = self._mini_cubuk()
+        govde.addWidget(self.bellekCubuk)
+        govde.addSpacing(6)
 
         self.bellekKaydirici = Y.BellekKaydirici(
             ["%dG" % gb for gb in HEAP_SECENEKLERI],
@@ -144,74 +220,68 @@ class HubSayfasi(QWidget):
             if self.h.heap_al() in HEAP_SECENEKLERI else 1)
         self.bellekKaydirici.deger_degisti.connect(self._bellek_degisti)
         govde.addWidget(self.bellekKaydirici)
-        govde.addSpacing(2)
-
-        not_ = QLabel("Sonraki başlatmada geçerli olur.")
-        not_.setObjectName("minik")
-        govde.addWidget(not_)
+        govde.addStretch(1)
+        self.degistirDugmesi = T.dugme("Değişikliği uygula", "kontrast")
+        self.degistirDugmesi.clicked.connect(self._bellek_degisti_now)
+        govde.addWidget(self.degistirDugmesi)
         return kart
 
-    def _bellek_degisti(self, deger):
-        deger = max(0, min(len(HEAP_SECENEKLERI) - 1, int(deger)))
-        self.bellekRozet.setText("%dG" % HEAP_SECENEKLERI[deger])
-        try:
-            self.h.heap_kaydet(HEAP_SECENEKLERI[deger])
-        except Exception:
-            pass
+    def _mini_cubuk(self):
+        from PySide6.QtWidgets import QProgressBar
+        c = QProgressBar()
+        c.setProperty("rol", "ince")
+        c.setTextVisible(False)
+        c.setRange(0, 6)
+        c.setValue(self.h.heap_al())
+        return c
 
+    # ---------- sunucu bilgisi kartı ----------
     def _bilgi_kart(self):
-        kart = self._kart()
+        kart = T.kart()
+        kart.setFixedHeight(262)
         govde = QVBoxLayout(kart)
-        govde.setContentsMargins(16, 14, 16, 14)
-        govde.setSpacing(8)
-        etiket = QLabel("SUNUCU BİLGİSİ")
-        etiket.setObjectName("bolumBaslik")
-        govde.addWidget(etiket)
-        govde.addSpacing(2)
+        govde.setContentsMargins(20, 18, 20, 18)
+        govde.setSpacing(6)
+        govde.addWidget(T.etiket("02 / SUNUCU", "bolumBaslik"))
+        govde.addSpacing(6)
+        self.surumDeger = QLabel(str(self.h.surum))
+        self.surumDeger.setObjectName("kartSayacKucuk")
+        govde.addWidget(self.surumDeger)
+        self.surumAlt = T.etiket("Sürüm 2026-09-23-1", "metrikAlt")
+        govde.addWidget(self.surumAlt)
+        govde.addStretch(1)
         self.bilgiSatirlari = {}
-        for ad in ("Sürüm", "Oyuncu", "Bellek", "Motor"):
+        for ad in ("Sürüm", "Motor", "Bellek"):
             satir = QHBoxLayout()
             satir.setContentsMargins(0, 0, 0, 0)
-            sol = QLabel(ad)
-            sol.setObjectName("kucuk")
-            satir.addWidget(sol)
+            satir.addWidget(T.etiket(ad, "soluk"))
             satir.addStretch(1)
-            sag = QLabel("-")
-            sag.setObjectName("metin")
+            sag = T.etiket("-", "metin")
             sag.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             satir.addWidget(sag)
             govde.addLayout(satir)
             self.bilgiSatirlari[ad] = sag
-        govde.addStretch(1)
+        govde.addSpacing(10)
+        alt = QHBoxLayout()
+        alt.setContentsMargins(0, 0, 0, 0)
+        alt.addWidget(T.etiket("Sunucu klasörü", "soluk"))
+        alt.addStretch(1)
+        klasorDugme = T.dugme("Klasörü aç", "kontrast")
+        klasorDugme.setFixedHeight(30)
+        klasorDugme.clicked.connect(self._klasor_ac)
+        alt.addWidget(klasorDugme)
+        govde.addLayout(alt)
         self._bilgi_guncelle(0)
         return kart
 
-    def _bilgi_guncelle(self, oyuncu_sayisi):
-        try:
-            self.bilgiSatirlari["Sürüm"].setText(str(self.h.surum))
-            self.bilgiSatirlari["Oyuncu"].setText("%d / 3" % int(oyuncu_sayisi))
-            self.bilgiSatirlari["Bellek"].setText("%d GB" % self.h.heap_al())
-            self.bilgiSatirlari["Motor"].setText("Purpur 26.2")
-        except Exception:
-            pass
-
-    def _bellek_degisti(self, deger):
-        deger = max(0, min(len(HEAP_SECENEKLERI) - 1, int(deger)))
-        self.bellekRozet.setText("%dG" % HEAP_SECENEKLERI[deger])
-        try:
-            self.h.heap_kaydet(HEAP_SECENEKLERI[deger])
-        except Exception:
-            pass
-
     # ---------- haber kartı ----------
     def _haber_kart(self):
-        kart = self._kart()
+        kart = T.kart()
+        kart.setFixedHeight(262)
         govde = QVBoxLayout(kart)
-        govde.setContentsMargins(16, 14, 16, 14)
+        govde.setContentsMargins(20, 18, 20, 14)
         govde.setSpacing(8)
-        etiket = QLabel("HABERLER")
-        etiket.setObjectName("bolumBaslik")
-        govde.addWidget(etiket)
+        govde.addWidget(T.etiket("03 / HABERLER", "bolumBaslik"))
         govde.addSpacing(4)
         try:
             from core import haber as _H
@@ -220,67 +290,101 @@ class HubSayfasi(QWidget):
             veri = []
         if not veri:
             veri = [("Sürüm %s" % self.h.surum, "")]
+        kaydirma = QScrollArea()
+        kaydirma.setWidgetResizable(True)
+        kaydirma.setFrameShape(QFrame.NoFrame)
+        ic = QWidget()
+        liste = QVBoxLayout(ic)
+        liste.setContentsMargins(0, 0, 8, 0)
+        liste.setSpacing(9)
         for baslik, ozet in veri:
             satir = QHBoxLayout()
             satir.setContentsMargins(0, 0, 0, 0)
-            satir.setSpacing(10)
+            satir.setSpacing(9)
             nokta = QFrame()
-            nokta.setFixedSize(5, 5)
-            nokta.setStyleSheet("background: %s; border-radius: 2px;" % T.VURGU)
+            nokta.setFixedSize(6, 6)
+            nokta.setStyleSheet("background: %s; border-radius: 3px;"
+                                " border: none;" % T.VURGU)
             satir.addWidget(nokta, 0, Qt.AlignTop)
-            satir.addSpacing(2)
             kutu = QVBoxLayout()
             kutu.setContentsMargins(0, 0, 0, 0)
-            kutu.setSpacing(3)
+            kutu.setSpacing(2)
             y1 = QLabel(baslik)
-            y1.setObjectName("metin")
+            y1.setObjectName("satirAd")
             kutu.addWidget(y1)
             if ozet:
-                y2 = QLabel(_kisalt(ozet, 96))
-                y2.setObjectName("kucuk")
+                y2 = QLabel(_kisalt(ozet, 110))
+                y2.setObjectName("minik")
                 y2.setWordWrap(True)
                 kutu.addWidget(y2)
             satir.addLayout(kutu, 1)
-            govde.addLayout(satir)
-        govde.addStretch(1)
+            liste.addLayout(satir)
+        liste.addStretch(1)
+        kaydirma.setWidget(ic)
+        govde.addWidget(kaydirma, 1)
         return kart
 
-    # ---------- oyuncu kartı ----------
+    # ---------- oyuncu listesi (durum kartının altına gömülü değil, yardımcı) ----------
     def _oyuncu_kart(self):
-        kart = self._kart()
-        kart.setFixedWidth(300)
+        kart = T.kart()
         govde = QVBoxLayout(kart)
-        govde.setContentsMargins(16, 14, 16, 14)
+        govde.setContentsMargins(20, 18, 20, 18)
         govde.setSpacing(8)
         ust = QHBoxLayout()
-        ust.setContentsMargins(0, 0, 0, 0)
-        etiket = QLabel("ÇEVRİMİÇİ")
-        etiket.setObjectName("bolumBaslik")
-        ust.addWidget(etiket)
+        ust.addWidget(T.etiket("ÇEVRİMİÇİ", "bolumBaslik"))
         ust.addStretch(1)
-        self.oyuncuSayac = QLabel("0/3")
-        self.oyuncuSayac.setObjectName("kucuk")
+        self.oyuncuSayac = T.etiket("0/3", "satirSag")
         ust.addWidget(self.oyuncuSayac)
         govde.addLayout(ust)
-        govde.addSpacing(2)
-
         self.oyuncuListe = QVBoxLayout()
         self.oyuncuListe.setContentsMargins(0, 0, 0, 0)
-        self.oyuncuListe.setSpacing(6)
+        self.oyuncuListe.setSpacing(4)
         govde.addLayout(self.oyuncuListe)
-        govde.addStretch(1)
-        self.oyuncuBos = QLabel("Sunucu kapalıyken liste yok.")
-        self.oyuncuBos.setObjectName("kucuk")
+        self.oyuncuBos = T.etiket("Sunucu kapalıyken liste yok.", "minik")
         self.oyuncuBos.setWordWrap(True)
         govde.addWidget(self.oyuncuBos)
-        govde.addSpacing(12)
-
-        self.kopyalaDugmesi = QPushButton("Davet Adresini Kopyala")
-        self.kopyalaDugmesi.setObjectName("hayaletDugme")
-        self.kopyalaDugmesi.setCursor(Qt.PointingHandCursor)
+        self.kopyalaDugmesi = T.dugme("Davet Adresini Kopyala", "ikincil")
         self.kopyalaDugmesi.clicked.connect(self._davet_kopyala)
         govde.addWidget(self.kopyalaDugmesi)
         return kart
+
+    def _bellek_degisti(self, deger):
+        deger = max(0, min(len(HEAP_SECENEKLERI) - 1, int(deger)))
+        gb = HEAP_SECENEKLERI[deger]
+        self.bellekDeger.setText("%d GB" % gb)
+        self.bellekCubuk.setValue(gb)
+        self.bellekRozet = getattr(self, "bellekRozet", None)
+        if self.bellekRozet is not None:
+            self.bellekRozet.setText("%dG" % gb)
+        try:
+            self.h.heap_kaydet(gb)
+        except Exception:
+            pass
+
+    def _bellek_degisti_now(self):
+        self.degistirDugmesi.setText("Uygulandı")
+        QTimer.singleShot(1600, lambda: self.degistirDugmesi.setText(
+            "Değişikliği uygula"))
+
+    def _klasor_ac(self):
+        try:
+            from core import paths as _P
+            import os
+            os.startfile(self.h.kok)
+        except Exception:
+            pass
+
+    def _bilgi_guncelle(self, oyuncu_sayisi):
+        try:
+            self.bilgiSatirlari["Sürüm"].setText(str(self.h.surum))
+            self.bilgiSatirlari["Bellek"].setText("%d GB" % self.h.heap_al())
+            self.bilgiSatirlari["Motor"].setText("Purpur 26.1.2")
+            self.durumSayac.setText("0 / 3" if not oyuncu_sayisi
+                                    else str(int(oyuncu_sayisi)))
+            self.bellekDeger.setText("%d GB" % self.h.heap_al())
+            self.bellekCubuk.setValue(self.h.heap_al())
+        except Exception:
+            pass
 
     # ---------- durum ----------
     def goster(self):

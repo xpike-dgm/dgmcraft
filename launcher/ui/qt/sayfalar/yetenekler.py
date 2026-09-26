@@ -11,6 +11,10 @@ from .. import yardimci as Y
 
 BASLIK = "Yetenekler"
 
+UST_ETIKET = "KARAKTER GELİŞİMİ"
+SAYFA_BASLIK = "Seviyeni büyüt."
+SAYFA_ACIKLAMA = "Her yeteneğin XP yolculuğunu tek bakışta takip et."
+
 
 class XpCubugu(QWidget):
     """İnce yuvarlak XP çubuğu."""
@@ -110,10 +114,24 @@ class YeteneklerSayfasi(QWidget):
             yetenekler = [{"hata": str(e)[:200]}]
         Y.guvenli_yayin(self.veri_hazir, oyuncular, yetenekler)
 
+    def baslik_alani_guncelle(self, ust, baslik, aciklama):
+        self.baslikAlani.ustYazi.setText(ust.upper())
+        self.baslikAlani.baslikYazi.setText(baslik)
+        self.baslikAlani.aciklamaYazi.setText(aciklama)
+
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
         dis.setSpacing(T.KART_ARALIK)
+        self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
+                                              SAYFA_ACIKLAMA,
+                                              "DGMCRAFT / YETENEKLER")
+        dis.addWidget(self.baslikAlani)
+        icKutu = QWidget()
+        dis.addWidget(icKutu, 1)
+        ic = QVBoxLayout(icKutu)
+        ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
+        ic.setSpacing(T.KART_ARALIK)
 
         ust = QFrame()
         ust.setObjectName("kart")
@@ -134,17 +152,18 @@ class YeteneklerSayfasi(QWidget):
         self.ozet = QLabel("")
         self.ozet.setObjectName("kucuk")
         satir.addWidget(self.ozet)
-        dis.addWidget(ust)
+        ic.addWidget(ust)
 
         self.kaydirma = QScrollArea()
         self.kaydirma.setWidgetResizable(True)
         self.kaydirma.setFrameShape(QFrame.NoFrame)
-        ic = QWidget()
-        self.izgara = QGridLayout(ic)
+        icDugum = QWidget()
+        self.izgara = QGridLayout(icDugum)
         self.izgara.setContentsMargins(0, 0, 0, 0)
-        self.izgara.setSpacing(T.KART_ARALIK)
-        self.kaydirma.setWidget(ic)
-        dis.addWidget(self.kaydirma, 1)
+        self.izgara.setHorizontalSpacing(15)
+        self.izgara.setVerticalSpacing(12)
+        self.kaydirma.setWidget(icDugum)
+        ic.addWidget(self.kaydirma, 1)
 
     def _oyuncu_degisti(self, indeks):
         if indeks < 0 or indeks >= len(self._oyuncular):
@@ -187,7 +206,7 @@ class YeteneklerSayfasi(QWidget):
             ek = " · tüm yetenekler açık"
         self.ozet.setText("%d yetenek · toplam seviye %d · en yakın: %s%s" % (
             len(yetenekler), toplam_seviye, en_iyi["ad"], ek))
-        sutun = 2
+        sutun = 4
         for i, veri in enumerate(yetenekler):
             self.izgara.addWidget(YetenekKarti(veri), i // sutun, i % sutun)
         for s in range(sutun):

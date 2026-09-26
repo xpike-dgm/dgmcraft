@@ -1,4 +1,4 @@
-"""PySide6 kabuk: kendi başlık çubuğu + sol ray + yığın sayfalar.
+"""PySide6 kabuk: 82px üst çubuk + yatay gezinme + yığılmış sayfalar (05-night).
   Tkinter v2 ayrı çalışmaya devam eder."""
 import os
 import sys
@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (QApplication, QButtonGroup, QFrame, QHBoxLayout,
                                QLabel, QMainWindow, QPushButton, QStackedWidget,
                                QVBoxLayout, QWidget)
 
-from . import ikonlar
 from . import tema as T
 from . import yardimci as Y
 from .guncelleme_ekrani import GuncellemeEkrani
@@ -27,13 +26,6 @@ SAYFA_MODUL = {"HubSayfasi": hub, "KonsolSayfasi": konsol,
                "YeteneklerSayfasi": yetenekler, "SiralamaSayfasi": siralama,
                "GorevlerSayfasi": gorevler, "AyarlarSayfasi": ayarlar}
 
-RAY_IKON = {
-    "hub": "hub", "komutlar": "komutlar", "durum": "durum", "konsol": "konsol",
-    "gorevler": "gorevler", "yetenekler": "yetenekler", "siralama": "siralama",
-    "ayarlar": "ayarlar",
-}
-
-# Yeni özellik = bu listeye 1 satır + sayfalar/ altında 1 dosya.
 SAYFALAR = [
     ("hub", "Hub", "hub"),
     ("komutlar", "Komutlar", "komutlar"),
@@ -44,13 +36,11 @@ SAYFALAR = [
     ("siralama", "Sıralama", "siralama"),
     ("ayarlar", "Ayarlar", "ayarlar"),
 ]
-TAHIMAT = {
-    "komutlar": "Tüm Türkçe komutlar, arama ve kategori detayı.",
-    "durum": "Canlı sunucu verileri: RAM, TPS, çevrimiçi.",
-    "gorevler": "Görev ağacı ve ilerleme.",
-    "yetenekler": "Yetenek seviyeleri ve sonraki ödüller.",
-    "siralama": "Podyum ve sıralama tabloları.",
-    "ayarlar": "Profil, bağlantı ve uygulama işlemleri.",
+
+SAYFA_UST_ETIKET = {
+    "hub": "SUNUCU MERKEZİ", "komutlar": "OYUN REHBERİ", "durum": "CANLI IZLEME",
+    "konsol": "SUNUCU ARAYACI", "gorevler": "MACERA YOLU", "yetenekler": "KARAKTER GELİŞİMİ",
+    "siralama": "ARKADAŞLARIN", "ayarlar": "TERCİHLER",
 }
 
 
@@ -61,30 +51,6 @@ def _ornek_sonuc():
             "zip_url": "", "asset_url": ""}
 
 
-class TahimatSayfasi(QWidget):
-    """Henüz taşınmamış sayfa: başlık + kısa açıklama (sonraki fazda dolar)."""
-
-    def __init__(self, baslik, aciklama, ebeveyn=None):
-        super().__init__(ebeveyn)
-        govde = QVBoxLayout(self)
-        govde.setContentsMargins(2, 4, 2, 0)
-        govde.setSpacing(6)
-        b = QLabel(baslik)
-        b.setObjectName("sayfaBaslik")
-        govde.addWidget(b)
-        a = QLabel(aciklama)
-        a.setObjectName("ikincil")
-        a.setWordWrap(True)
-        govde.addWidget(a)
-        govde.addStretch(1)
-
-    def goster(self):
-        pass
-
-    def gizle(self):
-        pass
-
-
 class Kabuk(QMainWindow):
     _guncelleme_sonuc = Signal(object)
 
@@ -93,9 +59,14 @@ class Kabuk(QMainWindow):
         self._guncelleme_zorla = bool(guncelleme_goster)
         self.setWindowTitle(T.UYGULAMA)
         try:
-            ico = Y.pixmap("brand", "DgmCraft-app-icon.ico")
-            if ico is not None and not ico.isNull():
-                self.setWindowIcon(QIcon(ico))
+            ico = T.svg_ikon("hub", 64)
+            if not ico.isNull():
+                self.setWindowIcon(ico)
+            else:
+                from core import assets as _A
+                pm = Y.pixmap("brand", "DgmCraft-app-icon.ico")
+                if pm is not None and not pm.isNull():
+                    self.setWindowIcon(QIcon(pm))
         except Exception:
             pass
         from core.hizmetler import Hizmetler
@@ -104,7 +75,7 @@ class Kabuk(QMainWindow):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setFixedSize(T.GENISLIK + T.GOLGE, T.YUKSEKLIK + T.GOLGE)
         self._sayfalar = {}
-        self._ray_dugmeleri = {}
+        self._nav_dugmeleri = {}
         self._aktif = None
         self._guncelleme_penceresi = None
         self._arayuz_kur()
@@ -139,7 +110,6 @@ class Kabuk(QMainWindow):
                 self._sihirbaz.close()
                 self._sihirbaz = None
             self._icerik.setVisible(True)
-            self._ray.setVisible(True)
             self.show()
             self.raise_()
         except Exception:
@@ -178,7 +148,6 @@ class Kabuk(QMainWindow):
             self._guncelleme_penceresi = GuncellemeEkrani(self.hizmetler, sonuc)
             self._guncelleme_penceresi.kurulum_bitti.connect(self._guncelleme_tamam)
             self._icerik.setVisible(False)
-            self._ray.setVisible(False)
             self._guncelleme_penceresi.show()
         except Exception:
             pass
@@ -208,52 +177,70 @@ class Kabuk(QMainWindow):
         govde = QVBoxLayout(self.pencere)
         govde.setContentsMargins(1, 1, 1, 1)
         govde.setSpacing(0)
-        govde.addWidget(self._baslik_kur())
+        govde.addWidget(self._ust_cubuk_kur())
 
-        alt = QHBoxLayout()
-        alt.setContentsMargins(0, 0, 0, 0)
-        alt.setSpacing(0)
-        self._ray = self._ray_kur()
-        alt.addWidget(self._ray)
         self._icerik = QFrame()
-        self._icerik.setObjectName("icerik")
+        self._icerik.setObjectName("sayfa")
         ic = QVBoxLayout(self._icerik)
-        ic.setContentsMargins(T.BOSLUK, 12, T.BOSLUK, T.BOSLUK)
+        ic.setContentsMargins(0, 0, 0, 0)
         ic.setSpacing(0)
         self.yigin = QStackedWidget()
-        self.yigin.setObjectName("icerik")
+        self.yigin.setObjectName("sayfa")
         ic.addWidget(self.yigin, 1)
-        alt.addWidget(self._icerik, 1)
-        govde.addLayout(alt, 1)
+        govde.addWidget(self._icerik, 1)
 
         for kimlik, baslik, _ikon in SAYFALAR:
             sinif_adi = SAYFA_SINIFI.get(kimlik)
-            if sinif_adi:
-                sayfa = getattr(SAYFA_MODUL[sinif_adi], sinif_adi)(self.hizmetler)
-            else:
-                sayfa = TahimatSayfasi(baslik, TAHIMAT.get(kimlik, ""))
+            sayfa = getattr(SAYFA_MODUL[sinif_adi], sinif_adi)(self.hizmetler)
+            sayfa.setObjectName("sayfa")
             self.yigin.addWidget(sayfa)
             self._sayfalar[kimlik] = sayfa
         self.setCentralWidget(dis)
 
-    # ---------- başlık çubuğu ----------
-    def _baslik_kur(self):
-        cubuk = Y.BaslikCubugu()
-        cubuk.setFixedWidth(T.GENISLIK)
-        satir = QHBoxLayout(cubuk)
-        satir.setContentsMargins(12, 0, 8, 0)
-        satir.setSpacing(10)
+    # ---------- 82px üst çubuk + yatay gezinme (tek satır) ----------
+    def _ust_cubuk_kur(self):
+        cubuk = QFrame()
+        cubuk.setObjectName("ustCubuk")
+        cubuk.setFixedHeight(T.UST_YUKSEKLIK)
 
-        logo = Y.pixmap("brand", "mark-480.png")
-        if logo is not None and not logo.isNull():
-            lb = QLabel()
-            lb.setPixmap(logo.scaled(26, 26, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            lb.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-            satir.addWidget(lb)
-        self.ustBaslik = QLabel("HUB")
-        self.ustBaslik.setObjectName("pencereBaslik")
-        self.ustBaslik.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-        satir.addWidget(self.ustBaslik)
+        satir = QHBoxLayout(cubuk)
+        satir.setContentsMargins(25, 0, 18, 3)
+        satir.setSpacing(0)
+
+        logo = QLabel()
+        pm = T.mark_pixmap(43)
+        if not pm.isNull():
+            logo.setPixmap(pm)
+        logo.setFixedSize(43, 43)
+        logo.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        satir.addWidget(logo)
+        satir.addSpacing(10)
+
+        marka = QLabel("DGMCRAFT")
+        marka.setObjectName("markaAd")
+        marka.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        satir.addWidget(marka)
+        satir.addSpacing(34)
+
+        self.navGrubu = QButtonGroup(self)
+        self.navGrubu.setExclusive(True)
+        for kimlik, baslik, ikon in SAYFALAR:
+            b = QPushButton(baslik)
+            b.setObjectName("navDugme")
+            b.setProperty("aktif", "0")
+            b.setCheckable(True)
+            b.setCursor(Qt.PointingHandCursor)
+            b.setFixedHeight(79)
+            b.setMinimumWidth(76)
+            b.setIcon(T.svg_ikon(ikon, T.IKON))
+            b.setIconSize(QSize(T.IKON, T.IKON))
+            b.setCursor(Qt.PointingHandCursor)
+            b.clicked.connect(lambda _c, k=kimlik: self.sayfa_ac(k))
+            satir.addWidget(b)
+            self.navGrubu.addButton(b)
+            self._nav_dugmeleri[kimlik] = b
+            satir.addSpacing(6)
+
         satir.addStretch(1)
 
         self.kasa = QLabel()
@@ -261,21 +248,29 @@ class Kabuk(QMainWindow):
         self.kasa.setPixmap(self._yuvarlak("brand", "app-icon-128.png", boyut=30))
         satir.addWidget(self.kasa)
         nokta = QFrame()
-        nokta.setFixedSize(7, 7)
-        nokta.setStyleSheet("background: %s; border-radius: 3px;" % T.YESIL)
-        satir.addSpacing(2)
+        nokta.setFixedSize(8, 8)
+        nokta.setStyleSheet("background: %s; border-radius: 4px; border: none;"
+                            % T.VURGU)
+        satir.addSpacing(6)
         satir.addWidget(nokta)
         satir.addSpacing(8)
-        kullanici = QLabel(self.hizmetler.kullanici)
-        kullanici.setObjectName("kasaAd")
-        kullanici.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-        satir.addWidget(kullanici)
+        self.kullaniciYazi = QLabel(self.hizmetler.kullanici)
+        self.kullaniciYazi.setObjectName("oyuncuAd")
+        self.kullaniciYazi.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        satir.addWidget(self.kullaniciYazi)
+        ok = QLabel()
+        ok.setPixmap(T.svg_ikon("arrow", 12).pixmap(12, 12))
+        ok.setFixedWidth(12)
+        ok.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        satir.addSpacing(10)
+        satir.addWidget(ok)
         satir.addSpacing(14)
 
         self.kucultDugmesi = Y.BaslikDugmesi("kucult")
         self.kucultDugmesi.clicked.connect(self.showMinimized)
         satir.addWidget(self.kucultDugmesi)
         self.kapatDugmesi = Y.BaslikDugmesi("kapat")
+        self.kapatDugmesi.clicked.connect(self.close)
         satir.addWidget(self.kapatDugmesi)
         return cubuk
 
@@ -300,30 +295,6 @@ class Kabuk(QMainWindow):
         except Exception:
             return Y.pixmap(*parca) or QPixmap()
 
-    # ---------- ray ----------
-    def _ray_kur(self):
-        ray = QFrame()
-        ray.setObjectName("ray")
-        ray.setFixedWidth(T.RAY_GENISLIK)
-        govde = QVBoxLayout(ray)
-        govde.setContentsMargins(0, 14, 0, 12)
-        govde.setSpacing(6)
-        govde.addStretch(1)
-        self.rayGrubu = QButtonGroup(self)
-        self.rayGrubu.setExclusive(True)
-        for kimlik, baslik, ikon in SAYFALAR:
-            b = Y.RayDugmesi(RAY_IKON.get(ikon, ikon), baslik)
-            b.clicked.connect(lambda _c, k=kimlik: self.sayfa_ac(k))
-            govde.addWidget(b, 0, Qt.AlignHCenter)
-            self.rayGrubu.addButton(b)
-            self._ray_dugmeleri[kimlik] = b
-        govde.addStretch(1)
-        surum = QLabel(self.hizmetler.surum)
-        surum.setObjectName("raySurum")
-        surum.setAlignment(Qt.AlignCenter)
-        govde.addWidget(surum)
-        return ray
-
     # ---------- sayfalar ----------
     def _ilk_ac(self):
         if SAYFALAR:
@@ -343,11 +314,14 @@ class Kabuk(QMainWindow):
         if sayfa is None:
             return
         self.yigin.setCurrentWidget(sayfa)
-        for kid, b in self._ray_dugmeleri.items():
+        for kid, b in self._nav_dugmeleri.items():
             b.setChecked(kid == kimlik)
+            b.setProperty("aktif", "1" if kid == kimlik else "0")
+            b.style().unpolish(b)
+            b.style().polish(b)
         for kid, baslik, _ikon in SAYFALAR:
             if kid == kimlik:
-                self.ustBaslik.setText(baslik.upper())
+                self.kucultDugmesi.setToolTip("DGMCRAFT / %s" % baslik.upper())
         try:
             sayfa.goster()
         except Exception:

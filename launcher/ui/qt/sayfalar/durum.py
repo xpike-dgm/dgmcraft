@@ -13,6 +13,10 @@ from .. import yardimci as Y
 BASLIK = "Durum"
 YENILE_SN = 5
 
+UST_ETIKET = "CANLI İZLEME"
+SAYFA_BASLIK = "Sunucunun nabzı."
+SAYFA_ACIKLAMA = "Sunucu kapalıyken aşağıdaki değerler son ölçümü gösterir."
+
 
 class TpsGrafik(QWidget):
     """Son örneklerin TPS grafiği; 20.0 çizgisi ve renkli bant."""
@@ -30,59 +34,39 @@ class TpsGrafik(QWidget):
     def paintEvent(self, _olay):
         boya = QPainter(self)
         boya.setRenderHint(QPainter.Antialiasing, True)
-        alan = QRectF(self.rect()).adjusted(1, 1, -1, -1)
+        alan = QRectF(self.rect()).adjusted(1, 1, -1, 1)
         boya.setPen(Qt.NoPen)
-        boya.setBrush(QColor("#0E1513"))
-        boya.drawRoundedRect(alan, 10, 10)
+        boya.setBrush(QColor(T.SIYAH))
+        boya.drawRect(alan)
         if len(self._veri) < 2:
-            boya.setPen(QColor(T.SILIK))
-            boya.drawText(alan, Qt.AlignCenter, "Örnek bekleniyor…")
+            boya.setPen(QColor(T.IKINCIL))
+            boya.drawText(alan, Qt.AlignCenter, "Henüz ölçüm yok")
             boya.end()
             return
         en = 20.0
-        veri = self._veri[-60:]
-        noktalar = []
-        genislik = alan.width() - 16
-        yukseklik = alan.height() - 30
-        for i, o in enumerate(veri):
-            x = alan.left() + 8 + (genislik * i / float(max(1, len(veri) - 1)))
-            oran = max(0.0, min(1.0, float(o.get("tps", 0)) / en))
-            y = alan.bottom() - 8 - (yukseklik * oran)
-            noktalar.append(QPointF(x, y))
+        veri = self._veri[-24:]
+        taban = alan.bottom() - 22
+        ust_kenar = alan.top() + 14
+        yukseklik = taban - ust_kenar
         # 20.0 hedef çizgisi
-        y20 = alan.bottom() - 8 - yukseklik
-        y15 = alan.bottom() - 8 - yukseklik * 0.75
-        for y, renk in ((y20, "#25332E"), (y15, "#1E2A26")):
-            boya.setPen(QPen(QColor(renk), 1, Qt.DashLine))
-            boya.drawLine(QPointF(alan.left() + 8, y), QPointF(alan.right() - 8, y))
-        # dolgu (aşağı doğru sönümlenen)
-        if noktalar:
-            from PySide6.QtGui import QBrush, QLinearGradient, QPainterPath
-            ust_y = min(p.y() for p in noktalar)
-            g = QLinearGradient(0, ust_y, 0, alan.bottom() - 8)
-            g.setColorAt(0.0, QColor(240, 162, 2, 70))
-            g.setColorAt(1.0, QColor(240, 162, 2, 0))
-            poly = [QPointF(alan.left() + 8, alan.bottom() - 8)]
-            poly.extend(noktalar)
-            poly.append(QPointF(alan.right() - 8, alan.bottom() - 8))
-            yol_tam = QPainterPath()
-            yol_tam.moveTo(poly[0])
-            for p in poly[1:]:
-                yol_tam.lineTo(p)
-            yol_tam.closeSubpath()
-            boya.fillPath(yol_tam, QBrush(g))
-            boya.setPen(QPen(QColor(T.VURGU), 2))
-            yol_cizgi = QPainterPath()
-            yol_cizgi.moveTo(noktalar[0])
-            for p in noktalar[1:]:
-                yol_cizgi.lineTo(p)
-            boya.drawPath(yol_cizgi)
-        boya.setPen(QColor(T.SILIK))
-        boya.drawText(QRectF(alan.left() + 10, alan.top() + 4, 160, 16),
-                      Qt.AlignLeft | Qt.AlignTop, "TPS (son örnekler)")
-        boya.setPen(QColor(T.SILIK))
-        boya.drawText(QRectF(alan.right() - 70, alan.top() + 4, 62, 16),
-                      Qt.AlignRight | Qt.AlignTop, "20.0")
+        boya.setPen(QPen(QColor("#2A3235"), 1, Qt.DashLine))
+        boya.drawLine(QPointF(alan.left() + 10, ust_kenar),
+                      QPointF(alan.right() - 10, ust_kenar))
+        genislik = alan.width() - 20
+        adim = genislik / float(max(1, len(veri)))
+        cubuk = max(4.0, adim * 0.52)
+        for i, o in enumerate(veri):
+            tps = float(o.get("tps", 0) or 0)
+            oran = max(0.0, min(1.0, tps / en))
+            h = max(2.0, yukseklik * oran)
+            x = alan.left() + 10 + adim * i + (adim - cubuk) / 2.0
+            boya.setPen(Qt.NoPen)
+            boya.setBrush(QColor(T.VURGU) if tps < 15.0 else QColor(T.YAZI))
+            boya.drawRect(QRectF(x, taban - h, cubuk, h))
+        # taban çizgisi + eksen
+        boya.setPen(QPen(QColor(T.BOLUCU), 1))
+        boya.drawLine(QPointF(alan.left() + 10, taban),
+                      QPointF(alan.right() - 10, taban))
         boya.end()
 
 
@@ -127,79 +111,107 @@ class DurumSayfasi(QWidget):
         self._zamanlayici.timeout.connect(self._istek)
         self._zamanlayici.start(YENILE_SN * 1000)
 
+    def baslik_alani_guncelle(self, ust, baslik, aciklama):
+        self.baslikAlani.ustYazi.setText(ust.upper())
+        self.baslikAlani.baslikYazi.setText(baslik)
+        self.baslikAlani.aciklamaYazi.setText(aciklama)
+
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
         dis.setSpacing(T.KART_ARALIK)
+        self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
+                                              SAYFA_ACIKLAMA,
+                                              "DGMCRAFT / DURUM")
+        dis.addWidget(self.baslikAlani)
+        icKutu = QWidget()
+        dis.addWidget(icKutu, 1)
+        ic = QVBoxLayout(icKutu)
+        ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
+        ic.setSpacing(T.KART_ARALIK)
 
-        izgara = QGridLayout()
-        izgara.setSpacing(T.KART_ARALIK)
-        self.tpsKart = SayacKarti("TPS")
-        self.msptKart = SayacKarti("MSPT")
-        self.ramKart = SayacKarti("Bellek")
-        self.oyuncuKart = SayacKarti("Çevrimiçi")
-        izgara.addWidget(self.tpsKart, 0, 0)
-        izgara.addWidget(self.msptKart, 0, 1)
-        izgara.addWidget(self.ramKart, 0, 2)
-        izgara.addWidget(self.oyuncuKart, 0, 3)
-        for i in range(4):
-            izgara.setColumnStretch(i, 1)
-        dis.addLayout(izgara)
-
-        self.grafik = TpsGrafik()
-        dis.addWidget(self.grafik)
+        # --- siyah metrik bandı (1208x132) ---
+        self.band = T.MetrikBandi([
+            ("TPS", "-", "son 5 saniye"),
+            ("MSPT", "-", "sunucu milisaniyesi"),
+            ("Bellek", "-", "Java heap kullanımı"),
+            ("Oyuncular", "-", "sunucuya bağlı"),
+        ])
+        ic.addWidget(self.band)
+        self.tpsKart = self.band.metrikler["TPS"]
+        self.msptKart = self.band.metrikler["MSPT"]
+        self.ramKart = self.band.metrikler["Bellek"]
+        self.oyuncuKart = self.band.metrikler["Oyuncular"]
 
         alt = QHBoxLayout()
         alt.setSpacing(T.KART_ARALIK)
 
+        # --- sol: TPS geçmiş kartı ---
         sol = QFrame()
         sol.setObjectName("kart")
         solGovde = QVBoxLayout(sol)
-        solGovde.setContentsMargins(16, 14, 16, 14)
-        solGovde.setSpacing(8)
-        b = QLabel("SUNUCU")
-        b.setObjectName("bolumBaslik")
-        solGovde.addWidget(b)
-        self.sunucuSatirlari = {}
-        for ad in ("Motor", "Sürüm", "Çalışma süresi", "Son örnek",
-                   "Varlık", "Yüklü chunk", "Boş disk", "RCON"):
-            satir = QHBoxLayout()
-            etiket = QLabel(ad)
-            etiket.setObjectName("kucuk")
-            satir.addWidget(etiket)
-            satir.addStretch(1)
-            deger = QLabel("-")
-            deger.setObjectName("metin")
-            deger.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            satir.addWidget(deger)
-            solGovde.addLayout(satir)
-            self.sunucuSatirlari[ad] = deger
-        solGovde.addStretch(1)
-        alt.addWidget(sol, 1)
+        solGovde.setContentsMargins(20, 18, 20, 16)
+        solGovde.setSpacing(10)
+        grafikUst = QHBoxLayout()
+        grafikUst.setContentsMargins(0, 0, 0, 0)
+        b0 = T.etiket("TPS geçmişi", "bolumAltBaslik")
+        grafikUst.addWidget(b0)
+        grafikUst.addStretch(1)
+        self.ornekYazi = T.etiket("son ölçüm", "minik")
+        grafikUst.addWidget(self.ornekYazi)
+        solGovde.addLayout(grafikUst)
+        self.grafik = TpsGrafik()
+        self.grafik.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        solGovde.addWidget(self.grafik, 1)
+        self.grafikAlt = T.etiket("Son 60 ölçüm · 20,0 hedef", "minik")
+        solGovde.addWidget(self.grafikAlt)
+        alt.addWidget(sol, 786)
 
+        # --- sağ: sistem bilgisi kartı ---
         sagKart = QFrame()
         sagKart.setObjectName("kart")
-        sagKart.setFixedWidth(300)
+        sagKart.setFixedWidth(404)
         sagGovde = QVBoxLayout(sagKart)
-        sagGovde.setContentsMargins(16, 14, 16, 14)
-        sagGovde.setSpacing(8)
-        b2 = QLabel("ÇEVRİMİÇİ OYUNCULAR")
-        b2.setObjectName("bolumBaslik")
-        sagGovde.addWidget(b2)
+        sagGovde.setContentsMargins(20, 18, 20, 16)
+        sagGovde.setSpacing(4)
+        b1 = T.etiket("Sistem", "bolumAltBaslik")
+        sagGovde.addWidget(b1)
+        sagGovde.addSpacing(8)
+        self.sunucuSatirlari = {}
+        for ad in ("Motor", "Sürüm", "Çalışma süresi", "Son örnek", "Varlık",
+                   "Yüklü chunk", "Boş disk", "RCON"):
+            satir = QHBoxLayout()
+            satir.setContentsMargins(0, 0, 0, 0)
+            satir.addWidget(T.etiket(ad, "soluk"))
+            satir.addStretch(1)
+            deger = T.etiket("-", "metin")
+            deger.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            satir.addWidget(deger)
+            sagGovde.addLayout(satir)
+            self.sunucuSatirlari[ad] = deger
+        sagGovde.addStretch(1)
+        alt.addWidget(sagKart, 0)
+        ic.addLayout(alt, 1)
+
+        self.durumEtiketi = T.etiket("", "minik")
+        self.oyuncuBos = T.BosDurum("Sunucu kapalıyken çevrimiçi liste yok.")
+        self.oyuncuListeKart = T.kart()
+        oyuncuKartGovde = QVBoxLayout(self.oyuncuListeKart)
+        oyuncuKartGovde.setContentsMargins(20, 16, 20, 16)
+        oyuncuKartGovde.setSpacing(8)
+        oyuncuUst = QHBoxLayout()
+        oyuncuUst.setContentsMargins(0, 0, 0, 0)
+        oyuncuUst.addWidget(T.etiket("ÇEVRİMİÇİ OYUNCULAR", "bolumBaslik"))
+        oyuncuUst.addStretch(1)
+        oyuncuUst.addWidget(self.durumEtiketi)
+        oyuncuKartGovde.addLayout(oyuncuUst)
         self.oyuncuListe = QVBoxLayout()
         self.oyuncuListe.setContentsMargins(0, 0, 0, 0)
-        self.oyuncuListe.setSpacing(6)
-        sagGovde.addLayout(self.oyuncuListe)
-        self.oyuncuBos = QLabel("Sunucu kapalıyken liste yok.")
-        self.oyuncuBos.setObjectName("kucuk")
-        self.oyuncuBos.setWordWrap(True)
-        sagGovde.addWidget(self.oyuncuBos)
-        sagGovde.addStretch(1)
-        self.durumEtiketi = QLabel("")
-        self.durumEtiketi.setObjectName("kucuk")
-        sagGovde.addWidget(self.durumEtiketi)
-        alt.addWidget(sagKart)
-        dis.addLayout(alt, 1)
+        self.oyuncuListe.setSpacing(4)
+        oyuncuKartGovde.addLayout(self.oyuncuListe)
+        oyuncuKartGovde.addWidget(self.oyuncuBos, 1)
+        self.oyuncuListeKart.setFixedHeight(120)
+        ic.addWidget(self.oyuncuListeKart)
 
     # ---------- veri ----------
     def _istek(self):
@@ -236,7 +248,7 @@ class DurumSayfasi(QWidget):
         self.grafik.veri(veri.get("ornekler") or [])
 
         s = self.sunucuSatirlari
-        s["Motor"].setText("Purpur 26.2")
+        s["Motor"].setText("Purpur 26.1.2")
         s["Sürüm"].setText(str(self.h.surum))
         s["Çalışma süresi"].setText(_D.sure_bicim(veri.get("sure")))
         yasi = veri.get("ornek_yasi")
@@ -253,19 +265,7 @@ class DurumSayfasi(QWidget):
         Y.yerlesim_temizle(self.oyuncuListe)
         self.oyuncuBos.setVisible(not oyuncular)
         for ad in oyuncular:
-            satir = QFrame()
-            satir.setStyleSheet("background: #131A18; border: 1px solid #1F2A26;"
-                                " border-radius: 8px;")
-            h = QHBoxLayout(satir)
-            h.setContentsMargins(10, 7, 10, 7)
-            nokta = QFrame()
-            nokta.setFixedSize(6, 6)
-            nokta.setStyleSheet("background: %s; border-radius: 3px;" % T.YESIL)
-            h.addWidget(nokta, 0, Qt.AlignVCenter)
-            h.addSpacing(8)
-            lb = QLabel(ad)
-            lb.setObjectName("metin")
-            h.addWidget(lb, 1)
+            satir = T.ListeSatiri(ad if isinstance(ad, str) else str(ad))
             self.oyuncuListe.addWidget(satir)
         self.durumEtiketi.setText("5 sn'de bir yenilenir" if canli
                                   else "Sunucu kapalı — son örnekler gösteriliyor")

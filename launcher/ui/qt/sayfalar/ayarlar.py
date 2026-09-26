@@ -14,6 +14,10 @@ from .. import yardimci as Y
 
 BASLIK = "Ayarlar"
 
+UST_ETIKET = "TERCİHLER"
+SAYFA_BASLIK = "Kontrol sende."
+SAYFA_ACIKLAMA = "Profil, bağlantı ve güncellemeleri buradan yönet."
+
 
 class Kart(QFrame):
     """Başlıklı ayar kartı."""
@@ -67,22 +71,36 @@ class AyarlarSayfasi(QWidget):
         self._yenile()
 
     # ---------- kurulum ----------
+    def baslik_alani_guncelle(self, ust, baslik, aciklama):
+        self.baslikAlani.ustYazi.setText(ust.upper())
+        self.baslikAlani.baslikYazi.setText(baslik)
+        self.baslikAlani.aciklamaYazi.setText(aciklama)
+
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
         dis.setSpacing(T.KART_ARALIK)
+        self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
+                                              SAYFA_ACIKLAMA,
+                                              "DGMCRAFT / AYARLAR")
+        dis.addWidget(self.baslikAlani)
+        icKutu = QWidget()
+        dis.addWidget(icKutu, 1)
+        ic = QVBoxLayout(icKutu)
+        ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
+        ic.setSpacing(T.KART_ARALIK)
         self.kaydirma = QScrollArea()
         self.kaydirma.setWidgetResizable(True)
         self.kaydirma.setFrameShape(QFrame.NoFrame)
-        ic = QWidget()
-        self.izgara = QGridLayout(ic)
+        icDugum = QWidget()
+        self.izgara = QGridLayout(icDugum)
         self.izgara.setContentsMargins(0, 0, 0, 0)
         self.izgara.setSpacing(T.KART_ARALIK)
-        self.kaydirma.setWidget(ic)
-        dis.addWidget(self.kaydirma, 1)
+        self.kaydirma.setWidget(icDugum)
+        ic.addWidget(self.kaydirma, 1)
         self.mesaj = QLabel("")
         self.mesaj.setObjectName("kucuk")
-        dis.addWidget(self.mesaj)
+        ic.addWidget(self.mesaj)
 
     def _dugme(self, metin, islev, birincil=False):
         b = QPushButton(metin)

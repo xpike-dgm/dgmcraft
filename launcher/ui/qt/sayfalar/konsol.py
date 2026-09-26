@@ -22,6 +22,10 @@ RENK_KOMUT = "#F0A202"
 RENK_CEVAP = "#93C5FD"
 AZAMI_SATIR = 3000
 
+UST_ETIKET = "SUNUCU ARAYACI"
+SAYFA_BASLIK = "Komut satırı."
+SAYFA_ACIKLAMA = "Cihazın üzerinden komutlar doğrudan buradan gönder."
+
 
 class KonsolSayfasi(QWidget):
     cikti_hazir = Signal(str, str)
@@ -42,16 +46,48 @@ class KonsolSayfasi(QWidget):
         self._zamanlayici.timeout.connect(self._kuyrugu_bosalt)
         self._zamanlayici.start(250)
 
+    def baslik_alani_guncelle(self, ust, baslik, aciklama):
+        self.baslikAlani.ustYazi.setText(ust.upper())
+        self.baslikAlani.baslikYazi.setText(baslik)
+        self.baslikAlani.aciklamaYazi.setText(aciklama)
+
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
         dis.setSpacing(T.KART_ARALIK)
+        self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
+                                              SAYFA_ACIKLAMA,
+                                              "DGMCRAFT / KONSOL")
+        dis.addWidget(self.baslikAlani)
+        icKutu = QWidget()
+        dis.addWidget(icKutu, 1)
+        ic = QVBoxLayout(icKutu)
+        ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
+        ic.setSpacing(T.KART_ARALIK)
 
         kart = QFrame()
-        kart.setObjectName("kart")
+        kart.setObjectName("siyahKart")
         govde = QVBoxLayout(kart)
         govde.setContentsMargins(0, 0, 0, 0)
         govde.setSpacing(0)
+
+        # üst şerit: SUNUCU ÇIKTISI + bağlantı durumu
+        ustSerit = QWidget()
+        ustSatir = QHBoxLayout(ustSerit)
+        ustSatir.setContentsMargins(20, 14, 20, 12)
+        ustSatir.setSpacing(10)
+        ustSatir.addWidget(T.etiket("SUNUCU ÇIKTISI", "bolumBaslik"))
+        ustSatir.addStretch(1)
+        self.baglantiNokta = QFrame()
+        self.baglantiNokta.setFixedSize(7, 7)
+        self.baglantiNokta.setStyleSheet(
+            "background: %s; border-radius: 3px; border: none;" % T.KIRMIZI)
+        ustSatir.addWidget(self.baglantiNokta)
+        ustSatir.addSpacing(4)
+        self.baglantiYazi = T.etiket("BAĞLI DEĞİL", "soluk")
+        ustSatir.addWidget(self.baglantiYazi)
+        govde.addWidget(ustSerit)
+        govde.addWidget(T.ayirici(T.BOLUCU_ACIK))
 
         self.cikti = QPlainTextEdit(kart)
         self.cikti.setReadOnly(True)
@@ -59,45 +95,42 @@ class KonsolSayfasi(QWidget):
         self.cikti.setLineWrapMode(QPlainTextEdit.NoWrap)
         self.cikti.setMaximumBlockCount(AZAMI_SATIR)
         self.cikti.setStyleSheet(
-            "QPlainTextEdit { background: #0C1210; border: none;"
-            " border-top-left-radius: 11px; border-top-right-radius: 11px;"
-            " padding: 12px 14px; color: %s; font-family: 'Consolas'; font-size: 12px; }"
-            % RENK_NORMAL)
+            "QPlainTextEdit { background: transparent; border: none;"
+            " padding: 14px 20px; color: %s;"
+            " font-family: 'Consolas'; font-size: 12px; }" % RENK_NORMAL)
         self.cikti.setFont(QFont("Consolas", 10))
         govde.addWidget(self.cikti, 1)
 
         ayrac = QFrame(kart)
         ayrac.setObjectName("ayrac")
         ayrac.setFixedHeight(1)
+        ayrac.setStyleSheet("background: %s; border: none;" % T.BOLUCU_ACIK)
         govde.addWidget(ayrac)
 
         satir = QHBoxLayout()
-        satir.setContentsMargins(14, 12, 14, 14)
+        satir.setContentsMargins(20, 14, 20, 16)
         satir.setSpacing(10)
         self.girdi = QLineEdit()
         self.girdi.setPlaceholderText("Komut yaz — örn: say Merhaba, tp Xpike 10 64 -20 120")
         self.girdi.setStyleSheet(
-            "QLineEdit { background: #0F1513; border: 1px solid %s; border-radius: 10px;"
-            " padding: 10px 12px; color: %s; font-size: 13px; }"
-            "QLineEdit:focus { border-color: %s; }" % (T.CERCEVE, T.YAZI, T.VURGU))
+            "QLineEdit { background: #10161A; border: 1px solid %s; border-radius: 4px;"
+            " padding: 11px 12px; color: %s; font-size: 12px; }"
+            "QLineEdit:focus { border: 2px solid %s; }" % (T.CERCEVE, T.YAZI, T.VURGU))
         self.girdi.returnPressed.connect(self.gonder)
         satir.addWidget(self.girdi, 1)
-        self.gonderDugmesi = QPushButton("Gönder")
-        self.gonderDugmesi.setObjectName("anaDugme")
+        self.gonderDugmesi = T.dugme("Gönder", "ana")
         self.gonderDugmesi.setCursor(Qt.PointingHandCursor)
         self.gonderDugmesi.clicked.connect(self.gonder)
         satir.addWidget(self.gonderDugmesi)
-        self.temizDugmesi = QPushButton("Temizle")
-        self.temizDugmesi.setObjectName("hayaletDugme")
-        self.temizDugmesi.setCursor(Qt.PointingHandCursor)
+        self.temizDugmesi = T.dugme("Temizle", "kontrast")
         self.temizDugmesi.clicked.connect(self.temizle)
         satir.addWidget(self.temizDugmesi)
         govde.addLayout(satir)
-        dis.addWidget(kart, 1)
+        ic.addWidget(kart, 1)
 
         ipucu = QLabel("Yukarı ok geçmişteki komutları gezinir · tehlikeli komutlar onay ister")
         ipucu.setObjectName("minik")
-        dis.addWidget(ipucu)
+        ic.addWidget(ipucu)
         dis.addSpacing(2)
         self.girdi.installEventFilter(self)
 

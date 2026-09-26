@@ -12,6 +12,10 @@ from .. import yardimci as Y
 BASLIK = "Sıralama"
 MADALYALAR = {1: ("#F0A202", "1"), 2: ("#C8D2CE", "2"), 3: ("#C08457", "3")}
 
+UST_ETIKET = "ARKADAŞLARIN"
+SAYFA_BASLIK = "Dünya kayıtları."
+SAYFA_ACIKLAMA = "Dört kişi ölçüde kim önce, tek ekranda gör."
+
 
 class Satir(QFrame):
     def __init__(self, kayit, vurgulu=False, ebeveyn=None):
@@ -98,81 +102,138 @@ class SiralamaSayfasi(QWidget):
             pass
         Y.guvenli_yayin(self.veri_hazir, tablolar, canli)
 
+    def baslik_alani_guncelle(self, ust, baslik, aciklama):
+        self.baslikAlani.ustYazi.setText(ust.upper())
+        self.baslikAlani.baslikYazi.setText(baslik)
+        self.baslikAlani.aciklamaYazi.setText(aciklama)
+
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
         dis.setSpacing(T.KART_ARALIK)
+        self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
+                                              SAYFA_ACIKLAMA,
+                                              "DGMCRAFT / SIRALAMA")
+        dis.addWidget(self.baslikAlani)
+        icKutu = QWidget()
+        dis.addWidget(icKutu, 1)
+        ic = QVBoxLayout(icKutu)
+        ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
+        ic.setSpacing(T.KART_ARALIK)
 
-        ust = QFrame()
-        ust.setObjectName("kart")
-        satir = QHBoxLayout(ust)
-        satir.setContentsMargins(14, 10, 14, 10)
-        self.kaynakEtiketi = QLabel("")
-        self.kaynakEtiketi.setObjectName("kucuk")
-        satir.addWidget(self.kaynakEtiketi)
-        satir.addStretch(1)
-        yenile = QPushButton("Yenile")
-        yenile.setObjectName("hayaletDugme")
-        yenile.setCursor(Qt.PointingHandCursor)
+        # --- dört yatay kategori sekmesi ---
+        self.sekmeler = T.Sekmeler(["En zengin", "En son oynayan",
+                                    "En uzun oynayan", "En yetenekli"])
+        for _b in self.sekmeler.dugmeler:
+            _b.clicked.connect(self._sekme_tik)
+        ic.addWidget(self.sekmeler)
+
+        # --- ana sıralama kartı + siyah "Diğer zirveler" kartı ---
+        govde = QHBoxLayout()
+        govde.setSpacing(T.KART_ARALIK)
+
+        self.anaKart = QFrame()
+        self.anaKart.setObjectName("kart")
+        self.anaKart.setFixedWidth(779)
+        anaGovde = QVBoxLayout(self.anaKart)
+        anaGovde.setContentsMargins(20, 18, 20, 18)
+        anaGovde.setSpacing(10)
+
+        anaUst = QHBoxLayout()
+        anaUst.setContentsMargins(0, 0, 0, 0)
+        self.anaBaslik = T.etiket("SIRALAMA", "bolumAltBaslik")
+        anaUst.addWidget(self.anaBaslik)
+        anaUst.addStretch(1)
+        yenile = T.dugme("Yenile", "kontrast")
+        yenile.setFixedHeight(30)
         yenile.clicked.connect(self._yukle)
-        satir.addWidget(yenile)
-        dis.addWidget(ust)
+        anaUst.addWidget(yenile)
+        anaGovde.addLayout(anaUst)
+        self.kaynakEtiketi = T.etiket("", "minik")
+        anaGovde.addWidget(self.kaynakEtiketi)
 
         self.kaydirma = QScrollArea()
         self.kaydirma.setWidgetResizable(True)
         self.kaydirma.setFrameShape(QFrame.NoFrame)
-        ic = QWidget()
-        self.govde = QGridLayout(ic)
+        icDugum = QWidget()
+        self.govde = QVBoxLayout(icDugum)
         self.govde.setContentsMargins(0, 0, 0, 0)
-        self.govde.setSpacing(T.KART_ARALIK)
-        self.kaydirma.setWidget(ic)
-        dis.addWidget(self.kaydirma, 1)
+        self.govde.setSpacing(4)
+        self.kaydirma.setWidget(icDugum)
+        anaGovde.addWidget(self.kaydirma, 1)
+        self.anaAlt = T.etiket("", "minik")
+        anaGovde.addWidget(self.anaAlt)
+        govde.addWidget(self.anaKart, 1)
+
+        self.zirveKart = T.kart("siyah")
+        self.zirveKart.setFixedWidth(411)
+        zirveGovde = QVBoxLayout(self.zirveKart)
+        zirveGovde.setContentsMargins(20, 18, 20, 18)
+        zirveGovde.setSpacing(12)
+        zirveGovde.addWidget(T.etiket("DİĞER ZİRVELER", "bolumBaslik"))
+        self.zirveGovde = zirveGovde
+        zirveGovde.addStretch(1)
+        govde.addWidget(self.zirveKart, 0)
+        ic.addLayout(govde, 1)
 
     def _uygula(self, tablolar, canli):
         Y.yerlesim_temizle(self.govde)
-        if not tablolar:
+        Y.yerlesim_temizle(self.zirveGovde)
+        self._tablolar = list(tablolar or [])
+        if not self._tablolar:
             self.kaynakEtiketi.setText("Tablo yok")
-            kart = QFrame()
-            kart.setObjectName("kart")
-            govde = QVBoxLayout(kart)
-            govde.setContentsMargins(18, 16, 18, 16)
-            govde.setSpacing(8)
-            b = QLabel("Sıralama tablosu bulunamadı")
-            b.setObjectName("metin")
-            govde.addWidget(b)
+            self.anaBaslik.setText("Sıralama tablosu bulunamadı")
+            bos = T.kart()
+            bosGovde = QVBoxLayout(bos)
+            bosGovde.setContentsMargins(18, 16, 18, 16)
+            bosGovde.setSpacing(8)
+            b = T.etiket("Sıralama tablosu bulunamadı", "metin")
+            b.setWordWrap(True)
+            bosGovde.addWidget(b)
             try:
                 from core import siralama as _S
-                ipucu = QLabel(_S.TABLO_YOK_METNI)
+                ipucu = _S.TABLO_YOK_METNI
             except Exception:
-                ipucu = QLabel("")
-            ipucu.setObjectName("kucuk")
-            ipucu.setWordWrap(True)
-            ipucu.setTextInteractionFlags(Qt.TextSelectableByMouse)
-            govde.addWidget(ipucu)
-            govde.addStretch(1)
-            self.govde.addWidget(kart, 0, 0, 1, 3)
+                ipucu = ""
+            ip = T.etiket(ipucu, "soluk")
+            ip.setWordWrap(True)
+            ip.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            bosGovde.addWidget(ip)
+            bosGovde.addStretch(1)
+            self.govde.addWidget(bos)
             return
         kaynak = "ajLeaderboards (canlı)" if canli else "yerel veri"
-        self.kaynakEtiketi.setText("Kaynak: %s · %d tablo" % (kaynak, len(tablolar)))
-        sutun = 3
-        for i, tablo in enumerate(tablolar):
-            self.govde.addWidget(self._tablo_karti(tablo), i // sutun, i % sutun)
-        for s in range(sutun):
-            self.govde.setColumnStretch(s, 1)
-        self.govde.setRowStretch((len(tablolar) // sutun) + 1, 1)
+        self.kaynakEtiketi.setText("Kaynak: %s · %d tablo" % (kaynak, len(self._tablolar)))
+        self.sekme_degisti(self.sekmeler.indeks)
 
-    def _tablo_karti(self, tablo):
+    def sekme_degisti(self, indeks):
+        """Seçili sekmenin tablosunu ana kartta, kalanlar siyah kartta gösterir."""
+        if not getattr(self, "_tablolar", None):
+            return
+        Y.yerlesim_temizle(self.govde)
+        Y.yerlesim_temizle(self.zirveGovde)
+        indeks = max(0, min(indeks, len(self._tablolar) - 1))
+        secili = self._tablolar[indeks]
+        self.anaBaslik.setText(secili["ad"])
+        self.anaKart.setFixedWidth(779)
+        self.govde.addWidget(self._tablo_karti(secili, buyuk=True))
+        self.govde.addStretch(1)
+        digerleri = [t for i, t in enumerate(self._tablolar) if i != indeks][:3]
+        for i, tablo in enumerate(digerleri):
+            self.zirveGovde.addWidget(self._ozet_kart(tablo, i + 1))
+        self.zirveGovde.addStretch(1)
+        if not digerleri:
+            self.zirveGovde.addWidget(T.BosDurum("Başka kategori yok."))
+
+    def _tablo_karti(self, tablo, buyuk=False):
         kart = QFrame()
-        kart.setObjectName("kart")
-        kart.setMinimumWidth(300)
+        kart.setObjectName("siyahKart" if buyuk else "kart")
         govde = QVBoxLayout(kart)
-        govde.setContentsMargins(16, 14, 16, 14)
+        govde.setContentsMargins(20, 18, 20, 18)
         govde.setSpacing(8)
-        b = QLabel(tablo["ad"].upper())
-        b.setObjectName("bolumBaslik")
+        b = T.etiket(tablo["ad"].upper(), "bolumBaslik")
         govde.addWidget(b)
-        k = QLabel(tablo.get("kaynak", ""))
-        k.setObjectName("minik")
+        k = T.etiket(tablo.get("kaynak", ""), "minik")
         govde.addWidget(k)
         satirlar = tablo.get("satirlar") or []
         if satirlar:
@@ -183,11 +244,61 @@ class SiralamaSayfasi(QWidget):
                 govde.addWidget(Satir(kayit, vurgulu=bool(kayit.get("ad", "").lower()
                                                             == self.h.kullanici.lower())))
         else:
-            bos = QLabel("Bu tabloda henüz veri yok.")
-            bos.setObjectName("kucuk")
+            bos = T.etiket("Bu tabloda henüz veri yok.", "soluk")
+            bos.setWordWrap(True)
             govde.addWidget(bos)
         govde.addStretch(1)
         return kart
+
+    def _ozet_kart(self, tablo, sira):
+        """Siyah 'Diğer zirveler' kartındaki tek satırlık özet."""
+        kutu = QFrame()
+        kutu.setStyleSheet("background: transparent; border: none;")
+        govde = QVBoxLayout(kutu)
+        govde.setContentsMargins(0, 0, 0, 0)
+        govde.setSpacing(4)
+        satir = QHBoxLayout()
+        satir.setContentsMargins(0, 0, 0, 0)
+        satir.addWidget(T.etiket(tablo["ad"].upper(), "listeBaslik"))
+        satir.addStretch(1)
+        govde.addLayout(satir)
+        satirlar = tablo.get("satirlar") or []
+        if satirlar:
+            for kayit in satirlar[:2]:
+                s = QHBoxLayout()
+                s.setContentsMargins(0, 0, 0, 0)
+                s.setSpacing(8)
+                ad = T.etiket(str(kayit.get("ad", "-")), "satirAd")
+                s.addWidget(ad)
+                s.addStretch(1)
+                deger = T.etiket(self._deger_metni(kayit), "satirSag")
+                deger.setStyleSheet("color: %s;" % T.VURGU)
+                s.addWidget(deger)
+                govde.addLayout(s)
+        else:
+            govde.addWidget(T.etiket("Veri yok", "minik"))
+        return kutu
+
+    @staticmethod
+    def _deger_metni(kayit):
+        """Veri kaynağının hazırladığı metni kullan, yoksa sayıyı biçimlendir."""
+        metin = (kayit.get("metin") or "").strip()
+        if metin:
+            return metin
+        for anahtar, birim in (("bakiye", "₺"), ("sure", "dk"),
+                              ("seviye", "seviye"), ("xp", "XP")):
+            if kayit.get(anahtar) is not None:
+                try:
+                    return "%.0f %s" % (float(kayit[anahtar]), birim)
+                except (TypeError, ValueError):
+                    return "%s %s" % (kayit[anahtar], birim)
+        deger = kayit.get("deger")
+        if isinstance(deger, (int, float)):
+            return "%.0f" % deger
+        return str(deger if deger is not None else "-")
+
+    def _sekme_tik(self):
+        self.sekme_degisti(self.sekmeler.indeks)
 
     def goster(self):
         self._yukle()
