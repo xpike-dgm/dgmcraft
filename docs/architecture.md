@@ -2,12 +2,14 @@
 
 ## 1. Çekirdek
 
-- Purpur 26.2 build 2633 (MC 26.2)
+- Purpur **26.1.2 build 2592** (MC 26.1.2) — 2026-09-26'da düşürüldü, 31 eklenti + 750 görev ile doğrulandı
+- Önceki sürüm: Purpur 26.2 build 2633 → geri dönüş için `purpur-26.2-2633.jar` olarak kökte saklanıyor
+- WorldGuard: 7.0.19 (`api-version: 26.2`, 26.1'de yüklenmiyor) → **7.0.18**; yedek jar `geri-donus/worldguard-bukkit-7.0.19.jar`
 - Jar: `purpur.jar`
 - Çalışma modu: `--nogui`
 - EULA: `eula.txt`
 
-Purpur tercihi teknik gerekçesi: Paper tabanlı drop-in replacement, ek `purpur.yml` configurability içerir, vanilla mekanikleri korur. Paper 26.3 henüz deneysel, plugin ekosistemi (EssentialsX, MythicMobs alternatifleri, TAB, LuckPerms) 26.2'de kararlı. Bu yüzden hedef sürüm 26.2 + Purpur 2633 (stabil kanal).
+Purpur tercihi teknik gerekçesi: Paper tabanlı drop-in replacement, ek `purpur.yml` configurability içerir, vanilla mekanikleri korur. 2026-09-26'da kullanıcı kararıyla 26.2 → **26.1.2** hattına düşürüldü: BeautyQuests 2.1.0 ve 750 görev bu hatta doğrulandı, tüm eklentiler 0 hata ile yüklendi. Geri dönüş jar'ları kökte (`purpur-26.2-2633.jar`, `geri-donus/`) tutulur.
 
 ## 2. Klasör Yapısı
 

@@ -190,7 +190,7 @@ settings:
     minecraft:blue_bed:
       distance: 0.5
   fix-projectile-looting-transfer: false
-config-version: 49
+config-version: 48
 world-settings:
   default:
     settings:
@@ -255,6 +255,7 @@ world-settings:
           scale: 1.0
         always-drop-exp: false
       wolf:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -289,6 +290,7 @@ world-settings:
         play-spawn-sound: true
         always-drop-exp: false
       villager:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -428,6 +430,7 @@ world-settings:
           scale: 1.0
         can-pick-up-loot: default
       camel:
+        breeding-delay-ticks: 6000
         ridable-in-water: false
         attributes:
           max_health:
@@ -446,6 +449,7 @@ world-settings:
             min: 1
             max: 1
       cat:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -466,6 +470,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       chicken:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: false
         controllable: true
@@ -482,6 +487,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       armadillo:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -503,6 +509,7 @@ world-settings:
           scale: 1.0
         can-pick-up-loot: default
       axolotl:
+        breeding-delay-ticks: 6000
         ridable: false
         controllable: true
         attributes:
@@ -534,6 +541,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       bee:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -615,6 +623,7 @@ world-settings:
         healing-calms-anger: false
         always-drop-exp: false
       mooshroom:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -641,6 +650,7 @@ world-settings:
         takes-damage-from-water: false
         can-ride-vehicles: false
       panda:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -697,6 +707,7 @@ world-settings:
         ignores-armor-with-gold-trim: false
         can-pick-up-loot: default
       polar_bear:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -805,6 +816,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       mule:
+        breeding-delay-ticks: 6000
         ridable-in-water: false
         attributes:
           max_health:
@@ -821,6 +833,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       turtle:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -836,6 +849,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       nautilus:
+        breeding-delay-ticks: 6000
         attributes:
           max_health: 15.0
           movement_speed: 1.0
@@ -860,6 +874,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       trader_llama:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: false
         controllable: true
@@ -919,6 +934,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       ocelot:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -935,6 +951,7 @@ world-settings:
         always-drop-exp: false
         spawn-below-sea-level: false
       fox:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -953,6 +970,7 @@ world-settings:
         always-drop-exp: false
         can-pick-up-loot: default
       horse:
+        breeding-delay-ticks: 6000
         ridable-in-water: false
         attributes:
           max_health:
@@ -989,6 +1007,7 @@ world-settings:
         change-color-with-dye: false
         always-drop-exp: false
       frog:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -1000,6 +1019,7 @@ world-settings:
             min: 2
             max: 5
       rabbit:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -1072,6 +1092,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       cow:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -1140,6 +1161,7 @@ world-settings:
           min: 0
           max: 0
       pig:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: false
         controllable: true
@@ -1156,6 +1178,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       goat:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -1171,6 +1194,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       sheep:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -1263,6 +1287,7 @@ world-settings:
         always-drop-exp: false
         can-pick-up-loot: default
       hoglin:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -1310,6 +1335,7 @@ world-settings:
         takes-damage-from-water: true
         always-drop-exp: false
       sniffer:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: true
         controllable: true
@@ -1319,6 +1345,7 @@ world-settings:
         breeding:
           cooldown-in-ticks: 6000
       strider:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: false
         controllable: true
@@ -1358,6 +1385,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       llama:
+        breeding-delay-ticks: 6000
         ridable: false
         ridable-in-water: false
         controllable: true
@@ -1404,6 +1432,7 @@ world-settings:
         takes-damage-from-water: false
         always-drop-exp: false
       donkey:
+        breeding-delay-ticks: 6000
         ridable-in-water: false
         attributes:
           max_health:

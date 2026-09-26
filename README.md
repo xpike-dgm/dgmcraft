@@ -1,11 +1,11 @@
 # DGM Craft — Survival+ Sunucu
 
 Türkçe, 3 oyunculu özel Survival+ sunucusu.
-Purpur 26.2 üzerine kurulu, düşük bakım yükü ve uzun ömürlü progression hedefler.
+Purpur 26.1.2 üzerine kurulu, düşük bakım yükü ve uzun ömürlü progression hedefler.
 
 ## Sistem Özeti
 
-- Çekirdek: Purpur 26.2 build 2633 (MC 26.2)
+- Çekirdek: Purpur 26.1.2 build 2592 (MC 26.1.2)
 - Java: Temurin 25.0.4.1 LTS, portable — `runtime/jdk-25.0.4.1+1`
 - Klasör: `C:\Users\Xpike\Desktop\DgmCraftt`
 - RAM: 16GB sistem / 3GB heap (`-Xms3G -Xmx3G`)

@@ -7,7 +7,7 @@ Komut (sunucu çalışırken önce konsolda `save-all flush` yazın):
 powershell -ExecutionPolicy Bypass -File scripts\backup.ps1
 ```
 
-İçerik: `world*` (26.2 tek klasör + dimensions), `plugins/` (config + SQLite/H2 veritabanları), `config/`, kökteki `*.json + *.yml + server.properties`.
+İçerik: `world*` (26.1.2 tek klasör + dimensions), `plugins/` (config + SQLite/H2 veritabanları), `config/`, kökteki `*.json + *.yml + server.properties`.
 Hedef: `backups/dgmcraft_YYYY-MM-DD_HH-mm.zip`
 Rotasyon: 7 günden eski `dgmcraft_*.zip` dosyaları silinir.
 

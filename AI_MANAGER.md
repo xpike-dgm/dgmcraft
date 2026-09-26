@@ -26,7 +26,7 @@ Bu dosya gelecekteki AI asistanlar ve yöneticiler içindir. Önce bunu okumadan
 
 ## 3. BEAUTYQUESTS NOTU
 
-- Sürüm 2.1.0 release, MC 26.2 uyumlu. 2.2.0+build.156 alpha denendi, aynı NPE (locale) verdi, kaldırıldı.
+- Sürüm 2.1.0 release, MC 26.1.2 ve 26.2 uyumlu (iki sürümde de 750 görev hatasız doğrulandı). 2.2.0+build.156 alpha denendi, aynı NPE (locale) verdi, kaldırıldı.
 - Locale flag olmadan çalıştırma. Hata görülürse önce `logs/latest.log` içinde `BeautyQuests` ara.
 - Quest dosyalarını elle düzenlersen UTF-8 BOM olmadan kaydet.
 
@@ -48,8 +48,11 @@ Bu dosya gelecekteki AI asistanlar ve yöneticiler içindir. Önce bunu okumadan
 
 ## 6. DÜNYA YAPISI NOTU
 
-- MC 26.2 Purpur: tek klasör `world/`, nether ve end `world/dimensions/` altında.
+- MC 26.1.2 Purpur: tek klasör `world/`, nether ve end `world/dimensions/minecraft/` altında.
 - `world_nether/` ve `world_the_end/` yoktur, oluşturma. Yedek scripti `world*` desenini kullanır.
+- 2026-09-26'da 26.2 → 26.1.2 geçişi yapıldı; 26.1.2 de aynı tek-klasör standardını
+  kullanıyor (26.1.2'de yeniden üretilen dünyada `world/dimensions/minecraft/{overworld,the_nether,the_end}`
+  doğrulandı). 26.2 dünyası silinmedi, `world-26.2-yedek/` olarak korunuyor.
 
 ## 7. BİLİNEN OPERASYONEL NOTLAR
 

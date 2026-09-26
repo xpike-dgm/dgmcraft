@@ -2150,7 +2150,7 @@ Sunucu bakimi, cekirdek, yetki ve guvenli kapatma komutlari.
 
 ### /purpur
 **Ne ise yarar:** Purpur surumunu gosterir.
-**Ornek:** `/purpur version` (26.2 buildi dogrularsin).
+**Ornek:** `/purpur version` (26.1.2 buildini dogrularsin).
 
 **Orjinal Komutu:** /purpur - sunucu veya cekirdek admin komutu.
 

@@ -2,6 +2,33 @@
 
 Format: `Added / Changed / Fixed` başlıkları altında kısa maddeler.
 
+## [0.2.0] — 2026-09-26 — Purpur 26.2 → 26.1.2 sürüm düşürme
+
+### Changed
+- **Purpur 26.2 build 2633 → 26.1.2 build 2592** (kullanıcı kararı). MD5 `0d01a9bcabd5e32b1e5e5d48901f1f17` ile doğrulandı, `result: SUCCESS` build. Düz `26.1` yayınlanmadığı için 26.1 hattının son sürümü olan 26.1.2 hedeflendi.
+- **WorldGuard 7.0.19 → 7.0.18.** 7.0.19 `api-version: "26.2"` olduğu için 26.1'de yüklenmiyordu; 7.0.18 `26.1, 26.1.1, 26.1.2, 26.2, 26.3` destekliyor.
+- Geri dönüş varlıkları korundu (silinmedi): `purpur-26.2-2633.jar` (kök), `geri-donus/worldguard-bukkit-7.0.19.jar`, `world-26.2-yedek/`, `backups/dgmcraft_2026-09-26_15-08.zip`.
+- 26.1.2'de dünya sıfırdan üretildi: `world/dimensions/minecraft/{overworld,the_nether,the_end}` — 26.2 ile aynı tek-klasör standardı.
+- `AI_MANAGER.md` §6 dünya yapısı notu, `docs/architecture.md` §1, `README.md`, `docs/recovery.md`, `docs/kilavuz.md` 26.1.2'ye güncellendi.
+
+### Added
+- `docs/26.1-indirme-plani.md` — kapsamlı geçiş planı + uygulama raporu (sonuç tabloları, geri dönüş adımları, çıkış özeti).
+- `plugins.lock.md`: WorldGuard 7.0.18 ve WorldEdit 7.4.5 satırları eklendi (eksikti), Purpur satırı 26.1.2 build 2592 oldu.
+
+### Fixed
+- **`Ambiguous plugin name 'WorldGuard'`**: Geri dönüş için saklanan WorldGuard 7.0.19 jar'ı `plugins/` içinde bırakılınca Paper iki WorldGuard'ı çakışma sayıp sunucuyu açmıyordu. Geri dönüş jar'ları artık `plugins/` DIŞINDA, kökte `geri-donus/` klasöründe tutuluyor. Kural `plugins.lock.md` ve `AI_MANAGER.md`'ye yazıldı.
+
+### Doğrulama
+- Sunucu: `Purpur 26.1.2-2592-HEAD@405ad83 (Implementing API version 26.1.2.build.2592-stable)`, Temurin Java 25.0.4.1 ile sorunsuz.
+- **31 eklenti** etkin, `ERROR/SEVERE: 0`.
+- **BeautyQuests: `750 quests and 0 pools loaded`** — 26.1.2'de de hatasız. Bu, görevlerdeki `oak_fence` ve `copper_chain` eşyalarının 26.1.2'de geçerli olduğunu kanıtlıyor.
+- Kararlılık: 4 dakika, 8/8 örnekte RCON ayakta, temiz kapanış (`All dimensions are saved`).
+- Oyuncu verisi korundu: Essentials bakiye 150₺, AuraSkills ve BeautyQuests quester dosyaları yerinde.
+- Launcher tam test paketi: `TÜM TESTLER GEÇTİ`, görev sayfası 750 düğüm / 14 bölüm.
+
+### Notes
+- Sunucu launcher dışından `Start-Process`/`subprocess` ile arka planda başlatılırsa araç ortamı onu `-1` ile sonlandırabiliyor (çökme raporu/kapama logu olmadan). Sunucu hatası değil: öne planda 10+ dakika sorunsuz çalıştı, launcher üzerinden de sorunsuz. Geçici teşhis notu olarak belgelendi.
+
 ## [0.1.0] — 2026-09-22
 
 
