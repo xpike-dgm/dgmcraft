@@ -45,7 +45,7 @@ class GuncellemePenceresi(QWidget):
     # ---------- görünüm ----------
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
-        dis.setContentsMargins(0, 0, 0, 0)
+        dis.setContentsMargins(11, 11, 11, 11)
         dis.setSpacing(0)
         dis.addWidget(self._ust_cubuk())
 
@@ -60,7 +60,7 @@ class GuncellemePenceresi(QWidget):
     def _ust_cubuk(self):
         cubuk = QFrame()
         cubuk.setObjectName("ustCubuk")
-        cubuk.setFixedWidth(T.GENISLIK + 2)
+        cubuk.setFixedWidth(T.GENISLIK)
         cubuk.setFixedHeight(T.UST_YUKSEKLIK)
         satir = QHBoxLayout(cubuk)
         satir.setContentsMargins(25, 0, 18, 3)

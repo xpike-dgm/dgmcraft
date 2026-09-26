@@ -81,6 +81,7 @@ class Sihirbaz(QWidget):
         self.esles_ok = False
         self.esles_atlandi = False
         self._mesgul = False
+        self._sync_yuzde = 0
         self._adim_ileti.connect(self._ilerleme_goster)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
@@ -115,7 +116,7 @@ class Sihirbaz(QWidget):
     def _baslik_kur(self):
         cubuk = QFrame()
         cubuk.setObjectName("ustCubuk")
-        cubuk.setFixedWidth(T.GENISLIK + 2)
+        cubuk.setFixedWidth(T.GENISLIK)
         cubuk.setFixedHeight(T.UST_YUKSEKLIK)
         satir = QHBoxLayout(cubuk)
         satir.setContentsMargins(25, 0, 18, 3)
@@ -250,7 +251,7 @@ class Sihirbaz(QWidget):
     def _alt_kur(self):
         serit = QFrame()
         serit.setObjectName("ustCubuk")
-        serit.setFixedWidth(T.GENISLIK + 2)
+        serit.setFixedWidth(T.GENISLIK)
         serit.setFixedHeight(52)
         satir = QHBoxLayout(serit)
         satir.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
@@ -259,10 +260,11 @@ class Sihirbaz(QWidget):
         satir.addWidget(self.adimYazi)
         satir.addStretch(1)
         self.geriDugmesi = T.dugme("← Geri", "kontrast")
+        self.geriDugmesi.setFixedSize(130, 44)
         self.geriDugmesi.clicked.connect(self._geri)
         satir.addWidget(self.geriDugmesi)
         self.ileriDugmesi = T.dugme("Devam Et →", "ana")
-        self.ileriDugmesi.setFixedWidth(168)
+        self.ileriDugmesi.setFixedSize(180, 44)
         self.ileriDugmesi.clicked.connect(self._ileri)
         satir.addWidget(self.ileriDugmesi)
         return serit
@@ -305,6 +307,10 @@ class Sihirbaz(QWidget):
         self.geriDugmesi.setVisible(self.adim > 0)
         self.ileriDugmesi.setText("Bitir ve başla" if self.adim == len(ADIMLAR) - 1
                                   else "Devam Et →")
+        if self.adim == 3:
+            self.ileriDugmesi.setEnabled(self.sync_ok and not self._mesgul)
+        else:
+            self.ileriDugmesi.setEnabled(True)
         Y.yerlesim_temizle(self.govde)
         getattr(self, "_adim_" + ("hosgeldin", "ad", "anahtar", "sync", "vpn",
                                   "arkadas", "hazir")[self.adim])()
@@ -332,12 +338,14 @@ class Sihirbaz(QWidget):
     def _girdi(self, yertutucu="", gizli=False, genislik=320):
         e = QLineEdit()
         e.setPlaceholderText(yertutucu)
-        e.setFixedWidth(genislik)
+        e.setFixedWidth(genislik or 610)
+        e.setFixedHeight(46)
         e.setEchoMode(QLineEdit.Password if gizli else QLineEdit.Normal)
         e.setStyleSheet(
-            "QLineEdit { background: #0F1513; border: 1px solid %s; border-radius: 10px;"
-            " padding: 11px 12px; color: %s; font-size: 14px; }"
-            "QLineEdit:focus { border-color: %s; }" % (T.CERCEVE, T.YAZI, T.VURGU))
+            "QLineEdit { background: %s; border: 1px solid %s; border-radius: 4px;"
+            " padding: 12px; color: %s; font-size: 12px; }"
+            "QLineEdit:focus { border: 2px solid %s; padding: 11px; }"
+            % (T.YUZEY, T.CERCEVE, T.YAZI, T.VURGU))
         self.govde.addWidget(e, 0, Qt.AlignLeft)
         return e
 
@@ -362,10 +370,19 @@ class Sihirbaz(QWidget):
         return lb
 
     def _ilerleme_goster(self, metin):
-        try:
-            self.notYazi.setText(metin)
-        except Exception:
-            pass
+        """Alt şeritteki durum metni + denetim kartındaki yüzde."""
+        self.adimYazi.setText(metin)
+        alt = getattr(self, "syncAlt", None)
+        if alt is not None:
+            alt.setText(metin)
+        yuzde = getattr(self, "syncYuzde", None)
+        if yuzde is not None:
+            yuzde.setText("%d%%" % int(self._sync_yuzde))
+        cubuk = getattr(self, "syncCubuk", None)
+        if cubuk is not None:
+            cubuk.setValue(int(self._sync_yuzde))
+        self._mesgul = False
+        self.ileriDugmesi.setEnabled(self.sync_ok)
 
     def _calistir(self, islev):
         def sarmal():
@@ -421,14 +438,39 @@ class Sihirbaz(QWidget):
 
     def _adim_sync(self):
         self._aciklama("Sunucu dosyaların arkadaşlarınla otomatik eşitlenir.")
-        self.syncYazi = self._durum_satiri("Kontrol ediliyor...", T.SILIK)
-        self.syncKurDugmesi = QPushButton("Dosya eşitlemeyi Kur")
-        self.syncKurDugmesi.setObjectName("anaDugme")
-        self.syncKurDugmesi.setCursor(Qt.PointingHandCursor)
+        kutu = T.kart("siyah")
+        kutu.setFixedHeight(196)
+        kutu.setFixedWidth(610)
+        kutuGovde = QVBoxLayout(kutu)
+        kutuGovde.setContentsMargins(24, 20, 24, 20)
+        kutuGovde.setSpacing(10)
+        kutuUst = QHBoxLayout()
+        self.syncYazi = T.etiket("Kontrol ediliyor...", "bolumAltBaslik")
+        kutuUst.addWidget(self.syncYazi)
+        kutuUst.addStretch(1)
+        self.syncYuzde = T.etiket("0%", "kartSayacKucuk")
+        kutuUst.addWidget(self.syncYuzde)
+        kutuGovde.addLayout(kutuUst)
+        self.syncCubuk = QProgressBar()
+        self.syncCubuk.setRange(0, 100)
+        self.syncCubuk.setTextVisible(False)
+        self.syncCubuk.setFixedHeight(6)
+        kutuGovde.addWidget(self.syncCubuk)
+        self.syncAlt = T.etiket("Denetim sürüyor", "soluk")
+        kutuGovde.addWidget(self.syncAlt)
+        kutuGovde.addStretch(1)
+        self.govde.addWidget(kutu, 0, Qt.AlignLeft)
+
+        self.syncKurDugmesi = T.dugme("Dosya eşitlemeyi Kur", "ana")
+        self.syncKurDugmesi.setFixedHeight(38)
+        self.syncKurDugmesi.setEnabled(not self._mesgul)
         self.syncKurDugmesi.clicked.connect(self._sync_kur)
         self.govde.addWidget(self.syncKurDugmesi, 0, Qt.AlignLeft)
-        self._not("Yeşile dönmeden devam edemezsin.")
-        QTimer.singleShot(50, self._sync_denetle)
+        self._not("Eşitleme hazır olmadan devam edemezsin.")
+        if self._mesgul:
+            self._ilerleme_goster("Denetim sürüyor")
+        else:
+            QTimer.singleShot(50, self._sync_denetle)
 
     def _adim_vpn(self):
         self._aciklama(
@@ -491,6 +533,7 @@ class Sihirbaz(QWidget):
         self._ileri()
 
     def _sync_denetle(self):
+        self._mesgul = True
         self._calistir(self._sync_durum_bul)
 
     def _sync_durum_bul(self):
@@ -506,6 +549,7 @@ class Sihirbaz(QWidget):
                 if yuzde else "Eşitleme hazır.")
 
     def _sync_kur(self):
+        self._mesgul = True
         self.syncKurDugmesi.setEnabled(False)
         self._calistir(self._sync_kur_is)
 

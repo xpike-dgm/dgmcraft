@@ -166,13 +166,15 @@ class Kabuk(QMainWindow):
         dis.setObjectName("dis")
         dis.setStyleSheet("QWidget#dis { background: transparent; }")
         kaplayan = QVBoxLayout(dis)
-        kaplayan.setContentsMargins(0, 0, 0, 0)
+        kaplayan.setContentsMargins(T.GOLGE // 2, T.GOLGE // 2,
+                                    T.GOLGE // 2, T.GOLGE // 2)
         kaplayan.setSpacing(0)
 
         self.pencere = QFrame(dis)
         self.pencere.setObjectName("pencere")
+        self.pencere.setFixedSize(T.GENISLIK, T.YUKSEKLIK)
         Y.golge(self.pencere, 34, 150, 0)
-        kaplayan.addWidget(self.pencere)
+        kaplayan.addWidget(self.pencere, 0, Qt.AlignCenter)
 
         govde = QVBoxLayout(self.pencere)
         govde.setContentsMargins(1, 1, 1, 1)
@@ -186,6 +188,7 @@ class Kabuk(QMainWindow):
         ic.setSpacing(0)
         self.yigin = QStackedWidget()
         self.yigin.setObjectName("sayfa")
+        self.yigin.layout().setContentsMargins(0, 0, 0, 0)
         ic.addWidget(self.yigin, 1)
         govde.addWidget(self._icerik, 1)
 

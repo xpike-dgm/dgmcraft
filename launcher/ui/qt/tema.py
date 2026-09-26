@@ -50,6 +50,8 @@ VURGU_HOVER = "#FFAE4F"
 YESIL = "#5FC27E"
 KIRMIZI = "#F07167"
 MAVI = "#8FB8E8"
+NOTR = "#4B4F50"
+BOLUCU_NOTR = "#4B4F50"
 RAY_GENISLIK = 0
 HERO_UST = SIYAH
 HERO_ALT = SIYAH
@@ -124,15 +126,15 @@ QLabel#metrikEtiket {
 }
 QLabel#metrikDeger { font-size: 34px; font-weight: 700; color: %(yazi)s; }
 QLabel#metrikAlt { font-size: 11px; color: %(ikincil)s; }
-QLabel#kartBaslik { font-size: 15px; font-weight: 700; color: %(yazi)s; }
+QLabel#kartBaslik { font-size: 20px; font-weight: 700; color: %(yazi)s; }
 QLabel#bolumBaslik {
-    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 2px;
+    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
 }
 QLabel#metin { font-size: 12px; color: %(yazi)s; }
 QLabel#ikincil { font-size: 12px; color: %(ikincil)s; }
 QLabel#soluk { font-size: 11px; color: %(ikincil)s; }
 QLabel#minik { font-size: 10px; color: %(ikincil)s; }
-QLabel#komutAd { font-size: 13px; font-weight: 700; color: %(vurgu)s; }
+QLabel#komutAd { font-size: 13px; font-weight: 700; color: %(yazi)s; }
 QLabel#konsolZaman { font-size: 11px; color: %(konsolZaman)s; }
 QLabel#konsolSatir { font-size: 12px; color: %(yazi)s; }
 QLabel#konsolUyari { font-size: 12px; color: %(konsolUyari)s; }
@@ -143,14 +145,14 @@ QLabel#satirSag {
     font-size: 10px; font-weight: 700; color: %(ikincil)s; letter-spacing: 1px;
 }
 QLabel#listeBaslik {
-    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 2px;
+    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
 }
 QLabel#yetenekAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
 QLabel#yetenekSeviye { font-size: 10px; color: %(ikincil)s; }
 QLabel#yetenekXp { font-size: 10px; color: %(ikincil)s; }
 
 /* --- hero / turuncu kart --- */
-QLabel#heroBaslik { font-size: 32px; font-weight: 700; color: %(yazi)s; }
+QLabel#heroBaslik { font-size: 43px; font-weight: 700; color: %(yazi)s; }
 QLabel#heroMetin { font-size: 12px; color: %(ikincil)s; }
 QLabel#rozetYazi { font-size: 10px; font-weight: 700; color: %(yazi)s; }
 QLabel#vurguUst {
@@ -193,6 +195,80 @@ QPushButton[rol="kontrast"] {
 QPushButton[rol="kontrast"]:hover { border-color: %(vurgu)s; color: %(vurgu)s; }
 QPushButton[rol="kontrast"]:disabled { color: #4A5457; }
 
+/* eski objectName'ler — 05-night paletine eşlendi (dugme/panel yüzeyleri) */
+QPushButton#anaDugme {
+    background: %(vurgu)s; color: %(vurguYazi)s; border: 1px solid %(vurgu)s;
+    border-radius: 4px; font-weight: 700; padding: 0 16px; min-height: 32px;
+}
+QPushButton#anaDugme:hover { background: #FFAE4F; border-color: #FFAE4F; }
+QPushButton#anaDugme:pressed { background: #E58620; }
+QPushButton#anaDugme:disabled { background: #2A3033; color: #5A6467; border-color: #2A3033; }
+
+QPushButton#hayaletDugme {
+    background: %(yuzey)s; color: %(yazi)s; border: 1px solid %(cerceve)s;
+    border-radius: 4px; padding: 0 14px; min-height: 30px;
+}
+QPushButton#hayaletDugme:hover { border-color: %(vurgu)s; color: %(vurgu)s; }
+QPushButton#hayaletDugme:pressed { background: %(yuzeyAcik)s; }
+QPushButton#hayaletDugme:disabled { color: #5A6467; border-color: #2A3033; }
+
+QFrame#seffaf { background: transparent; border: none; }
+QFrame#listeKutu {
+    background: %(yuzey)s; border: 1px solid %(cerceve)s; border-radius: 4px;
+}
+QFrame#detayKart {
+    background: %(siyah)s; border: 1px solid %(siyah)s; border-radius: 4px;
+}
+QFrame#icKart {
+    background: %(yuzeyAcik)s; border: 1px solid %(cerceve)s; border-radius: 4px;
+}
+QFrame#sihirNot, QFrame#sihirDurum {
+    background: %(yuzeyAcik)s; border: 1px solid %(cerceve)s; border-radius: 4px;
+}
+QFrame#odulKutu {
+    background: %(yuzeyAcik)s; border: 1px solid %(cerceve)s; border-radius: 4px;
+}
+QFrame#ayrac { background: %(bolucu)s; border: none; max-height: 1px; }
+
+QFrame#gorevSatir {
+    background: transparent; border: none; border-left: 4px solid transparent;
+    border-radius: 0;
+}
+QFrame#gorevSatir:hover { background: %(yuzeyAcik)s; }
+QFrame#gorevSecili {
+    background: %(yuzeyAcik)s; border: 1px solid transparent;
+    border-left: 4px solid %(vurgu)s; border-radius: 0;
+}
+QFrame#tabloSatir {
+    background: transparent; border: 1px solid transparent; border-radius: 4px;
+}
+QFrame#tabloSatir:hover { background: %(yuzeyAcik)s; border-color: %(cerceve)s; }
+QFrame#tabloSatir[secili="1"] {
+    background: %(siyah)s; border: 1px solid %(siyah)s; border-radius: 4px;
+}
+
+QLabel#kucuk { font-size: 11px; color: %(ikincil)s; }
+QLabel#tabloSatirAd { font-size: 13px; font-weight: 700; color: %(yazi)s; }
+QLabel#detayBaslik { font-size: 20px; font-weight: 700; color: %(yazi)s; }
+QLabel#detayAlt { font-size: 11px; color: %(ikincil)s; }
+QLabel#detayAlinti { font-size: 12px; color: %(vurgu)s; font-weight: 600; }
+QLabel#detayBolum {
+    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 2px;
+}
+QLabel#hedefKutu { font-size: 12px; color: %(yazi)s; }
+QLabel#odulYazi { font-size: 12px; color: %(yazi)s; }
+QLabel#bolumAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
+QLabel#bolumSayi { font-size: 11px; color: %(ikincil)s; }
+QLabel#satirAlt { font-size: 11px; color: %(ikincil)s; }
+QLabel#sayac { font-size: 30px; font-weight: 700; color: %(yazi)s; }
+QLabel#rozetDeger { font-size: 22px; font-weight: 700; color: %(vurgu)s; }
+QLabel#rozetEtiket {
+    font-size: 10px; color: %(ikincil)s; letter-spacing: 1px;
+}
+QLabel#durumRozeti { font-size: 10px; font-weight: 700; color: %(vurgu)s; }
+QLabel#sihirAciklama { font-size: 12px; color: %(ikincil)s; }
+QLabel#kategoriSatirAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
+
 QPushButton[rol="sekme"] {
     background: transparent; color: %(ikincil)s; border: 1px solid %(cerceve)s;
     border-radius: 4px; font-weight: 600; padding: 7px 16px;
@@ -223,7 +299,7 @@ QLineEdit#aramaKutusu:focus { border: 2px solid %(vurgu)s; padding: 9px 11px; }
 
 /* --- ilerleme --- */
 QProgressBar {
-    background: #2A3235; border: none; border-radius: 3px; height: 6px;
+    background: #4B4F50; border: none; border-radius: 3px; height: 6px;
 }
 QProgressBar::chunk { background: %(vurgu)s; border-radius: 3px; }
 QProgressBar[rol="ince"] { height: 4px; }
@@ -245,12 +321,12 @@ QFrame#listeSatir[secili="1"] { background: %(yuzeyAcik)s; border-left: 4px soli
 QScrollArea { border: none; background: transparent; }
 QScrollBar:vertical { background: transparent; width: 10px; margin: 0; }
 QScrollBar::handle:vertical {
-    background: #39423F; border-radius: 5px; min-height: 30px; margin: 2px;
+    background: #4B4F50; border-radius: 5px; min-height: 30px; margin: 2px;
 }
 QScrollBar::handle:vertical:hover { background: %(vurgu)s; }
 QScrollBar:horizontal { background: transparent; height: 10px; margin: 0; }
 QScrollBar::handle:horizontal {
-    background: #39423F; border-radius: 5px; min-width: 30px; margin: 2px;
+    background: #4B4F50; border-radius: 5px; min-width: 30px; margin: 2px;
 }
 QScrollBar::handle:horizontal:hover { background: %(vurgu)s; }
 QScrollBar::add-line, QScrollBar::sub-line { width: 0; height: 0; }
@@ -387,27 +463,35 @@ class BaslikAlani(QWidget):
     def __init__(self, ust_etiket, baslik, aciklama="", sag_etiket="", ebeveyn=None):
         super().__init__(ebeveyn)
         govde = QVBoxLayout(self)
-        govde.setContentsMargins(IC_PAY, 16, IC_PAY, 0)
+        govde.setContentsMargins(IC_PAY, 20, IC_PAY, 0)
         govde.setSpacing(6)
+        govde.setAlignment(Qt.AlignTop)
         self.ustYazi = etiket(ust_etiket.upper(), "ustYazi")
+        self.ustYazi.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         govde.addWidget(self.ustYazi)
         satir = QHBoxLayout()
         satir.setContentsMargins(0, 0, 0, 0)
         satir.setSpacing(16)
+        satir.setAlignment(Qt.AlignTop)
         sol = QVBoxLayout()
         sol.setContentsMargins(0, 0, 0, 0)
-        sol.setSpacing(6)
+        sol.setSpacing(8)
+        sol.setAlignment(Qt.AlignTop)
         self.baslikYazi = etiket(baslik, "sayfaBaslik")
+        self.baslikYazi.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         sol.addWidget(self.baslikYazi)
         self.aciklamaYazi = etiket(aciklama, "sayfaAciklama")
         self.aciklamaYazi.setWordWrap(True)
+        self.aciklamaYazi.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         sol.addWidget(self.aciklamaYazi)
         satir.addLayout(sol, 1)
         if sag_etiket:
             self.sagYazi = etiket(sag_etiket, "sayfaEtiket")
             self.sagYazi.setAlignment(Qt.AlignRight | Qt.AlignTop)
+            self.sagYazi.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
             satir.addWidget(self.sagYazi, 0, Qt.AlignTop)
         govde.addLayout(satir)
+        govde.addStretch(1)
         self.setFixedHeight(135)
 
 

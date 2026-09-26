@@ -366,8 +366,8 @@ class KomutlarSayfasi(QWidget):
         kart = QFrame()
         kart.setObjectName("icKart")
         kart.setStyleSheet(
-            "QFrame#icKart { background: %s; border: 1px solid %s; border-radius: 10px; }"
-            % (("#1C1710", "#4A3A18") if uyarı else ("#131A18", "#1F2A26")))
+            "QFrame#icKart { background: %s; border: 1px solid %s; border-radius: 4px; }"
+            % (("#241A08", "#4A3208") if uyarı else ("#131A18", "#1F2A26")))
         govde = QVBoxLayout(kart)
         govde.setContentsMargins(14, 12, 14, 12)
         govde.setSpacing(6)

@@ -89,18 +89,59 @@ class AyarlarSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
+        govde = QHBoxLayout()
+        govde.setContentsMargins(0, 0, 0, 0)
+        govde.setSpacing(T.KART_ARALIK)
+
+        # --- sol: 245x548 siyah bolum menusu ---
+        self.bolumMenusu = T.kart("siyah")
+        self.bolumMenusu.setFixedWidth(245)
+        self.bolumMenusu.setFixedHeight(548)
+        menuGovde = QVBoxLayout(self.bolumMenusu)
+        menuGovde.setContentsMargins(14, 18, 14, 18)
+        menuGovde.setSpacing(4)
+        menuUst = T.etiket("BÖLÜMLER", "bolumBaslik")
+        menuGovde.addWidget(menuUst)
+        menuGovde.addSpacing(12)
+        self.bolumDugmeleri = []
+        for ad in ("Profil", "Arkadaş bağlantısı", "Uygulama",
+                   "Güncelleme"):
+            b = T.dugme(ad, "kontrast")
+            b.setFixedHeight(38)
+            b.setStyleSheet("")
+            b.setMinimumWidth(0)
+            b.clicked.connect(lambda _c, a=ad: self._bolum_sec(a))
+            menuGovde.addWidget(b)
+            self.bolumDugmeleri.append(b)
+        menuGovde.addStretch(1)
+        menuAlt = T.etiket("DGMCRAFT / AYARLAR", "yardimciEtiket")
+        menuAlt.setAlignment(Qt.AlignLeft)
+        menuGovde.addWidget(menuAlt)
+        govde.addWidget(self.bolumMenusu)
+
+        # --- sag: 945x548 tek ana ayar karti ---
+        self.anaKart = T.kart()
+        self.anaKart.setFixedWidth(945)
+        self.anaKart.setFixedHeight(548)
         self.kaydirma = QScrollArea()
         self.kaydirma.setWidgetResizable(True)
         self.kaydirma.setFrameShape(QFrame.NoFrame)
         icDugum = QWidget()
-        self.izgara = QGridLayout(icDugum)
-        self.izgara.setContentsMargins(0, 0, 0, 0)
-        self.izgara.setSpacing(T.KART_ARALIK)
+        self.izgara = QVBoxLayout(icDugum)
+        self.izgara.setContentsMargins(24, 20, 24, 20)
+        self.izgara.setSpacing(16)
         self.kaydirma.setWidget(icDugum)
-        ic.addWidget(self.kaydirma, 1)
-        self.mesaj = QLabel("")
-        self.mesaj.setObjectName("kucuk")
+        anaKartIc = QVBoxLayout(self.anaKart)
+        anaKartIc.setContentsMargins(0, 0, 0, 0)
+        anaKartIc.setSpacing(0)
+        anaKartIc.addWidget(self.kaydirma, 1)
+        govde.addWidget(self.anaKart)
+        ic.addLayout(govde)
+        ic.addStretch(1)
+        self.mesaj = T.etiket("", "soluk")
+        self.mesaj.setWordWrap(True)
         ic.addWidget(self.mesaj)
+        self._aktif_bolum = "Profil"
 
     def _dugme(self, metin, islev, birincil=False):
         b = QPushButton(metin)
@@ -113,20 +154,43 @@ class AyarlarSayfasi(QWidget):
         e = QLineEdit(metin)
         e.setFixedWidth(190)
         e.setStyleSheet(
-            "QLineEdit { background: #0F1513; border: 1px solid %s; border-radius: 9px;"
-            " padding: 8px 10px; color: %s; font-size: 13px; }"
-            "QLineEdit:focus { border-color: %s; }" % (T.CERCEVE, T.YAZI, T.VURGU))
+            "QLineEdit { background: %s; border: 1px solid %s; border-radius: 4px;"
+            " padding: 8px 10px; color: %s; font-size: 12px; }"
+            "QLineEdit:focus { border: 2px solid %s; padding: 7px 9px; }"
+            % (T.YUZEY, T.CERCEVE, T.YAZI, T.VURGU))
         return e
 
     def _yenile(self):
         Y.yerlesim_temizle(self.izgara)
-        self._profil_karti()      # 0,0
-        self._baglanti_karti()    # 0,1
-        self._uygulama_karti()    # 1,0
-        self._guncelleme_karti()  # 1,1
-        for i in range(2):
-            self.izgara.setColumnStretch(i, 1)
-        self.izgara.setRowStretch(2, 1)
+        self._profil_karti()
+        self.izgara.addWidget(T.ayirici())
+        self._baglanti_karti()
+        self.izgara.addWidget(T.ayirici())
+        self._uygulama_karti()
+        self.izgara.addWidget(T.ayirici())
+        self._guncelleme_karti()
+        self.izgara.addStretch(1)
+        self._bolum_sec(self._aktif_bolum)
+
+    def _bolum_sec(self, ad):
+        """Sol menüdeki bölüm seçimi: turuncu vurgulu satır."""
+        self._aktif_bolum = ad
+        for b, adet in zip(self.bolumDugmeleri,
+                            ("Profil", "Arkadaş bağlantısı",
+                             "Uygulama", "Güncelleme")):
+            if adet == ad:
+                b.setStyleSheet(
+                    "QPushButton { background: %s; color: %s;"
+                    " border: 1px solid %s; border-radius: 4px;"
+                    " font-size: 12px; font-weight: 700; text-align: left;"
+                    " padding-left: 14px; }" % (T.VURGU, T.VURGU_YAZI, T.VURGU))
+            else:
+                b.setStyleSheet(
+                    "QPushButton { background: transparent; color: %s;"
+                    " border: 1px solid transparent; border-radius: 4px;"
+                    " font-size: 12px; font-weight: 600; text-align: left;"
+                    " padding-left: 14px; }"
+                    "QPushButton:hover { color: %s; }" % (T.YAZI, T.VURGU))
 
     # ---------- kartlar ----------
     def _profil_karti(self):
@@ -136,7 +200,7 @@ class AyarlarSayfasi(QWidget):
                    "Arkadaşların bu ismiyle sunucuya bağlanır")
         kaydet = self._dugme("Kaydet", self._profil_kaydet, birincil=True)
         kart.govde.addWidget(kaydet, 0, Qt.AlignLeft)
-        self.izgara.addWidget(kart, 0, 0)
+        self.izgara.addWidget(kart)
 
     def _baglanti_karti(self):
         kart = Kart("Bağlantı")
@@ -150,7 +214,7 @@ class AyarlarSayfasi(QWidget):
         satir.addWidget(self._dugme("Kurulum Sihirbazı", self._sihirbaz_ac))
         satir.addStretch(1)
         kart.govde.addLayout(satir)
-        self.izgara.addWidget(kart, 0, 1)
+        self.izgara.addWidget(kart)
 
     def _uygulama_karti(self):
         kart = Kart("Uygulama")
@@ -162,7 +226,7 @@ class AyarlarSayfasi(QWidget):
         not_ = QLabel("Sunucu belleği Hub sayfasından ayarlanır.")
         not_.setObjectName("minik")
         kart.govde.addWidget(not_)
-        self.izgara.addWidget(kart, 1, 0)
+        self.izgara.addWidget(kart)
 
     def _guncelleme_karti(self):
         """Yayınlama parolayla korunur; parolasız gönderim yapılamaz."""
@@ -187,7 +251,7 @@ class AyarlarSayfasi(QWidget):
         self.parolaGirdi.setEchoMode(QLineEdit.Password)
         self.parolaGirdi.setFixedWidth(130)
         self.parolaGirdi.setStyleSheet(
-            "QLineEdit { background: #0F1513; border: 1px solid %s; border-radius: 9px;"
+            "QLineEdit { background: #0F1513; border: 1px solid %s; border-radius: 4px;"
             " padding: 8px 10px; color: %s; font-size: 12px; }"
             "QLineEdit:focus { border-color: %s; }" % (T.CERCEVE, T.YAZI, T.VURGU))
         satir.addWidget(self.parolaGirdi)
@@ -203,7 +267,7 @@ class AyarlarSayfasi(QWidget):
         satir2.addWidget(self.bitirDugmesi)
         satir2.addStretch(1)
         kart.govde.addLayout(satir2)
-        self.izgara.addWidget(kart, 1, 1)
+        self.izgara.addWidget(kart)
 
     def _yayinla(self):
         parola = self.parolaGirdi.text().strip()

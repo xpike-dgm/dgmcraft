@@ -10,7 +10,7 @@ from .. import tema as T
 from .. import yardimci as Y
 
 BASLIK = "Sıralama"
-MADALYALAR = {1: ("#F0A202", "1"), 2: ("#C8D2CE", "2"), 3: ("#C08457", "3")}
+MADALYALAR = {1: ("#F0A202", "1"), 2: ("#C8D2CE", "2"), 3: ("#B0B8B8", "3")}
 
 UST_ETIKET = "ARKADAŞLARIN"
 SAYFA_BASLIK = "Dünya kayıtları."
@@ -135,6 +135,7 @@ class SiralamaSayfasi(QWidget):
         self.anaKart = QFrame()
         self.anaKart.setObjectName("kart")
         self.anaKart.setFixedWidth(779)
+        self.anaKart.setFixedHeight(478)
         anaGovde = QVBoxLayout(self.anaKart)
         anaGovde.setContentsMargins(20, 18, 20, 18)
         anaGovde.setSpacing(10)
@@ -167,6 +168,7 @@ class SiralamaSayfasi(QWidget):
 
         self.zirveKart = T.kart("siyah")
         self.zirveKart.setFixedWidth(411)
+        self.zirveKart.setFixedHeight(478)
         zirveGovde = QVBoxLayout(self.zirveKart)
         zirveGovde.setContentsMargins(20, 18, 20, 18)
         zirveGovde.setSpacing(12)

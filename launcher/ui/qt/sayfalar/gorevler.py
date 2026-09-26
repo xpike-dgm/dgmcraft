@@ -20,16 +20,16 @@ from .. import yardimci as Y
 
 BASLIK = "Görevler"
 
-CIZGI = "#242F2B"
-ZEMIN = "#121816"
-VURGU_ZEMIN = "#16211D"
-YESIL = "#34D399"
+CIZGI = T.BOLUCU
+ZEMIN = T.SIYAH
+VURGU_ZEMIN = T.YUZEY_ACIK
+YESIL = T.VURGU
 
 DURUM_GEYSI = {
     GA.DURUM_TAMAM: (YESIL, "#08150F", "tamam"),
     GA.DURUM_AKTIF: (T.VURGU, "#1A1000", "oyna"),
-    GA.DURUM_KILITLI: ("#2A3530", T.SILIK, "kilit"),
-    GA.DURUM_TANIMSIZ: ("#232E29", "#55635D", "kilit"),
+    GA.DURUM_KILITLI: (T.CERCEVE, T.IKINCIL, "kilit"),
+    GA.DURUM_TANIMSIZ: (T.YUZEY, T.IKINCIL, "kilit"),
 }
 
 HEDEF_ADI = {
@@ -555,7 +555,7 @@ def _odul_simge(metin):
 
 
 class FiltreDugmesi(QPushButton):
-    """Tümü / Oynanabilir / Tamamlandı / Kilitli düğmeleri."""
+    """Bölüm / durum sekmesi. Seçili turuncu, radius 4px."""
 
     def __init__(self, metin, kimlik, ebeveyn=None):
         super().__init__(ebeveyn)
@@ -563,22 +563,38 @@ class FiltreDugmesi(QPushButton):
         self.setText(metin)
         self.setCursor(Qt.PointingHandCursor)
         self.setFixedHeight(30)
+        self.setMinimumWidth(76)
         self.setCheckable(True)
+        self._secili = False
+        self._stil(False)
+
+    def stil(self, secili):
+        if secili:
+            return ("QPushButton { background: %s; color: %s;"
+                    " border: 1px solid %s; border-radius: 4px;"
+                    " font-size: 11px; font-weight: 700; padding: 0 12px; }"
+                    % (T.VURGU, T.VURGU_YAZI, T.VURGU))
+        return ("QPushButton { background: transparent; color: %s;"
+                " border: 1px solid %s; border-radius: 4px; font-size: 11px;"
+                " font-weight: 600; padding: 0 12px; }"
+                "QPushButton:hover { border-color: %s; color: %s; }"
+                % (T.IKINCIL, T.CERCEVE, T.VURGU, T.YAZI))
+
+    def _stil(self, secili):
+        self._secili = bool(secili)
+        self.setChecked(bool(secili))
+        self.setStyleSheet(self.stil(bool(secili)))
 
     def sec(self, secili):
-        self.setChecked(secili)
-        if secili:
-            self.setStyleSheet(
-                "QPushButton { background: %s; color: #06210F; border: 1px solid %s;"
-                " border-radius: 15px; font-size: 12px; font-weight: 700;"
-                " padding: 0px 14px; }" % (YESIL, YESIL))
-        else:
-            self.setStyleSheet(
-                "QPushButton { background: transparent; color: %s;"
-                " border: 1px solid %s; border-radius: 15px; font-size: 12px;"
-                " padding: 0px 14px; }"
-                "QPushButton:hover { border-color: #3A4A43; background: #151D1A; }"
-                % (T.SOLUK, CIZGI))
+        self._stil(secili)
+
+    @property
+    def secildi(self):
+        return self._secili
+
+    @secildi.setter
+    def secildi(self, deger):
+        self._stil(deger)
 
 
 class GorevlerSayfasi(QWidget):
@@ -638,9 +654,15 @@ class GorevlerSayfasi(QWidget):
         govde = QHBoxLayout()
         govde.setContentsMargins(0, 0, 0, 0)
         govde.setSpacing(12)
-        govde.addWidget(self._sol_sutun(), 58)
+        solSutun = self._sol_sutun()
+        solSutun.setFixedWidth(735)
+        solSutun.setFixedHeight(333)
         self.detay = DetayKarti()
-        govde.addWidget(self.detay, 42)
+        self.detay.setFixedWidth(455)
+        self.detay.setFixedHeight(333)
+        govde.addWidget(solSutun)
+        govde.addWidget(self.detay)
+        govde.addStretch(1)
         ic.addLayout(govde, 1)
 
     def _baslik_kismi(self):
@@ -688,17 +710,10 @@ class GorevlerSayfasi(QWidget):
         dis.setContentsMargins(10, 10, 10, 10)
         dis.setSpacing(8)
 
+        # --- durum filtreleri (sol) ---
         araclar = QHBoxLayout()
         araclar.setContentsMargins(0, 0, 0, 0)
         araclar.setSpacing(7)
-        self.arama = QLineEdit()
-        self.arama.setObjectName("aramaKutusu")
-        self.arama.setPlaceholderText("Görev ara...")
-        self.arama.setClearButtonEnabled(True)
-        self.arama.setFixedWidth(168)
-        self.arama.textChanged.connect(self._arama_degisti)
-        araclar.addWidget(self.arama)
-
         self.secim = QComboBox()
         self.secim.addItem("Tümü")
         self.secim.addItem("Oynanabilir")
@@ -707,17 +722,32 @@ class GorevlerSayfasi(QWidget):
         self.secim.setFixedWidth(112)
         self.secim.currentIndexChanged.connect(self._secim_degisti)
         araclar.addWidget(self.secim)
-
         self.filtreler = []
-        for metin, kimlik in (("Tümü", "tumu"), ("Oynanabilir", GA.DURUM_AKTIF),
-                              ("Tamamlandı", GA.DURUM_TAMAM),
-                              ("Kilitli", GA.DURUM_KILITLI)):
-            b = FiltreDugmesi(metin, kimlik)
-            b.clicked.connect(lambda _c, k=kimlik: self._filtre_sec(k))
-            self.filtreler.append(b)
-            araclar.addWidget(b)
         araclar.addStretch(1)
         dis.addLayout(araclar)
+
+        # --- bölüm seçme düğmeleri + arama (sag) ---
+        ikinci = QHBoxLayout()
+        ikinci.setContentsMargins(0, 0, 0, 0)
+        ikinci.setSpacing(7)
+        self.bolumDugmeleri = []
+        self._bolum_seridi = ikinci
+        for i in range(14):
+            b = FiltreDugmesi("—", "bolum%d" % i)
+            b.setVisible(False)
+            b.clicked.connect(lambda _c, k=i: self._bolum_sec(k))
+            self.bolumDugmeleri.append(b)
+            ikinci.addWidget(b)
+        ikinci.addStretch(1)
+        self.arama = QLineEdit()
+        self.arama.setObjectName("aramaKutusu")
+        self.arama.setPlaceholderText("Görev ara...")
+        self.arama.setClearButtonEnabled(True)
+        self.arama.setFixedWidth(180)
+        self.arama.setFixedHeight(34)
+        self.arama.textChanged.connect(self._arama_degisti)
+        ikinci.addWidget(self.arama)
+        dis.addLayout(ikinci)
 
         self.kaydirma = QScrollArea()
         self.kaydirma.setWidgetResizable(True)
@@ -755,6 +785,27 @@ class GorevlerSayfasi(QWidget):
                                     GA.DURUM_KILITLI].index(self._durum))
         self.secim.blockSignals(False)
 
+    def _bolum_sec(self, indeks):
+        """Sol listede tek bolumu acar."""
+        self._secili_bolum = indeks
+        self._yenile_bolum_dugmeleri()
+        self._suzgeci_uygula()
+
+    def _yenile_bolum_dugmeleri(self):
+        """Bolum adlarini gercek veriden alip ikinci satira basar."""
+        try:
+            bolumler = GA.bolum_listesi()
+        except Exception:
+            bolumler = []
+        for i, b in enumerate(self.bolumDugmeleri):
+            if i < len(bolumler) and i < len(self.bolumDugmeleri):
+                ad = bolumler[i].get("ad") if isinstance(bolumler[i], dict) else bolumler[i]
+                b.setText(str(ad)[:14])
+                b.setVisible(True)
+                b._stil(i == getattr(self, "_secili_bolum", None))
+            else:
+                b.setVisible(False)
+
     def _arama_degisti(self, metin):
         self._arama = metin
         self._liste_kur(bool(metin.strip()))
@@ -791,6 +842,7 @@ class GorevlerSayfasi(QWidget):
         onceki = self._secili
         Y.yerlesim_temizle(self.bolum_alan)
         self._bolumler = []
+        self._yenile_bolum_dugmeleri()
         gruplar = {}
         for g in self.harita["dugumler"]:
             gruplar.setdefault(g["arsiv"], []).append(g)

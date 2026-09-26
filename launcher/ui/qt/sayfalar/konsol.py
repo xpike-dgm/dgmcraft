@@ -15,16 +15,21 @@ from .. import yardimci as Y
 
 BASLIK = "Konsol"
 
-RENK_NORMAL = "#B9C5C0"
-RENK_UYARI = "#F5C86B"
-RENK_HATA = "#F08C8C"
-RENK_KOMUT = "#F0A202"
-RENK_CEVAP = "#93C5FD"
+RENK_NORMAL = T.YAZI
+RENK_UYARI = T.KONSOL_UYARI
+RENK_HATA = "#F2B46E"
+RENK_ZAMAN = T.KONSOL_ZAMAN
 AZAMI_SATIR = 3000
 
 UST_ETIKET = "SUNUCU ARAYACI"
 SAYFA_BASLIK = "Komut satırı."
 SAYFA_ACIKLAMA = "Cihazın üzerinden komutlar doğrudan buradan gönder."
+
+
+def _kacis(metin):
+    """Log metnini HTML'e güvenli çevirir."""
+    return (str(metin or "").replace("&", "&amp;")
+            .replace("<", "&lt;").replace(">", "&gt;"))
 
 
 class KonsolSayfasi(QWidget):
@@ -108,21 +113,25 @@ class KonsolSayfasi(QWidget):
         govde.addWidget(ayrac)
 
         satir = QHBoxLayout()
-        satir.setContentsMargins(20, 14, 20, 16)
+        satir.setContentsMargins(20, 12, 20, 14)
         satir.setSpacing(10)
         self.girdi = QLineEdit()
         self.girdi.setPlaceholderText("Komut yaz — örn: say Merhaba, tp Xpike 10 64 -20 120")
+        self.girdi.setFixedHeight(48)
         self.girdi.setStyleSheet(
-            "QLineEdit { background: #10161A; border: 1px solid %s; border-radius: 4px;"
-            " padding: 11px 12px; color: %s; font-size: 12px; }"
-            "QLineEdit:focus { border: 2px solid %s; }" % (T.CERCEVE, T.YAZI, T.VURGU))
+            "QLineEdit { background: %s; border: 1px solid %s; border-radius: 4px;"
+            " padding: 13px 12px; color: %s; font-size: 12px; }"
+            "QLineEdit:focus { border: 2px solid %s; padding: 12px 11px; }"
+            % (T.YUZEY, T.CERCEVE, T.YAZI, T.VURGU))
         self.girdi.returnPressed.connect(self.gonder)
         satir.addWidget(self.girdi, 1)
         self.gonderDugmesi = T.dugme("Gönder", "ana")
+        self.gonderDugmesi.setFixedSize(134, 48)
         self.gonderDugmesi.setCursor(Qt.PointingHandCursor)
         self.gonderDugmesi.clicked.connect(self.gonder)
         satir.addWidget(self.gonderDugmesi)
         self.temizDugmesi = T.dugme("Temizle", "kontrast")
+        self.temizDugmesi.setFixedSize(100, 48)
         self.temizDugmesi.clicked.connect(self.temizle)
         satir.addWidget(self.temizDugmesi)
         govde.addLayout(satir)
@@ -163,15 +172,18 @@ class KonsolSayfasi(QWidget):
             pass
 
     # ---------- çıktı ----------
-    def yaz(self, metin, renk=RENK_NORMAL):
+    def yaz(self, metin, tur="bilgi"):
+        """Log satiri. Zaman damgasi sabit genislikte oneklenir (§4.4)."""
+        import datetime
         try:
-            temiz = str(metin).replace("\r", "").rstrip("\n")
-            for parca in temiz.split("\n"):
-                self.cikti.appendHtml(
-                    '<span style="color:%s">%s</span>'
-                    % (renk, html.escape(parca)))
+            saat = datetime.datetime.now().strftime("%H:%M:%S")
         except Exception:
-            pass
+            saat = "--:--:--"
+        renk = RENK_UYARI if tur in ("uyari", "hata") else RENK_NORMAL
+        self.cikti.appendHtml(
+            '<span style="color:%s">%s</span>  '
+            '<span style="color:%s">%s</span>'
+            % (RENK_ZAMAN, saat, renk, _kacis(metin)))
 
     def temizle(self):
         try:

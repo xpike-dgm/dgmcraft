@@ -49,7 +49,7 @@ class TpsGrafik(QWidget):
         ust_kenar = alan.top() + 14
         yukseklik = taban - ust_kenar
         # 20.0 hedef çizgisi
-        boya.setPen(QPen(QColor("#2A3235"), 1, Qt.DashLine))
+        boya.setPen(QPen(QColor("#545B5C"), 1, Qt.DashLine))
         boya.drawLine(QPointF(alan.left() + 10, ust_kenar),
                       QPointF(alan.right() - 10, ust_kenar))
         genislik = alan.width() - 20
@@ -165,12 +165,15 @@ class DurumSayfasi(QWidget):
         solGovde.addWidget(self.grafik, 1)
         self.grafikAlt = T.etiket("Son 60 ölçüm · 20,0 hedef", "minik")
         solGovde.addWidget(self.grafikAlt)
-        alt.addWidget(sol, 786)
+        sol.setFixedWidth(786)
+        sol.setFixedHeight(398)
+        alt.addWidget(sol)
 
         # --- sağ: sistem bilgisi kartı ---
         sagKart = QFrame()
         sagKart.setObjectName("kart")
         sagKart.setFixedWidth(404)
+        sagKart.setFixedHeight(398)
         sagGovde = QVBoxLayout(sagKart)
         sagGovde.setContentsMargins(20, 18, 20, 16)
         sagGovde.setSpacing(4)
@@ -251,10 +254,6 @@ class DurumSayfasi(QWidget):
         s["Motor"].setText("Purpur 26.1.2")
         s["Sürüm"].setText(str(self.h.surum))
         s["Çalışma süresi"].setText(_D.sure_bicim(veri.get("sure")))
-        yasi = veri.get("ornek_yasi")
-        s["Son örnek"].setText("%d sn önce" % yasi if yasi is not None else "-")
-        s["Varlık"].setText("{:,}".format(veri["varlik"]).replace(",", ".")
-                            if veri.get("varlik") is not None else "-")
         s["Yüklü chunk"].setText("{:,}".format(veri["chunk"]).replace(",", ".")
                                  if veri.get("chunk") is not None else "-")
         disk = veri.get("disk")

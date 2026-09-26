@@ -174,3 +174,14 @@ def _ozet(dugumler):
     return {"toplam": toplam, "tanimli": tanimli, "bolum": len(ARSIVLER),
             "tamam": say[DURUM_TAMAM], "aktif": say[DURUM_AKTIF],
             "kilitli": say[DURUM_KILITLI], "oran": (tanimli / float(toplam or 1))}
+
+def bolum_listesi():
+    """Sol menüde gösterilecek bölüm adları (gerçek iskelet verisinden)."""
+    try:
+        veri = iskelet()
+        arsivler = veri.get("arsivler", []) if isinstance(veri, dict) else veri
+        return [{"ad": a.get("ad", ""), "sira": a.get("sira", 0),
+                 "toplam": a.get("toplam", len(a.get("dugumler", [])))}
+                for a in arsivler]
+    except Exception:
+        return []
