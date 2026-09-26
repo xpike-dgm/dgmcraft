@@ -1,5 +1,6 @@
 """PySide6 kabuk: kendi başlık çubuğu + sol ray + yığın sayfalar.
-Tkinter v2 ayrı çalışmaya devam eder."""
+  Tkinter v2 ayrı çalışmaya devam eder."""
+import os
 import sys
 import threading
 
@@ -118,7 +119,7 @@ class Kabuk(QMainWindow):
         except Exception:
             kurulu = False
         self._sihirbaz_acik = not kurulu
-        if self._sihirbaz_acik:
+        if self._sihirbaz_acik or os.environ.get("DGM_SIHIRBAZ_GEC", "0") == "1":
             try:
                 self._sihirbaz = Sihirbaz(self.hizmetler.kok, self.hizmetler.ayar)
                 self._sihirbaz.tamamlandi.connect(self._sihirbaz_bitti)

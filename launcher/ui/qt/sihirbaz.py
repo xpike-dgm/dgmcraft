@@ -2,6 +2,7 @@
 
 7 adım: Hoş geldin · Adın · Davet kodun · Dosya eşitleme · Gizli ağ · Arkadaşlar · Hazır
 Kurulumu yapmış kullanıcılar bu ekranı hiç görmez (ayar: kurulumTamam)."""
+import os
 import threading
 
 from PySide6.QtCore import Qt, QTimer, Signal
@@ -24,6 +25,8 @@ ADIMLAR = [
     ("Hazır", "bitiş"),
 ]
 
+ONIZLEME = os.environ.get("DGM_SIHIRBAZ_GEC", "0") == "1"
+
 
 class Sihirbaz(QWidget):
     """Çerçevesiz, uygulamanın kabuğuyla aynı boyutta."""
@@ -36,6 +39,11 @@ class Sihirbaz(QWidget):
         self.kok = kok
         self.ayar = ayar
         self.adim = 0
+        self.onizleme = ONIZLEME
+        if self.onizleme:
+            baslangic = os.environ.get("DGM_SIHIRBAZ_ADIM", "")
+            if baslangic.isdigit():
+                self.adim = max(0, min(int(baslangic), len(ADIMLAR) - 1))
         self.sync_ok = False
         self.anahtar_atlandi = False
         self.vpn_kurulu = False
@@ -526,31 +534,32 @@ class Sihirbaz(QWidget):
 
     # ---------- gezinme ----------
     def _ileri(self):
-        if self.adim == 1:
-            ad = self.adGirdi.text().strip()
-            if not ad:
-                self.baslikYazi.setText("Adın")
-                return
-            self.ayar["kullaniciAdi"] = ad
-        elif self.adim == 2 and self._anahtar_var():
-            try:
-                from core import store as _S
-                _S.anahtar_kaydet(self.anahtarGirdi.text().strip())
-                self.ayar["tailscaleAnahtariSakli"] = True
-            except Exception:
-                pass
-        elif self.adim == 3:
-            if not self.sync_ok and not self._mesgul:
-                self.baslikYazi.setText("Dosya eşitleme")
-                return
-        elif self.adim == 4:
-            if self.vpn_kurulu and self._anahtar_var() and not self.vpn_bagli:
-                self.baslikYazi.setText("Gizli ağ")
-                return
-        elif self.adim == 5:
-            if not (self.esles_ok or self.esles_atlandi):
-                self.baslikYazi.setText("Arkadaşlar")
-                return
+        if not self.onizleme:
+            if self.adim == 1:
+                ad = self.adGirdi.text().strip()
+                if not ad:
+                    self.baslikYazi.setText("Adın")
+                    return
+                self.ayar["kullaniciAdi"] = ad
+            elif self.adim == 2 and self._anahtar_var():
+                try:
+                    from core import store as _S
+                    _S.anahtar_kaydet(self.anahtarGirdi.text().strip())
+                    self.ayar["tailscaleAnahtariSakli"] = True
+                except Exception:
+                    pass
+            elif self.adim == 3:
+                if not self.sync_ok and not self._mesgul:
+                    self.baslikYazi.setText("Dosya eşitleme")
+                    return
+            elif self.adim == 4:
+                if self.vpn_kurulu and self._anahtar_var() and not self.vpn_bagli:
+                    self.baslikYazi.setText("Gizli ağ")
+                    return
+            elif self.adim == 5:
+                if not (self.esles_ok or self.esles_atlandi):
+                    self.baslikYazi.setText("Arkadaşlar")
+                    return
         if self.adim == len(ADIMLAR) - 1:
             self._bitir()
             return
@@ -561,6 +570,21 @@ class Sihirbaz(QWidget):
         if self.adim > 0:
             self.adim -= 1
             self.ciz()
+
+    def keyPressEvent(self, olay):
+        if self.onizleme:
+            tus = olay.key()
+            if tus in (Qt.Key_Right, Qt.Key_PageDown, Qt.Key_Down):
+                self.adim = min(self.adim + 1, len(ADIMLAR) - 1)
+                self.ciz()
+                return
+            if tus in (Qt.Key_Left, Qt.Key_PageUp, Qt.Key_Up):
+                self._geri()
+                return
+            if tus == Qt.Key_Escape:
+                self.close()
+                return
+        olay.ignore()
 
     def _bitir(self):
         ad = (self.ayar.get("kullaniciAdi") or "").strip()
