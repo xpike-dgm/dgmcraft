@@ -1,37 +1,15 @@
 // DgmCraft kart -> kategori akisi + admin toggle + direkt komut sonuclari
-const THEMES = [
-  {a:'#1B2A33',b:'#0B0F0E',l:'rgba(148,184,205,.20)',dot:'#2FD35C'},
-  {a:'#23301F',b:'#0B0F0E',l:'rgba(150,200,150,.18)',dot:'#34D399'},
-  {a:'#2E2438',b:'#0B0F0E',l:'rgba(190,170,220,.18)',dot:'#C4B5FD'},
-  {a:'#3A2A18',b:'#0B0F0E',l:'rgba(53,217,89,.22)',dot:'#2FD35C'},
-  {a:'#1E3030',b:'#0B0F0E',l:'rgba(140,220,210,.18)',dot:'#2DD4BF'},
-  {a:'#33202A',b:'#0B0F0E',l:'rgba(220,160,180,.16)',dot:'#FB7185'},
-  {a:'#26334A',b:'#0B0F0E',l:'rgba(150,180,230,.20)',dot:'#93C5FD'},
-  {a:'#2A2F1C',b:'#0B0F0E',l:'rgba(210,220,140,.16)',dot:'#A3E635'}
-];
 // OP / admin izni gerektiren kategoriler (kilavuz kullanim kuralina gore)
 const ADMIN_IDS = [17,19,20,21,22,23,24,25,26,27,28];
 const isAdminCat = id => ADMIN_IDS.includes(id);
+// kategori karti gorseli (03-Backgrounds/categories)
+const CAT_IMG = {1:'DgmCraft-category-general.png',2:'DgmCraft-category-general.png',3:'DgmCraft-category-protection.png',4:'DgmCraft-category-fun.png',5:'DgmCraft-category-fun.png',6:'DgmCraft-category-fun.png',7:'DgmCraft-category-economy.png',8:'DgmCraft-category-general.png',9:'DgmCraft-category-fun.png',10:'DgmCraft-category-fun.png',11:'DgmCraft-category-fun.png',12:'DgmCraft-category-fun.png',13:'DgmCraft-category-world.png',14:'DgmCraft-category-world.png',15:'DgmCraft-category-players.png',16:'DgmCraft-category-players.png',17:'DgmCraft-category-management.png',18:'DgmCraft-category-general.png',19:'DgmCraft-category-management.png',20:'DgmCraft-category-world.png',21:'DgmCraft-category-world.png',22:'DgmCraft-category-world.png',23:'DgmCraft-category-management.png',24:'DgmCraft-category-performance.png',25:'DgmCraft-category-economy.png',26:'DgmCraft-category-general.png',27:'DgmCraft-category-general.png',28:'DgmCraft-category-management.png'};
 // Kılavuz ASCII yazıldığı için arayüzde düzgün Türkçe gösterilen başlıklar
 const TITLE_TR = {1:'DGM Craft Türkçe Kısayollar (Skript)', 28:'Admin ve Sunucu İşlemleri'};
 const dispTitle = c => TITLE_TR[c.id] || c.title;
 const shortCat = c => dispTitle(c).replace(/^DGM Craft /,'').replace(/\s*\(Skript\)$/,'');
 const adminOn = () => localStorage.getItem('dgm_admin') === '1';
 function setAdmin(v){ localStorage.setItem('dgm_admin', v ? '1' : '0'); }
-function thumbSVG(t,i){
-  const id='g'+i;
-  return `<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 168">
-  <defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1">
-  <stop offset="0" stop-color="${t.a}"/><stop offset="1" stop-color="${t.b}"/></linearGradient></defs>
-  <rect width="400" height="168" fill="url(#${id})"/>
-  <g stroke="${t.l}" stroke-width="1">
-  <path d="M-20 130 L120 60 L260 110 L420 40"/><path d="M-20 150 L120 80 L260 130 L420 60"/>
-  <path d="M40 0 L40 168 M120 0 L120 168 M200 0 L200 168 M280 0 L280 168 M360 0 L360 168" opacity=".35"/>
-  <rect x="52" y="52" width="26" height="26" fill="none"/><rect x="212" y="34" width="18" height="18" fill="none"/>
-  <rect x="300" y="80" width="34" height="34" fill="none" opacity=".7"/></g>
-  <circle cx="330" cy="36" r="5" fill="${t.dot}"/><circle cx="70" cy="120" r="3" fill="${t.dot}" opacity=".7"/>
-  </svg>`;
-}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}
 function getParam(n){return new URLSearchParams(location.search).get(n)}
 // file:// + eski tarayici uyumlu kopyalama (clipboard API yoksa fallback)
@@ -113,7 +91,6 @@ if(document.getElementById('grid')){
         if(!titleHit && matches.length===0) return;
       }
       shown++;
-      const t=THEMES[idx%THEMES.length];
       const el=document.createElement('a');
       el.className='card';
       el.href='kategori.html?id='+c.id+(F?'&q='+encodeURIComponent(f.trim()):'');
@@ -121,7 +98,7 @@ if(document.getElementById('grid')){
       if(F && matches.length>0) sub=matches.length+' eşleşme: '+matches.slice(0,3).map(m=>m.k).join(', ')+(matches.length>3?'…':'');
       else if(F) sub='Başlık eşleşti • Komutları gör';
       const adminBadge = isAdminCat(c.id) ? '<span class="badge-admin">ADMIN</span>' : '';
-      el.innerHTML=`<div class="thumb">${thumbSVG(t,idx)}<span class="tag">${c.cmds.length} komut</span></div>
+      el.innerHTML=`<div class="thumb"><img src="assets/img/03-Backgrounds/categories/${CAT_IMG[c.id]||'DgmCraft-category-general.png'}" alt="" loading="lazy" onerror="this.remove()"><span class="tag">${c.cmds.length} komut</span></div>
       <div class="card-body"><div><h3>${esc(dispTitle(c))}${adminBadge}</h3><small>${esc(sub)}</small></div><span class="arrow">→</span></div>`;
       grid.appendChild(el);
     });
@@ -143,7 +120,7 @@ if(document.getElementById('grid')){
     } else dWrap.style.display='none';
     const base = adminOn() ? totalAll : totalVis;
     count.textContent = F ? (shown+' kategori • '+allHits.length+' direkt komut eşleşmesi') : (shown+' kategori • '+base+' komut'+(adminOn()?' (admin dahil)':' (admin gizli — sağdan açabilirsin)'));
-    if(!shown && !(F&&allHits.length)) grid.innerHTML='<div class="empty">Sonuç yok. Admin kapalıysa sağdan açmayı dene.</div>';
+    if(!shown && !(F&&allHits.length)) grid.innerHTML='<div class="empty"><img src="assets/img/05-Website/empty-states/DgmCraft-no-commands.png" alt="">Sonuç yok. Admin kapalıysa sağdan açmayı dene.</div>';
   }
   q.addEventListener('input',e=>render(e.target.value));
   render();
@@ -180,7 +157,7 @@ if(document.getElementById('cmdlist')){
       d.querySelector('.copy').onclick=(e)=>{const b=e.target;copyText(k.k,(manuel)=>{if(!manuel){b.textContent='Kopyalandı!';setTimeout(()=>b.textContent='Kopyala',1200);}});};
       list.appendChild(d);
     });
-    if(!n) list.innerHTML='<div class="empty">Bu kategoride sonuç yok.</div>';
+    if(!n) list.innerHTML='<div class="empty"><img src="assets/img/05-Website/empty-states/DgmCraft-no-commands.png" alt="">Bu kategoride sonuç yok.</div>';
   }
   q.addEventListener('input',e=>render(e.target.value));
   const preQ=getParam('q');

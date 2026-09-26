@@ -8,11 +8,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/01-Brand/DgmCraft-favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/img/01-Brand/DgmCraft-favicon-64.png">
 </head>
 <body>
 <nav><div class="nav-in">
-<div class="logo">DGM<span>CRAFT</span></div>
-<div class="nav-links"><a href="index.html">Komutlar</a><b>Log</b><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a></div>
+<a class="logo" href="index.html"><img src="assets/img/01-Brand/DgmCraft-logo-horizontal.png" alt="DgmCraft"></a>
+<div class="nav-links"><a href="index.html"><img class="nic" src="assets/img/02-Icons/ui/nav-commands.svg" alt="">Komutlar</a><b><img class="nic" src="assets/img/02-Icons/ui/nav-live-log.svg" alt="">Log</b><a href="durum.html"><img class="nic" src="assets/img/02-Icons/ui/nav-status.svg" alt="">Durum</a><a href="veri.html"><img class="nic" src="assets/img/02-Icons/ui/nav-data.svg" alt="">Veri</a><a href="arsiv.html"><img class="nic" src="assets/img/02-Icons/ui/nav-archive.svg" alt="">Arşiv</a></div>
 <div class="nav-right">
 <label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
 <a class="btn" href="index.html">Ana sayfa</a>
@@ -25,8 +27,8 @@
 <h1>Canlı Log</h1>
 <p>Sunucu günlüğünün son 200 satırı. Komut çalıştırmak için aşağıdaki kutuyu kullan.</p>
 </div>
-<div id="kapaliBand" class="bant uyari" style="display:none">Sunucu çevrimdışı, dosya sonu gösteriliyor.</div>
-<div id="cevrimdisiBand" class="bant bilgi" style="display:none"><span id="cevrimdisiYazi">Canlı veri için uygulamadan Siteyi Aç.</span><button id="yenidenDene" class="copy btn2">Yeniden dene</button></div>
+<div id="kapaliBand" class="bant uyari" style="display:none"><img src="assets/img/02-Icons/status/status-warning.svg" alt="">Sunucu çevrimdışı, dosya sonu gösteriliyor.</div>
+<div id="cevrimdisiBand" class="bant bilgi" style="display:none"><img src="assets/img/05-Website/empty-states/DgmCraft-server-offline.png" alt=""><span id="cevrimdisiYazi">Canlı veri için uygulamadan Siteyi Aç.</span><button id="yenidenDene" class="copy btn2">Yeniden dene</button></div>
 <div class="logbar">
 <button class="filtre aktif" data-f="tum">Tümü</button>
 <button class="filtre" data-f="hata">Hata</button>
@@ -105,7 +107,7 @@
           disYazi.textContent = 'Sunucuya ulaşılamıyor. Canlı veri için uygulamadan Siteyi Aç.';
           disBand.style.display = 'flex';
           Canli.dot('off', 'Çevrimdışı');
-          kutu.innerHTML = '<span style="color:var(--muted)">Kayıt yok.</span>';
+          kutu.innerHTML = '<div class="empty"><img src="assets/img/05-Website/empty-states/DgmCraft-no-live-log.png" alt="">Kayıt yok.</div>';
         }
         durdur();
       }

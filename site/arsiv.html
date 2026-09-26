@@ -8,11 +8,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/01-Brand/DgmCraft-favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/img/01-Brand/DgmCraft-favicon-64.png">
 </head>
 <body>
 <nav><div class="nav-in">
-<div class="logo">DGM<span>CRAFT</span></div>
-<div class="nav-links"><a href="index.html">Komutlar</a><a href="log.html">Log</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><b>Arşiv</b></div>
+<a class="logo" href="index.html"><img src="assets/img/01-Brand/DgmCraft-logo-horizontal.png" alt="DgmCraft"></a>
+<div class="nav-links"><a href="index.html"><img class="nic" src="assets/img/02-Icons/ui/nav-commands.svg" alt="">Komutlar</a><a href="log.html"><img class="nic" src="assets/img/02-Icons/ui/nav-live-log.svg" alt="">Log</a><a href="durum.html"><img class="nic" src="assets/img/02-Icons/ui/nav-status.svg" alt="">Durum</a><a href="veri.html"><img class="nic" src="assets/img/02-Icons/ui/nav-data.svg" alt="">Veri</a><b><img class="nic" src="assets/img/02-Icons/ui/nav-archive.svg" alt="">Arşiv</b></div>
 <div class="nav-right">
 <label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
 <a class="btn" href="index.html">Ana sayfa</a>
@@ -60,7 +62,7 @@
     gor.forEach(function(o){
       var d = document.createElement('div');
       d.className = 'cmd';
-      var renk = { giris: '#7DE2A8', olum: '#E5484D', boss: '#2FD35C', uyari: '#2FD35C' }[(o.tur || '')] || '#C4CFC8';
+      var renk = { giris: '#7DE2A8', olum: '#E5484D', boss: '#FF9D00', uyari: '#FF9D00' }[(o.tur || '')] || '#C4CFC8';
       d.innerHTML = '<div class="cmd-top"><code style="border-color:var(--border);background:#0F1513">' +
         Canli.esc(Canli.saatStr(o.zaman)) + '</code><span class="rozet" style="color:' + renk + ';border:1px solid var(--border)">' +
         Canli.esc(o.tur || '?') + '</span></div><p>' + Canli.esc(o.metin || '') + '</p>';
@@ -86,7 +88,7 @@
           document.getElementById('cevrimdisiYazi').textContent = 'Sunucuya ulaşılamıyor. Canlı veri için uygulamadan Siteyi Aç.';
           disBand.style.display = 'flex';
           Canli.dot('off', 'Çevrimdışı');
-          document.getElementById('olayListe').innerHTML = '<div class="empty">Olay kaydı yok.</div>';
+          document.getElementById('olayListe').innerHTML = '<div class="empty"><img src="assets/img/05-Website/empty-states/DgmCraft-empty-archive.png" alt="">Olay kaydı yok.</div>';
         }
         durdur();
       }
@@ -112,7 +114,7 @@
   // --- galeri: galeri/ klasor listesi (backend dizin listesi acarsa) ---
   (function galeri(){
     var kutu = document.getElementById('galeri');
-    function bos(){ kutu.innerHTML = '<div class="empty">Henüz fotoğraf yok.</div>'; }
+    function bos(){ kutu.innerHTML = '<div class="empty"><img src="assets/img/05-Website/empty-states/DgmCraft-empty-archive.png" alt="">Henüz fotoğraf yok.</div>'; }
     if(location.protocol === 'file:'){ bos(); return; }
     var ctrl = null;
     try{ if(window.AbortController) ctrl = new AbortController(); }catch(e){}

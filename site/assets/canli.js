@@ -52,14 +52,15 @@ window.Canli = (function(){
     catch(e){ return ''; }
   }
 
-  // --- durum noktasi (sag ust, tum sayfalarda ayni yer) ---
+  // --- durum noktasi (sag ust, tum sayfalarda ayni yer; svg rozetli) ---
+  var DOT_IMG = { on: 'assets/img/02-Icons/status/status-online.svg', orta: 'assets/img/02-Icons/status/status-warning.svg', off: 'assets/img/02-Icons/status/status-offline.svg' };
   var dotEl = null;
   function ensureDot(){
     if(dotEl) return dotEl;
     dotEl = document.createElement('div');
     dotEl.id = 'canli-dot';
     dotEl.className = 'canli-dot off';
-    dotEl.innerHTML = '<i></i><span>Bağlanıyor…</span>';
+    dotEl.innerHTML = '<img alt=""><span>Bağlanıyor…</span>';
     document.body.appendChild(dotEl);
     return dotEl;
   }
@@ -67,6 +68,7 @@ window.Canli = (function(){
   function dot(durum, yazi){
     var el = ensureDot();
     el.className = 'canli-dot ' + durum;
+    el.querySelector('img').src = DOT_IMG[durum] || DOT_IMG.off;
     el.querySelector('span').textContent = yazi;
   }
 

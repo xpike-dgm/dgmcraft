@@ -8,11 +8,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/01-Brand/DgmCraft-favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/img/01-Brand/DgmCraft-favicon-64.png">
+<meta property="og:title" content="DgmCraft • Arkadaş Sunucusu Rehberi">
+<meta property="og:description" content="Komutlar, canlı durum, log ve arşiv tek sitede.">
+<meta property="og:image" content="assets/img/07-Publishing/social/DgmCraft-og-banner.png">
+<meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 <nav><div class="nav-in">
-<div class="logo"><svg class="logo-kup" viewBox="0 0 32 32" aria-hidden="true"><polygon points="16,3 29,10 16,17 3,10" fill="#3EF06E"/><polygon points="3,10 16,17 16,29 3,22" fill="#14532D"/><polygon points="29,10 16,17 16,29 29,22" fill="#1E7A44"/></svg>DGM<span>CRAFT</span></div>
-<div class="nav-links"><b>Anasayfa</b><a href="#kategoriler">Komutlar</a><a href="durum.html">Durum</a><a href="log.html">Log</a><a href="arsiv.html">Arşiv</a></div>
+<a class="logo" href="index.html"><img src="assets/img/01-Brand/DgmCraft-logo-horizontal.png" alt="DgmCraft"></a>
+<div class="nav-links"><b><img class="nic" src="assets/img/02-Icons/ui/nav-home.svg" alt="">Anasayfa</b><a href="#kategoriler"><img class="nic" src="assets/img/02-Icons/ui/nav-commands.svg" alt="">Komutlar</a><a href="durum.html"><img class="nic" src="assets/img/02-Icons/ui/nav-status.svg" alt="">Durum</a><a href="log.html"><img class="nic" src="assets/img/02-Icons/ui/nav-live-log.svg" alt="">Log</a><a href="arsiv.html"><img class="nic" src="assets/img/02-Icons/ui/nav-archive.svg" alt="">Arşiv</a></div>
 <div class="nav-right">
 <span class="durum-hap" id="hapDurum"><i></i><span id="hapYazi">…</span></span>
 <label class="toggle" title="Admin komutlarını göster/gizle"><input type="checkbox" id="adminToggle"><span class="sw"></span><span class="tl">Admin</span></label>
@@ -21,15 +27,15 @@
 
 <header class="hero2">
 <div class="hero2-ic">
-<svg class="hero-logo" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="44" fill="rgba(62,240,110,.12)"/><polygon points="48,18 78,34 48,50 18,34" fill="#3EF06E"/><polygon points="18,34 48,50 48,80 18,64" fill="#14532D"/><polygon points="78,34 48,50 48,80 78,64" fill="#1E7A44"/><rect x="30" y="24" width="12" height="6" fill="#B9FFCF" opacity=".8"/></svg>
+<img class="hero-logo-img" src="assets/img/01-Brand/DgmCraft-mark-orange-black-white.png" alt="DgmCraft">
 <h1>Arkadaşlarınla Minecraft keyfi<br>seni <em>bekliyor!</em></h1>
 <p class="hero2-alt">3 kişilik Survival+ sunucusu: komutlar, canlı durum ve log tek sitede.</p>
 <div class="hero2-butonlar">
-<button class="btn-buyuk yesil" id="btnOyna">▶&nbsp; OYNA</button>
+<button class="btn-buyuk turuncu" id="btnOyna">▶&nbsp; OYNA</button>
 <button class="btn-buyuk cizgili" id="btnDiscord">Discord'a Katıl</button>
 </div>
 <div class="ipbar">
-<svg class="logo-kup" viewBox="0 0 32 32" aria-hidden="true"><polygon points="16,3 29,10 16,17 3,10" fill="#3EF06E"/><polygon points="3,10 16,17 16,29 3,22" fill="#14532D"/><polygon points="29,10 16,17 16,29 29,22" fill="#1E7A44"/></svg>
+<img class="logo-kup" src="assets/img/01-Brand/DgmCraft-mark-simple.png" alt="">
 <code id="ipAdres">yükleniyor…</code>
 <span class="ip-aktif"><i></i><span id="ipAktif">– oyuncu aktif</span></span>
 <button class="copy" id="ipKopyala" title="IP'yi kopyala">⧉</button>
@@ -41,17 +47,17 @@
 <div class="wrap">
 <div class="cols">
 <div class="col-ana">
-<div class="sec-head"><span class="bar"></span><h2>⚡ Hızlı Erişim</h2></div>
+<div class="sec-head"><span class="bar"></span><h2><img class="nic" src="assets/img/01-Brand/DgmCraft-mark-simple.png" alt="">Hızlı Erişim</h2></div>
 <div class="hgrid">
-<a class="card hkart" href="#kategoriler"><div class="card-body"><div><span class="hik">⌨️</span><h3>Komutlar</h3><small>28 kategori, 342 komut</small></div><span class="arrow">→</span></div></a>
-<a class="card hkart" href="durum.html"><div class="card-body"><div><span class="hik">💚</span><h3>Sunucu Durumu</h3><small>TPS, RAM, oyundakiler</small></div><span class="arrow">→</span></div></a>
-<a class="card hkart" href="log.html"><div class="card-body"><div><span class="hik">📜</span><h3>Canlı Log</h3><small>Anlık sunucu günlüğü</small></div><span class="arrow">→</span></div></a>
-<a class="card hkart" href="arsiv.html"><div class="card-body"><div><span class="hik">🖼️</span><h3>Arşiv</h3><small>Olaylar ve galeri</small></div><span class="arrow">→</span></div></a>
+<a class="card hkart" href="#kategoriler"><div class="card-body"><img class="hik-img" src="assets/img/02-Icons/ui/nav-terminal.svg" alt=""><div><h3>Komutlar</h3><small>28 kategori, 342 komut</small></div><span class="arrow">→</span></div></a>
+<a class="card hkart" href="durum.html"><div class="card-body"><img class="hik-img" src="assets/img/02-Icons/ui/nav-status.svg" alt=""><div><h3>Sunucu Durumu</h3><small>TPS, RAM, oyundakiler</small></div><span class="arrow">→</span></div></a>
+<a class="card hkart" href="log.html"><div class="card-body"><img class="hik-img" src="assets/img/02-Icons/ui/nav-live-log.svg" alt=""><div><h3>Canlı Log</h3><small>Anlık sunucu günlüğü</small></div><span class="arrow">→</span></div></a>
+<a class="card hkart" href="arsiv.html"><div class="card-body"><img class="hik-img" src="assets/img/02-Icons/ui/nav-archive.svg" alt=""><div><h3>Arşiv</h3><small>Olaylar ve galeri</small></div><span class="arrow">→</span></div></a>
 </div>
-<div class="sec-head"><span class="bar"></span><h2>📰 Son Olaylar</h2><a href="arsiv.html" class="tumugor">Tümü →</a></div>
+<div class="sec-head"><span class="bar"></span><h2><img class="nic" src="assets/img/02-Icons/ui/nav-live-log.svg" alt="">Son Olaylar</h2><a href="arsiv.html" class="tumugor">Tümü →</a></div>
 <div id="sonOlaylar"><div class="empty">Yükleniyor…</div></div>
-<div class="sec-head" id="kategoriler"><span class="bar"></span><h2>⌨️ Komut Kategorileri</h2></div>
-<div class="search"><span>🔎</span><input id="q" placeholder="Kategori veya komut ara... örn: ev, ışınlanma, /sat"></div>
+<div class="sec-head" id="kategoriler"><span class="bar"></span><h2><img class="nic" src="assets/img/02-Icons/ui/nav-commands.svg" alt="">Komut Kategorileri</h2></div>
+<div class="search"><img class="nic" src="assets/img/02-Icons/ui/nav-search.svg" alt=""><input id="q" placeholder="Kategori veya komut ara... örn: ev, ışınlanma, /sat"></div>
 <div id="directWrap" style="display:none;margin-top:16px">
 <div class="sec-head" style="margin:0 0 8px"><span class="bar"></span><h2 style="font-size:17px">Direkt komut sonuçları</h2></div>
 <div id="direct"></div>
@@ -74,7 +80,7 @@
 
 <footer><div class="wrap">
 <div class="altlinkler"><a href="index.html">Komutlar</a><a href="log.html">Canlı Log</a><a href="terminal.html">Terminal</a><a href="durum.html">Durum</a><a href="veri.html">Veri</a><a href="arsiv.html">Arşiv</a><a href="gecmis.html">Komut Geçmişi</a><a href="oyuncu.html">Oyuncular</a><a href="gorev-agaci.html">Görev Ağacı</a><a href="envanter.html">Envanter</a></div>
-<p style="margin-top:12px">DgmCraft rehber • warm-dark + yeşil tema. Arka plan için <b>assets/hero-bg.jpg</b> eklersen hero otomatik kullanır.</p></div></footer>
+<p style="margin-top:12px">DgmCraft rehber • warm-dark + turuncu tema. Görseller asset paketinden (site/assets/img/).</p></div></footer>
 <div class="toast" id="toast" style="display:none"></div>
 <script src="assets/data.js"></script>
 <script src="assets/app.js"></script>
@@ -146,7 +152,7 @@
           hy.textContent = 'çevrimdışı';
           document.getElementById('ipAktif').textContent = 'çevrimdışı';
           Canli.dot('off', 'Çevrimdışı');
-          document.getElementById('miniDurumIc').innerHTML = '<div class="empty">Canlı veri için uygulamadan Siteyi Aç.</div>';
+          document.getElementById('miniDurumIc').innerHTML = '<div class="empty"><img src="assets/img/05-Website/empty-states/DgmCraft-server-panel-empty.png" alt="">Canlı veri için uygulamadan Siteyi Aç.</div>';
         }
       }
     });
