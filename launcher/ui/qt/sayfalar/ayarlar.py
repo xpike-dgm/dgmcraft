@@ -383,20 +383,27 @@ class AyarlarSayfasi(QWidget):
         self._vpn_durum()
 
     def _sihirbaz_ac(self):
+        """Kurulum sihirbazını 05-night çerçevesiyle, süreç içinde açar."""
         try:
-            kok = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            betik = os.path.join(kok, "wizard.py")
-            if not os.path.isfile(betik):
-                self._mesaj("Sihirbaz dosyası bulunamadı.")
-                return
-            if sys.executable.lower().endswith("pythonw.exe"):
-                exe = sys.executable
-            else:
-                exe = sys.executable
-            subprocess.Popen([exe, betik], cwd=kok, creationflags=0x08000000)
-            self._mesaj("Kurulum sihirbazı ayrı pencerede açıldı.")
+            from ..sihirbaz import Sihirbaz
+            ayar = dict(self.h.ayar)
+            ayar["kurulumTamam"] = False
+            pencere = Sihirbaz(self.h.kok, ayar, ebeveyn=self)
+            pencere.tamamlandi.connect(self._sihirbaz_bitti)
+            pencere.ciz()
+            pencere.show()
+            self._sihirbaz_penceresi = pencere
+            self._mesaj("Kurulum sihirbazi acildi.")
         except Exception as e:
-            self._mesaj("Sihirbaz açılamadı: %s" % e)
+            self._mesaj("Sihirbaz acilamadi: %s" % str(e)[:160])
+
+    def _sihirbaz_bitti(self):
+        try:
+            self.h.ayar["kurulumTamam"] = True
+        except Exception:
+            pass
+        self._yenile()
+        self._mesaj("Kurulum tamamlandi.")
 
     def _klasor_ac(self):
         try:

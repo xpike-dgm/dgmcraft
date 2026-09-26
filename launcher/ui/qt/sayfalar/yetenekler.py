@@ -182,8 +182,9 @@ class YeteneklerSayfasi(QWidget):
         satir.addWidget(self.secici)
         satir.addStretch(1)
         self.aramaKutusu = T.AramaKutusu("Yetenek ara...")
-        self.aramaKutusu.setFixedHeight(34)
-        self.aramaKutusu.girdi.setFixedHeight(30)
+        self.aramaKutusu.setFixedHeight(40)
+        self.aramaKutusu.setFixedWidth(234)
+        self.aramaKutusu.girdi.setFixedHeight(34)
         self.aramaKutusu.girdi.textChanged.connect(self._suz)
         self.arama = self.aramaKutusu.girdi
         satir.addWidget(self.aramaKutusu, 0)
@@ -228,8 +229,9 @@ class YeteneklerSayfasi(QWidget):
         self.seciliKalan = T.etiket("-", "soluk")
         self.seciliKalan.setMinimumWidth(120)
         altSatir.addWidget(self.seciliKalan)
-        self.seciliDugme = T.dugme("Ayrıntılar aç", "kontrast")
-        self.seciliDugme.setFixedHeight(32)
+        self.seciliDugme = T.dugme("Ayrıntıları aç →", "ana")
+        self.seciliDugme.setFixedSize(165, 44)
+        self.seciliDugme.clicked.connect(self._secili_ac)
         altSatir.addWidget(self.seciliDugme)
         seciliGovde.addLayout(altSatir)
         ic.addWidget(self.seciliKart)
@@ -262,6 +264,13 @@ class YeteneklerSayfasi(QWidget):
                 self.secici.addItem(o["ad"] or o["uuid"][:8])
             self.secici.blockSignals(False)
         Y.yerlesim_temizle(self.izgara)
+        if yetenekler and isinstance(yetenekler[0], dict) and "hata" in yetenekler[0]:
+            Y.yerlesim_temizle(self.izgara)
+            self.izgara.addWidget(
+                T.BosDurum("Yetenekler okunamadı: %s"
+                          % yetenekler[0]["hata"][:120]), 0, 0)
+            self.ozet.setText("")
+            return
         if not yetenekler:
             bos = QLabel("AuraSkills verisi yok. Sunucuda bir oyuncu oynadığında burası dolar.")
             bos.setObjectName("kucuk")
@@ -284,7 +293,16 @@ class YeteneklerSayfasi(QWidget):
             "Son açılış", ("Sv. %d" % seviye_no) if seviye_no else " Hepsi açık",
             ("%d yetenek" % adet) if seviye_no else "sıradaki yok")
         self._tum_yetenekler = list(yetenekler)
-        self._suz(self.arama.text())
+        if self._aktif_yetenek is None:
+            self._yetenek_sec(self._tum_yetenekler[0])
+        else:
+            self._suz(self.arama.text())
+
+    def _secili_ac(self):
+        """Seçili yeteneğin ayrıntısını oyuncuya gösterir."""
+        ad = (self._aktif_yetenek or {}).get("ad") or "-"
+        self.seciliKalan.setText(
+            "%s · Sv. %s" % (ad, (self._aktif_yetenek or {}).get("seviye", 0)))
 
     def _suz(self, metin):
         """Arama metnine göre yetenek kartlarını yeniden üretir."""

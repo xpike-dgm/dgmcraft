@@ -271,7 +271,7 @@ QLabel#kategoriSatirAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
 
 QPushButton[rol="sekme"] {
     background: transparent; color: %(ikincil)s; border: 1px solid %(cerceve)s;
-    border-radius: 4px; font-weight: 600; padding: 7px 16px;
+    border-radius: 4px; font-weight: 600; padding: 12px 16px; min-height: 46px;
 }
 QPushButton[rol="sekme"]:hover { border-color: %(vurgu)s; color: %(yazi)s; }
 QPushButton[rol="sekme"][secili="1"] {
@@ -703,7 +703,8 @@ class Sekmeler(QWidget):
             b.setChecked(i == secili)
             b.setProperty("secili", "1" if i == secili else "0")
             b.clicked.connect(lambda _c, k=i: self.sec(k))
-            satir.addWidget(b)
+            b.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            satir.addWidget(b, 1)
             self.dugmeler.append(b)
         satir.addStretch(1)
 

@@ -9,9 +9,9 @@ import threading
 
 from PySide6.QtCore import QPoint, QRectF, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPen
-from PySide6.QtWidgets import (QComboBox, QFrame, QHBoxLayout, QLabel, QLineEdit,
-                               QPushButton, QScrollArea, QSizePolicy, QVBoxLayout,
-                               QWidget)
+from PySide6.QtWidgets import (QComboBox, QFrame, QGridLayout, QHBoxLayout,
+                               QLabel, QLineEdit, QPushButton, QScrollArea,
+                               QSizePolicy, QVBoxLayout, QWidget)
 
 from core import gorev_agaci as GA
 from .. import ikonlar
@@ -563,7 +563,7 @@ class FiltreDugmesi(QPushButton):
         self.setText(metin)
         self.setCursor(Qt.PointingHandCursor)
         self.setFixedHeight(30)
-        self.setMinimumWidth(76)
+        self.setMinimumWidth(0)
         self.setCheckable(True)
         self._secili = False
         self._stil(False)
@@ -732,12 +732,18 @@ class GorevlerSayfasi(QWidget):
         ikinci.setSpacing(7)
         self.bolumDugmeleri = []
         self._bolum_seridi = ikinci
+        self._bolum_izgara = QGridLayout()
+        self._bolum_izgara.setContentsMargins(0, 0, 0, 0)
+        self._bolum_izgara.setHorizontalSpacing(7)
+        self._bolum_izgara.setVerticalSpacing(5)
+        ikinci.addLayout(self._bolum_izgara)
         for i in range(14):
             b = FiltreDugmesi("—", "bolum%d" % i)
             b.setVisible(False)
+            b.setMinimumWidth(0)
             b.clicked.connect(lambda _c, k=i: self._bolum_sec(k))
             self.bolumDugmeleri.append(b)
-            ikinci.addWidget(b)
+            self._bolum_izgara.addWidget(b, i // 7, i % 7)
         ikinci.addStretch(1)
         self.arama = QLineEdit()
         self.arama.setObjectName("aramaKutusu")
@@ -800,7 +806,7 @@ class GorevlerSayfasi(QWidget):
         for i, b in enumerate(self.bolumDugmeleri):
             if i < len(bolumler) and i < len(self.bolumDugmeleri):
                 ad = bolumler[i].get("ad") if isinstance(bolumler[i], dict) else bolumler[i]
-                b.setText(str(ad)[:14])
+                b.setText(str(ad))
                 b.setVisible(True)
                 b._stil(i == getattr(self, "_secili_bolum", None))
             else:

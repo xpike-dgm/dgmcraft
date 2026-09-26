@@ -2,7 +2,7 @@
 Veri kaynağı docs/kilavuz.md (core.komutlar)."""
 import threading
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QSizePolicy, QLabel, QLineEdit,
                                QPushButton, QScrollArea, QVBoxLayout, QWidget)
 
@@ -160,6 +160,8 @@ class KomutlarSayfasi(QWidget):
         self.kategoriSerit = QScrollArea()
         self.kategoriSerit.setFixedHeight(46)
         self.kategoriSerit.setWidgetResizable(False)
+        self.kategoriSerit.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarAsNeeded)
         self.kategoriSerit.setFrameShape(QFrame.NoFrame)
         self.kategoriSerit.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.kategoriSerit.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -167,6 +169,7 @@ class KomutlarSayfasi(QWidget):
         self.kategoriAlani = QHBoxLayout(icKutuKategori)
         self.kategoriAlani.setContentsMargins(0, 6, 0, 6)
         self.kategoriAlani.setSpacing(10)
+        icKutuKategori.setFixedHeight(46)
         self.kategoriSerit.setWidget(icKutuKategori)
         self.kategoriAlani_kap = icKutuKategori
         ic.addWidget(self.kategoriSerit)
@@ -243,10 +246,26 @@ class KomutlarSayfasi(QWidget):
             self._kategori_sec(ilk[0]["ad"])
         else:
             self._liste_yenile()
-        self.kategoriAlani_kap.setFixedWidth(
-            sum(s.width() for s in self._kategori_satirlari)
-            + 10 * max(0, len(self._kategori_satirlari) - 1) + 4)
+        self._kategori_seridi_tazele()
+
+    def _kategori_seridi_tazele(self):
+        """Kategori çiplerini içeriğe göre boyutlandırır, yatay kaydırmayı açar.
+
+        QScrollArea, setWidgetResizable(False) iken alt widget'ın layout
+        geometrisini yaymıyor; çipler x=0'da üst üste biniyor. Geometri
+        Qt'nin kendi yerleşim geçişinden sonra elle veriliyor.
+        """
+        if not getattr(self, "_kategori_satirlari", None):
+            return
+        kap = self.kategoriAlani_kap
+        toplam = sum(b.sizeHint().width() for b in self._kategori_satirlari)
+        genislik = toplam + 10 * max(0, len(self._kategori_satirlari) - 1) + 4
+        kap.setFixedHeight(46)
+        self.kategoriAlani.invalidate()
         self.kategoriAlani.activate()
+        kap.setFixedWidth(genislik)
+        self.kategoriAlani.setGeometry(kap.rect())
+        QTimer.singleShot(0, lambda: self.kategoriAlani.setGeometry(kap.rect()))
 
     def _kategori_sec(self, ad):
         self._aktif_kategori = ad

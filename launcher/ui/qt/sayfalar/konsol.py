@@ -17,7 +17,9 @@ BASLIK = "Konsol"
 
 RENK_NORMAL = T.YAZI
 RENK_UYARI = T.KONSOL_UYARI
-RENK_HATA = "#F2B46E"
+RENK_HATA = T.KIRMIZI
+RENK_KOMUT = T.VURGU
+RENK_CEVAP = T.KONSOL_UYARI
 RENK_ZAMAN = T.KONSOL_ZAMAN
 AZAMI_SATIR = 3000
 
@@ -179,7 +181,9 @@ class KonsolSayfasi(QWidget):
             saat = datetime.datetime.now().strftime("%H:%M:%S")
         except Exception:
             saat = "--:--:--"
-        renk = RENK_UYARI if tur in ("uyari", "hata") else RENK_NORMAL
+        renk = {"uyari": RENK_UYARI, "hata": RENK_HATA,
+                "komut": RENK_KOMUT, "cevap": RENK_CEVAP}.get(
+                    tur, RENK_NORMAL)
         self.cikti.appendHtml(
             '<span style="color:%s">%s</span>  '
             '<span style="color:%s">%s</span>'
@@ -230,6 +234,20 @@ class KonsolSayfasi(QWidget):
             return RENK_CEVAP
         return RENK_NORMAL
 
+    @staticmethod
+    def _tur_bul(satir):
+        """Renk yerine anlam türü döndürür (yaz() ikinci argümanı tür bekliyor)."""
+        ust = satir.upper()
+        if "ERROR" in ust or "EXCEPTION" in ust or "FATAL" in ust:
+            return "hata"
+        if "WARN" in ust:
+            return "uyari"
+        if satir.startswith(">"):
+            return "komut"
+        if "RCON" in ust:
+            return "cevap"
+        return "bilgi"
+
     # ---------- komut gönderme ----------
     def gonder(self):
         komut = self.girdi.text().strip()
@@ -253,7 +271,7 @@ class KonsolSayfasi(QWidget):
             self._gecmis.append(komut)
             self._gecmis = self._gecmis[-50:]
         self._gecmis_yeri = len(self._gecmis)
-        self.yaz("> " + komut, RENK_KOMUT)
+        self.yaz("> " + komut, "komut")
         self.girdi.clear()
         self.gonderDugmesi.setEnabled(False)
         threading.Thread(target=self._gonder_is, args=(komut,), daemon=True).start()
@@ -265,7 +283,7 @@ class KonsolSayfasi(QWidget):
         except Exception as e:
             ok, cevap = False, str(e)
         Y.guvenli_yayin(self.cikti_hazir, 
-            cevap or ("Gönderildi." if ok else "Gönderilemedi."), RENK_CEVAP)
+            cevap or ("Gönderildi." if ok else "Gönderilemedi."), "cevap")
         Y.guvenli_yayin(self.tamamlandi)
 
     def _gonder_bitti(self):
