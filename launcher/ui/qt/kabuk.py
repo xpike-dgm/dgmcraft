@@ -180,7 +180,6 @@ class Kabuk(QMainWindow):
         govde.setContentsMargins(0, 0, 0, 0)
         govde.setSpacing(0)
         govde.addWidget(self._ust_cubuk_kur())
-        govde.addWidget(self._alt_bant_kur())
 
         self._icerik = QFrame()
         self._icerik.setObjectName("sayfa")
@@ -192,6 +191,10 @@ class Kabuk(QMainWindow):
         self.yigin.layout().setContentsMargins(0, 0, 0, 0)
         ic.addWidget(self.yigin, 1)
         govde.addWidget(self._icerik, 1)
+        # Alt siyah bant PENCERE DIBINDE olmali. Ust cubugun altina
+        # konulursa butun sayfalar 33px asagi kayar ve icerik 800'de
+        # kirpilir (referans: kart dibi 763, bant 768-800).
+        govde.addWidget(self._alt_bant_kur())
 
         for kimlik, baslik, _ikon in SAYFALAR:
             sinif_adi = SAYFA_SINIFI.get(kimlik)
@@ -208,7 +211,10 @@ class Kabuk(QMainWindow):
         Sayfaların alt bosluğu 0'dır; bu bant o boslugu doldurur,
         aksi halde 82+135+546+33+33 = 829px olur ve 800'e sigmaz."""
         bant = QFrame()
-        bant.setObjectName("ustCubuk")
+        # "ustCubuk" adi 3px turuncu alt cizgi cizer; bant duz siyah olmali
+        bant.setObjectName("altBant")
+        bant.setStyleSheet("QFrame#altBant { background: %s; border: none; }"
+                           % T.SIYAH)
         bant.setFixedHeight(33)
         return bant
 

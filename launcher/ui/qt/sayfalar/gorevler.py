@@ -598,8 +598,9 @@ class FiltreDugmesi(QPushButton):
         pencereyi yatay tasirir; elide bu durumu zaten cozuyor.
         """
         from PySide6.QtGui import QFontMetrics
-        genislik = QFontMetrics(self.font()).horizontalAdvance(metin) + 30
-        return min(genislik, 168)
+        # Hucreye sigmiyorsa elide devreye girer; sabit taban, izgaranin
+        # 7 hucreye bolunmesini ve metinlerin ust uste binmesini onler.
+        return 62
 
     def _elide(self, metin):
         from PySide6.QtGui import QFontMetrics
@@ -611,6 +612,9 @@ class FiltreDugmesi(QPushButton):
 
     def resizeEvent(self, olay):
         super().resizeEvent(olay)
+        self._elide_yenile()
+
+    def _elide_yenile(self):
         yeni = self._elide(self._tam_ad)
         if yeni != self.text():
             self.setText(yeni)
@@ -760,34 +764,24 @@ class GorevlerSayfasi(QWidget):
         dis.setContentsMargins(10, 10, 10, 10)
         dis.setSpacing(8)
 
-        # --- durum filtreleri (sol) ---
-        araclar = QHBoxLayout()
-        araclar.setContentsMargins(0, 0, 0, 0)
-        araclar.setSpacing(7)
+        # --- durum filtresi: arama ile ayni satirda ---
         self.secim = QComboBox()
         self.secim.addItem("Tümü")
         self.secim.addItem("Oynanabilir")
         self.secim.addItem("Tamamlandı")
         self.secim.addItem("Kilitli")
-        self.secim.setFixedWidth(112)
         self.secim.currentIndexChanged.connect(self._secim_degisti)
-        araclar.addWidget(self.secim)
         self.filtreler = []
-        araclar.addStretch(1)
-        dis.addLayout(araclar)
 
-        # --- bölüm seçme düğmeleri + arama (sag) ---
-        ikinci = QHBoxLayout()
-        ikinci.setContentsMargins(0, 0, 0, 0)
-        ikinci.setSpacing(7)
+        # --- bolum seçme düğmeleri: 7x2 izgara ---
+        # ScrollArea denendi; cpler geometry'de dogru olmasina ragmen
+        # pencere grab'inda boyanmadi. Izgara guvenilir.
         self.bolumDugmeleri = []
-        self._bolum_seridi = ikinci
         self._bolum_izgara = QGridLayout()
         self._bolum_izgara.setContentsMargins(0, 0, 0, 0)
         self._bolum_izgara.setHorizontalSpacing(7)
-        self._bolum_izgara.setVerticalSpacing(5)
-        ikinci.addLayout(self._bolum_izgara)
-        SUTUN = 5
+        self._bolum_izgara.setVerticalSpacing(6)
+        SUTUN = 7
         for i in range(14):
             b = FiltreDugmesi("—", "bolum%d" % i)
             b.setVisible(False)
@@ -797,18 +791,26 @@ class GorevlerSayfasi(QWidget):
             self._bolum_izgara.addWidget(b, i // SUTUN, i % SUTUN)
         for c in range(SUTUN):
             self._bolum_izgara.setColumnStretch(c, 1)
-        ikinci.addStretch(0)
+        izgaraSatir = QHBoxLayout()
+        izgaraSatir.setContentsMargins(0, 0, 0, 0)
+        izgaraSatir.addLayout(self._bolum_izgara)
+        dis.addLayout(izgaraSatir)
+
+        # arama ayni satirin saginda kalir (referans duzeni)
+        aramaSatir = QHBoxLayout()
+        aramaSatir.setContentsMargins(0, 0, 0, 0)
+        aramaSatir.setSpacing(10)
+        self.secim.setFixedWidth(128)
+        self.secim.setFixedHeight(36)
+        aramaSatir.addWidget(self.secim)
+        aramaSatir.addStretch(1)
         self.arama = QLineEdit()
         self.arama.setObjectName("aramaKutusu")
         self.arama.setPlaceholderText("Görev ara...")
         self.arama.setClearButtonEnabled(True)
-        self.arama.setFixedWidth(220)
+        self.arama.setFixedWidth(240)
         self.arama.setFixedHeight(36)
         self.arama.textChanged.connect(self._arama_degisti)
-        dis.addLayout(ikinci)
-        aramaSatir = QHBoxLayout()
-        aramaSatir.setContentsMargins(0, 0, 0, 0)
-        aramaSatir.addStretch(1)
         aramaSatir.addWidget(self.arama)
         dis.addLayout(aramaSatir)
 
@@ -868,6 +870,13 @@ class GorevlerSayfasi(QWidget):
                 b._stil(i == getattr(self, "_secili_bolum", None))
             else:
                 b.setVisible(False)
+        self._bolum_seridi_tazele()
+
+    def _bolum_seridi_tazele(self):
+        """Izgara hucrelerini mevcut genislige gore yeniden kirp."""
+        for b in self.bolumDugmeleri:
+            if b.isVisible():
+                b._elide_yenile()
 
     def _arama_degisti(self, metin):
         self._arama = metin
