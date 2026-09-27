@@ -221,6 +221,8 @@ class Sihirbaz(QWidget):
         self.kaydirma.setWidget(self.govdeIcerik)
         sagDikey.addWidget(self.kaydirma, 1)
 
+        satir.addWidget(self.sag, 0)
+
         self.markaKart = QFrame()
         self.markaKart.setObjectName("siyahKart")
         self.markaKart.setFixedWidth(403)

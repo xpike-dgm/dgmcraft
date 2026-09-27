@@ -120,7 +120,6 @@ class SiralamaSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
-        dis.setContentsMargins(0, 0, 0, 33)
 
         # --- dört yatay kategori sekmesi ---
         self.sekmeler = T.Sekmeler(["En zengin", "En son oynayan",

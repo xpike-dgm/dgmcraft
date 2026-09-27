@@ -125,8 +125,14 @@ QLabel#metrikEtiket {
     font-size: 12px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
 }
 QLabel#metrikDeger { font-size: 34px; font-weight: 700; color: %(yazi)s; }
-QLabel#metrikAlt { font-size: 13px; color: %(ikincil)s; }
+QLabel#metrikAlt { font-size: 15px; color: %(ikincil)s; }
 QLabel#kartBaslik { font-size: 20px; font-weight: 700; color: %(yazi)s; }
+QLabel#bolumBaslikBuyuk {
+    color: %(yazi)s; font-size: 32px; font-weight: 700;
+}
+QLabel#devMetrik {
+    color: %(yazi)s; font-size: 64px; font-weight: 700;
+}
 QLabel#bolumBaslik {
     font-size: 12px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
 }
@@ -158,11 +164,11 @@ QLabel#rozetYazi { font-size: 12px; font-weight: 700; color: %(yazi)s; }
 QLabel#vurguUst {
     font-size: 12px; font-weight: 700; color: %(vurguYazi)s; letter-spacing: 2px;
 }
-QLabel#vurguSayac { font-size: 48px; font-weight: 700; color: %(vurguYazi)s; }
+QLabel#vurguSayac { font-size: 64px; font-weight: 700; color: %(vurguYazi)s; }
 QLabel#vurguAlt { font-size: 15px; color: #7A4E10; }
 QLabel#vurguAltKalin { font-size: 15px; font-weight: 700; color: %(vurguYazi)s; }
-QLabel#kartSayac { font-size: 34px; font-weight: 700; color: %(yazi)s; }
-QLabel#kartSayacKucuk { font-size: 22px; font-weight: 700; color: %(yazi)s; }
+QLabel#kartSayac { font-size: 45px; font-weight: 700; color: %(yazi)s; }
+QLabel#kartSayacKucuk { font-size: 43px; font-weight: 700; color: %(yazi)s; }
 QLabel#bolumAltBaslik { font-size: 17px; font-weight: 700; color: %(yazi)s; }
 QLabel#kategoriAd { font-size: 15px; font-weight: 600; color: %(yazi)s; }
 QLabel#kategoriSayi { font-size: 12px; font-weight: 700; color: %(ikincil)s; }
@@ -260,8 +266,8 @@ QLabel#odulYazi { font-size: 15px; color: %(yazi)s; }
 QLabel#bolumAd { font-size: 15px; font-weight: 600; color: %(yazi)s; }
 QLabel#bolumSayi { font-size: 13px; color: %(ikincil)s; }
 QLabel#satirAlt { font-size: 13px; color: %(ikincil)s; }
-QLabel#sayac { font-size: 30px; font-weight: 700; color: %(yazi)s; }
-QLabel#rozetDeger { font-size: 22px; font-weight: 700; color: %(vurgu)s; }
+QLabel#sayac { font-size: 32px; font-weight: 700; color: %(yazi)s; }
+QLabel#rozetDeger { font-size: 29px; font-weight: 700; color: %(vurgu)s; }
 QLabel#rozetEtiket {
     font-size: 10px; color: %(ikincil)s; letter-spacing: 1px;
 }

@@ -180,6 +180,7 @@ class Kabuk(QMainWindow):
         govde.setContentsMargins(0, 0, 0, 0)
         govde.setSpacing(0)
         govde.addWidget(self._ust_cubuk_kur())
+        govde.addWidget(self._alt_bant_kur())
 
         self._icerik = QFrame()
         self._icerik.setObjectName("sayfa")
@@ -201,6 +202,34 @@ class Kabuk(QMainWindow):
         self.setCentralWidget(dis)
 
     # ---------- 82px üst çubuk + yatay gezinme (tek satır) ----------
+    def _alt_bant_kur(self):
+        """Sayfa dibindeki 33px siyah bant (referans 01-08 ortak).
+
+        Sayfaların alt bosluğu 0'dır; bu bant o boslugu doldurur,
+        aksi halde 82+135+546+33+33 = 829px olur ve 800'e sigmaz."""
+        bant = QFrame()
+        bant.setObjectName("ustCubuk")
+        bant.setFixedHeight(33)
+        return bant
+
+    def _acik_ok(self):
+        """Asagi bakan acilir ok (spec 3.3). SVG yoksa cizilir."""
+        from PySide6.QtGui import QPainter, QPen, QColor, QPixmap
+        from PySide6.QtCore import Qt, QPointF
+        from PySide6.QtGui import QPolygonF
+        p = QPixmap(48, 48)
+        p.fill(Qt.transparent)
+        b = QPainter(p)
+        b.setRenderHint(QPainter.Antialiasing, True)
+        pen = QPen(QColor(T.YAZI), 3.2)
+        pen.setCapStyle(Qt.RoundCap)
+        pen.setJoinStyle(Qt.RoundJoin)
+        b.setPen(pen)
+        b.drawPolyline(QPolygonF([QPointF(12, 19), QPointF(24, 31),
+                                  QPointF(36, 19)]))
+        b.end()
+        return p
+
     def _ust_cubuk_kur(self):
         cubuk = QFrame()
         cubuk.setObjectName("ustCubuk")
@@ -246,10 +275,15 @@ class Kabuk(QMainWindow):
 
         satir.addStretch(1)
 
-        self.kasa = QLabel()
-        self.kasa.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-        self.kasa.setPixmap(self._yuvarlak("brand", "app-icon-128.png", boyut=30))
-        satir.addWidget(self.kasa)
+        # Spec 3.3: sagda ayirici + turuncu durum noktasi + isim + acilir ok.
+        # Ikinci bir marka amblemi referansta yok.
+        satir.addSpacing(10)
+        ayirici = QFrame()
+        ayirici.setFixedWidth(1)
+        ayirici.setFixedHeight(28)
+        ayirici.setStyleSheet("background: #505657; border: none;")
+        satir.addWidget(ayirici)
+        satir.addSpacing(18)
         nokta = QFrame()
         nokta.setFixedSize(8, 8)
         nokta.setStyleSheet("background: %s; border-radius: 4px; border: none;"
@@ -262,10 +296,11 @@ class Kabuk(QMainWindow):
         self.kullaniciYazi.setAttribute(Qt.WA_TransparentForMouseEvents, True)
         satir.addWidget(self.kullaniciYazi)
         ok = QLabel()
-        ok.setPixmap(T.svg_ikon("arrow", 12).pixmap(12, 12))
-        ok.setFixedWidth(12)
+        ok.setPixmap(self._acik_ok())
+        ok.setFixedWidth(16)
+        ok.setFixedHeight(16)
         ok.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-        satir.addSpacing(10)
+        satir.addSpacing(12)
         satir.addWidget(ok)
         satir.addSpacing(14)
 

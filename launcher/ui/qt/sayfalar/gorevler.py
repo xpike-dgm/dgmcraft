@@ -352,9 +352,21 @@ class DetayKarti(QFrame):
         super().__init__(ebeveyn)
         self.setObjectName("detayKart")
         self.dugum = None
-        govde = QVBoxLayout(self)
+        # Spec 7.3: uzun icerik kaydirilabilir olmali. Sabit yukseklikte
+        # dikey layout tasmasina ugrar ve ogeler ust uste biner.
+        dis = QVBoxLayout(self)
+        dis.setContentsMargins(0, 0, 0, 0)
+        dis.setSpacing(0)
+        self.kaydirma = QScrollArea()
+        self.kaydirma.setWidgetResizable(True)
+        self.kaydirma.setFrameShape(QFrame.NoFrame)
+        self.kaydirma.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.govdeIcerik = QWidget()
+        dis.addWidget(self.kaydirma)
+        govde = QVBoxLayout(self.govdeIcerik)
         govde.setContentsMargins(20, 18, 20, 18)
         govde.setSpacing(10)
+        self.kaydirma.setWidget(self.govdeIcerik)
         self.govde = govde
         self._bos_goster()
 
@@ -564,13 +576,44 @@ class FiltreDugmesi(QPushButton):
     def __init__(self, metin, kimlik, ebeveyn=None):
         super().__init__(ebeveyn)
         self.kimlik = kimlik
-        self.setText(metin)
+        self._tam_ad = metin
         self.setCursor(Qt.PointingHandCursor)
-        self.setFixedHeight(30)
-        self.setMinimumWidth(0)
+        self.setFixedHeight(32)
         self.setCheckable(True)
         self._secili = False
         self._stil(False)
+        self.ad_ayarla(metin)
+
+    def ad_ayarla(self, metin):
+        """Tam adi sakla, gorunen metni hucreye sigacak sekilde kisalt."""
+        self._tam_ad = metin
+        self.setToolTip(metin)
+        self.setText(self._elide(metin))
+        self.setMinimumWidth(self._gerekli(metin))
+
+    def _gerekli(self, metin):
+        """Icerige gore taban genislik, ama tavanli.
+
+        Tavan olmazsa uzun bolum adlari 5'li izgarayi 1294px'e siyirip
+        pencereyi yatay tasirir; elide bu durumu zaten cozuyor.
+        """
+        from PySide6.QtGui import QFontMetrics
+        genislik = QFontMetrics(self.font()).horizontalAdvance(metin) + 30
+        return min(genislik, 168)
+
+    def _elide(self, metin):
+        from PySide6.QtGui import QFontMetrics
+        fm = QFontMetrics(self.font())
+        en = max(60, self.width() - 30)
+        if fm.horizontalAdvance(metin) <= en:
+            return metin
+        return fm.elidedText(metin, Qt.ElideRight, en)
+
+    def resizeEvent(self, olay):
+        super().resizeEvent(olay)
+        yeni = self._elide(self._tam_ad)
+        if yeni != self.text():
+            self.setText(yeni)
 
     def stil(self, secili):
         if secili:
@@ -642,7 +685,6 @@ class GorevlerSayfasi(QWidget):
 
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
-        dis.setContentsMargins(0, 0, 0, 33)
         dis.setSpacing(0)
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
                                         SAYFA_ACIKLAMA, "DGMCRAFT / GÖREVLER")
@@ -659,10 +701,10 @@ class GorevlerSayfasi(QWidget):
         govde.setContentsMargins(0, 0, 0, 0)
         govde.setSpacing(14)
         solSutun = self._sol_sutun()
-        solSutun.setFixedWidth(735)
+        solSutun.setFixedWidth(717)
         solSutun.setFixedHeight(333)
         self.detay = DetayKarti()
-        self.detay.setFixedWidth(455)
+        self.detay.setFixedWidth(451)
         self.detay.setFixedHeight(333)
         govde.addWidget(solSutun)
         govde.addWidget(self.detay)
@@ -673,6 +715,8 @@ class GorevlerSayfasi(QWidget):
         kutu = QFrame()
         kutu.setObjectName("siyahKart")
         kutu.setFixedHeight(108)
+        kutu.setMinimumWidth(0)
+        kutu.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         satir = QHBoxLayout(kutu)
         satir.setContentsMargins(20, 14, 20, 14)
         satir.setSpacing(18)
@@ -687,6 +731,8 @@ class GorevlerSayfasi(QWidget):
         cubukSatir.setContentsMargins(0, 4, 0, 0)
         cubukSatir.setSpacing(10)
         self.cubuk = Cubuk()
+        self.cubuk.setMinimumWidth(0)
+        self.cubuk.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         cubukSatir.addWidget(self.cubuk, 1)
         self.yuzde = T.etiket("0%", "satirSag")
         self.yuzde.setStyleSheet("color: %s; font-size: 14px; font-weight: 700;"
@@ -703,6 +749,7 @@ class GorevlerSayfasi(QWidget):
         self.rozetTamam = OzetRozet("tamam", T.IKINCIL)
         self.rozetTamam.etiket.setText("tamamlandı")
         for r in (self.rozetBolum, self.rozetAktif, self.rozetTamam):
+            r.setMinimumWidth(0)
             satir.addWidget(r, 0, Qt.AlignVCenter)
         return kutu
 
@@ -740,23 +787,30 @@ class GorevlerSayfasi(QWidget):
         self._bolum_izgara.setHorizontalSpacing(7)
         self._bolum_izgara.setVerticalSpacing(5)
         ikinci.addLayout(self._bolum_izgara)
+        SUTUN = 5
         for i in range(14):
             b = FiltreDugmesi("—", "bolum%d" % i)
             b.setVisible(False)
-            b.setMinimumWidth(0)
+            b.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
             b.clicked.connect(lambda _c, k=i: self._bolum_sec(k))
             self.bolumDugmeleri.append(b)
-            self._bolum_izgara.addWidget(b, i // 7, i % 7)
-        ikinci.addStretch(1)
+            self._bolum_izgara.addWidget(b, i // SUTUN, i % SUTUN)
+        for c in range(SUTUN):
+            self._bolum_izgara.setColumnStretch(c, 1)
+        ikinci.addStretch(0)
         self.arama = QLineEdit()
         self.arama.setObjectName("aramaKutusu")
         self.arama.setPlaceholderText("Görev ara...")
         self.arama.setClearButtonEnabled(True)
-        self.arama.setFixedWidth(180)
-        self.arama.setFixedHeight(34)
+        self.arama.setFixedWidth(220)
+        self.arama.setFixedHeight(36)
         self.arama.textChanged.connect(self._arama_degisti)
-        ikinci.addWidget(self.arama)
         dis.addLayout(ikinci)
+        aramaSatir = QHBoxLayout()
+        aramaSatir.setContentsMargins(0, 0, 0, 0)
+        aramaSatir.addStretch(1)
+        aramaSatir.addWidget(self.arama)
+        dis.addLayout(aramaSatir)
 
         self.kaydirma = QScrollArea()
         self.kaydirma.setWidgetResizable(True)
@@ -809,7 +863,7 @@ class GorevlerSayfasi(QWidget):
         for i, b in enumerate(self.bolumDugmeleri):
             if i < len(bolumler) and i < len(self.bolumDugmeleri):
                 ad = bolumler[i].get("ad") if isinstance(bolumler[i], dict) else bolumler[i]
-                b.setText(str(ad))
+                b.ad_ayarla(str(ad))
                 b.setVisible(True)
                 b._stil(i == getattr(self, "_secili_bolum", None))
             else:

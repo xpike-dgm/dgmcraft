@@ -71,7 +71,6 @@ class KonsolSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
-        dis.setContentsMargins(0, 0, 0, 33)
 
         kart = QFrame()
         kart.setObjectName("siyahKart")

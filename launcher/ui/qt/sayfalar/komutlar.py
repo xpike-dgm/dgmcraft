@@ -38,10 +38,13 @@ class KomutSatiri(QFrame):
             et = T.etiket(kategori, "minik")
             satir.addWidget(et)
         satir.addStretch(1)
-        ozet = T.etiket(self._kisalt(komut.get("aciklama", ""), 78), "soluk")
-        ozet.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self._ozet_metin = " ".join((komut.get("aciklama", "") or "").split())
+        ozet = T.etiket(self._ozet_metin, "soluk")
+        ozet.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         ozet.setWordWrap(False)
-        ozet.setMinimumWidth(140)
+        ozet.setMinimumWidth(120)
+        ozet.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        self.ozet = ozet
         satir.addWidget(ozet, 1)
         ok = QLabel()
         ok.setPixmap(T.svg_ikon("arrow", 13).pixmap(13, 13))
@@ -53,6 +56,23 @@ class KomutSatiri(QFrame):
         self.setProperty("secili", "1" if deger else "0")
         self.style().unpolish(self)
         self.style().polish(self)
+
+    def resizeEvent(self, olay):
+        super().resizeEvent(olay)
+        self._ozet_yenile()
+
+    def _ozet_yenile(self):
+        """Aciklamayi hucre genisligine sigacak sekilde kisalt.
+
+        Onceki davranis sabit karakter siniri + AlignRight idi; dar
+        alanda metnin basi tabdan tasip kiziyordu.
+        """
+        from PySide6.QtGui import QFontMetrics
+        fm = QFontMetrics(self.ozet.font())
+        en = max(60, self.ozet.width() - 4)
+        yeni = fm.elidedText(self._ozet_metin, Qt.ElideRight, en)
+        if yeni != self.ozet.text():
+            self.ozet.setText(yeni)
 
     @staticmethod
     def _kisalt(metin, sinir):
@@ -149,7 +169,6 @@ class KomutlarSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
-        dis.setContentsMargins(0, 0, 0, 33)
 
         # --- siyah arama bandı (57px) ---
         self.aramaKutusu = T.AramaKutusu("Komut ara... anit, claim, banka")
@@ -185,9 +204,22 @@ class KomutlarSayfasi(QWidget):
         solGovde = QVBoxLayout(solKart)
         solGovde.setContentsMargins(0, 0, 0, 0)
         solGovde.setSpacing(0)
-        self.sonucEtiketi = T.etiket("", "minik")
-        self.sonucEtiketi.setContentsMargins(16, 12, 16, 8)
-        solGovde.addWidget(self.sonucEtiketi)
+        # Referans 02-komutlar: "Komut | Ne ise yarar? | N KOMUT" basligi
+        self.listeBasligiSatiri = QWidget()
+        basUst = QHBoxLayout(self.listeBasligiSatiri)
+        basUst.setContentsMargins(16, 12, 16, 8)
+        basUst.setSpacing(12)
+        b_ad = T.etiket("Komut", "listeBaslik")
+        b_ad.setFixedWidth(200)
+        basUst.addWidget(b_ad)
+        b_ac = T.etiket("Ne işe yarar?", "listeBaslik")
+        basUst.addWidget(b_ac, 1)
+        self.sonucEtiketi = T.etiket("0 KOMUT", "listeBaslik")
+        self.sonucEtiketi.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        basUst.addWidget(self.sonucEtiketi)
+        solGovde.addWidget(self.listeBasligiSatiri)
+        self.listeBasligiCizgisi = T.ayirici()
+        solGovde.addWidget(self.listeBasligiCizgisi)
         self.komutAlani = QVBoxLayout()
         self.komutAlani.setContentsMargins(10, 0, 10, 10)
         self.komutAlani.setSpacing(4)
@@ -270,6 +302,7 @@ class KomutlarSayfasi(QWidget):
 
     def _kategori_sec(self, ad):
         self._aktif_kategori = ad
+        self._ilk_satir_sec = True
         if self.arama.text():
             self.arama.blockSignals(True)
             self.arama.clear()

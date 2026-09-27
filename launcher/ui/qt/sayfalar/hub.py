@@ -51,7 +51,6 @@ class HubSayfasi(QWidget):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
         dis.setSpacing(0)
-        dis.setContentsMargins(0, 0, 0, 33)
 
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK, SAYFA_ACIKLAMA,
                                          "DGMCRAFT / HUB")
@@ -119,18 +118,18 @@ class HubSayfasi(QWidget):
         sol.setSpacing(0)
         sol.addStretch(1)
 
+        # Referans: dolu kapsul degil, duz turuncu "SUNUCU / HAZIR" metni.
         self.rozet = QFrame()
-        self.rozet.setFixedHeight(22)
-        self.rozet.setStyleSheet(
-            "background: %s; border-radius: 3px;" % T.YESIL)
+        self.rozet.setFixedHeight(20)
+        self.rozet.setStyleSheet("background: transparent; border: none;")
         self.rozet.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         rozetSatir = QHBoxLayout(self.rozet)
-        rozetSatir.setContentsMargins(9, 0, 9, 0)
-        self.rozetYazi = QLabel("HAZIR")
+        rozetSatir.setContentsMargins(0, 0, 0, 0)
+        self.rozetYazi = QLabel("SUNUCU / HAZIR")
         self.rozetYazi.setObjectName("rozetYazi")
         self.rozetYazi.setStyleSheet(
             "color: %s; font-size: 13px; font-weight: 700;"
-            " letter-spacing: 2px; background: transparent;" % T.YAZI)
+            " letter-spacing: 1px; background: transparent;" % T.VURGU)
         rozetSatir.addWidget(self.rozetYazi)
         sol.addWidget(self.rozet)
         sol.addSpacing(14)
@@ -187,7 +186,9 @@ class HubSayfasi(QWidget):
         self.durumSayac = QLabel("0")
         self.durumSayac.setObjectName("vurguSayac")
         govde.addWidget(self.durumSayac)
-        govde.addWidget(T.etiket("çevrimiçi oyuncu", "vurguAlt"))
+        self.durumAlt = T.etiket("Çevrimiçi oyuncu", "vurguAlt")
+        self.durumAlt.setObjectName("vurguAltKalin")
+        govde.addWidget(self.durumAlt)
         govde.addStretch(1)
         self.durumSatiri = T.ayirici("#C97C1C")
         govde.addWidget(self.durumSatiri)
@@ -199,6 +200,7 @@ class HubSayfasi(QWidget):
         alt.addWidget(self.baglantiYazi)
         alt.addStretch(1)
         self.durumMetin = T.etiket("Sunucu kapalı", "vurguAlt")
+        self.durumMetin.setObjectName("vurguAltKalin")
         self.durumMetin.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         alt.addWidget(self.durumMetin)
         govde.addLayout(alt)
@@ -228,6 +230,17 @@ class HubSayfasi(QWidget):
 
         self.bellekCubuk = self._mini_cubuk()
         govde.addWidget(self.bellekCubuk)
+        govde.addSpacing(4)
+        # Referans: cubugun iki ucunda 2 GB / 6 GB etiketleri
+        ucSatir = QHBoxLayout()
+        ucSatir.setContentsMargins(0, 0, 0, 0)
+        self.bellekEnAz = T.etiket("2 GB", "minik")
+        ucSatir.addWidget(self.bellekEnAz)
+        ucSatir.addStretch(1)
+        self.bellekEnCok = T.etiket("6 GB", "minik")
+        self.bellekEnCok.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        ucSatir.addWidget(self.bellekEnCok)
+        govde.addLayout(ucSatir)
         govde.addSpacing(6)
 
         self.bellekKaydirici = Y.BellekKaydirici(
@@ -260,7 +273,8 @@ class HubSayfasi(QWidget):
         govde.setSpacing(6)
         govde.addWidget(T.etiket("02 / SUNUCU", "bolumBaslik"))
         govde.addSpacing(6)
-        self.surumDeger = QLabel(str(self.h.surum))
+        # Referans: buyuk baslik motor adi ("Purpur 26.1.2"), altinda surum.
+        self.surumDeger = QLabel("Purpur 26.1.2")
         self.surumDeger.setObjectName("kartSayacKucuk")
         govde.addWidget(self.surumDeger)
         self.surumAlt = T.etiket("Sürüm 2026-09-23-1", "metrikAlt")

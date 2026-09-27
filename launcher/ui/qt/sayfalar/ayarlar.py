@@ -89,7 +89,6 @@ class AyarlarSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
-        dis.setContentsMargins(0, 0, 0, 33)
         govde = QHBoxLayout()
         govde.setContentsMargins(0, 0, 0, 0)
         govde.setSpacing(T.KART_ARALIK)

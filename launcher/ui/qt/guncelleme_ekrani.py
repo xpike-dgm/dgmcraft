@@ -202,10 +202,10 @@ class GuncellemePenceresi(QWidget):
         notAltSatir = QHBoxLayout(notAlt)
         notAltSatir.setContentsMargins(22, 12, 22, 16)
         notAltSatir.addStretch(1)
-        notAltSatir.addWidget(self.surumEtiketi)
         self.surumEtiketi = T.etiket(
             "DGMCRAFT / %s" % (self.sonuc.get("son") or "?"),
             "bolumBaslik")
+        notAltSatir.addWidget(self.surumEtiketi)
         notDikey.addWidget(notAlt)
         satir.addWidget(notKart, 1)
         return govde
