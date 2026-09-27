@@ -129,6 +129,7 @@ class KonsolSayfasi(QWidget):
         satir.setContentsMargins(20, 12, 20, 14)
         satir.setSpacing(10)
         self.girdi = QLineEdit()
+        self.girdi.setToolTip("Yukarı ok geçmişteki komutları gezinir · tehlikeli komutlar onay ister")
         self.girdi.setPlaceholderText("Komut yaz — örn: say Merhaba, tp Xpike 10 64 -20 120")
         self.girdi.setFixedHeight(48)
         self.girdi.setStyleSheet(
@@ -152,10 +153,6 @@ class KonsolSayfasi(QWidget):
         govde.addLayout(satir)
         ic.addWidget(kart, 1)
 
-        ipucu = QLabel("Yukarı ok geçmişteki komutları gezinir · tehlikeli komutlar onay ister")
-        ipucu.setObjectName("minik")
-        ic.addWidget(ipucu)
-        dis.addSpacing(2)
         self.girdi.installEventFilter(self)
 
     # ---------- giriş geçmişi ----------
