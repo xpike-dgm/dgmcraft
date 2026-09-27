@@ -100,9 +100,9 @@ class KategoriSatiri(QFrame):
             " border-radius: 4px; }"
             "QFrame#kategoriSatir:hover { border-color: %s; }"
             % (T.YUZEY, T.CERCEVE, T.VURGU))
-        self.ad.setStyleSheet("color: %s; font-size: 12px; font-weight: 600;"
+        self.ad.setStyleSheet("color: %s; font-size: 15px; font-weight: 600;"
                               % (T.VURGU_YAZI if aktif else T.YAZI))
-        self.sayi.setStyleSheet("color: %s; font-size: 10px; font-weight: 700;"
+        self.sayi.setStyleSheet("color: %s; font-size: 13px; font-weight: 700;"
                                 % ("#7A4E10" if aktif else T.IKINCIL))
 
 
@@ -139,7 +139,7 @@ class KomutlarSayfasi(QWidget):
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
-        dis.setSpacing(T.KART_ARALIK)
+        dis.setSpacing(0)
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
                                               SAYFA_ACIKLAMA,
                                               "DGMCRAFT / KOMUTLAR")
@@ -149,6 +149,7 @@ class KomutlarSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
+        dis.setContentsMargins(0, 0, 0, 33)
 
         # --- siyah arama bandı (57px) ---
         self.aramaKutusu = T.AramaKutusu("Komut ara... anit, claim, banka")
@@ -167,9 +168,9 @@ class KomutlarSayfasi(QWidget):
         self.kategoriSerit.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         icKutuKategori = QWidget()
         self.kategoriAlani = QHBoxLayout(icKutuKategori)
-        self.kategoriAlani.setContentsMargins(0, 6, 0, 6)
+        self.kategoriAlani.setContentsMargins(0, 1, 0, 1)
         self.kategoriAlani.setSpacing(10)
-        icKutuKategori.setFixedHeight(46)
+        icKutuKategori.setFixedHeight(36)
         self.kategoriSerit.setWidget(icKutuKategori)
         self.kategoriAlani_kap = icKutuKategori
         ic.addWidget(self.kategoriSerit)
@@ -260,7 +261,7 @@ class KomutlarSayfasi(QWidget):
         kap = self.kategoriAlani_kap
         toplam = sum(b.sizeHint().width() for b in self._kategori_satirlari)
         genislik = toplam + 10 * max(0, len(self._kategori_satirlari) - 1) + 4
-        kap.setFixedHeight(46)
+        kap.setFixedHeight(36)
         self.kategoriAlani.invalidate()
         self.kategoriAlani.activate()
         kap.setFixedWidth(genislik)

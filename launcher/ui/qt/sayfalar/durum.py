@@ -34,39 +34,47 @@ class TpsGrafik(QWidget):
     def paintEvent(self, _olay):
         boya = QPainter(self)
         boya.setRenderHint(QPainter.Antialiasing, True)
-        alan = QRectF(self.rect()).adjusted(1, 1, -1, 1)
+        alan = QRectF(self.rect()).adjusted(1, 1, -1, -1)
         boya.setPen(Qt.NoPen)
         boya.setBrush(QColor(T.SIYAH))
         boya.drawRect(alan)
-        if len(self._veri) < 2:
-            boya.setPen(QColor(T.IKINCIL))
-            boya.drawText(alan, Qt.AlignCenter, "Henüz ölçüm yok")
-            boya.end()
-            return
-        en = 20.0
-        veri = self._veri[-24:]
-        taban = alan.bottom() - 22
-        ust_kenar = alan.top() + 14
+
+        sol, sag = alan.left() + 10, alan.right() - 10
+        ust_kenar, taban = alan.top() + 14, alan.bottom() - 22
         yukseklik = taban - ust_kenar
-        # 20.0 hedef çizgisi
-        boya.setPen(QPen(QColor("#545B5C"), 1, Qt.DashLine))
-        boya.drawLine(QPointF(alan.left() + 10, ust_kenar),
-                      QPointF(alan.right() - 10, ust_kenar))
-        genislik = alan.width() - 20
-        adim = genislik / float(max(1, len(veri)))
-        cubuk = max(4.0, adim * 0.52)
-        for i, o in enumerate(veri):
-            tps = float(o.get("tps", 0) or 0)
-            oran = max(0.0, min(1.0, tps / en))
-            h = max(2.0, yukseklik * oran)
-            x = alan.left() + 10 + adim * i + (adim - cubuk) / 2.0
-            boya.setPen(Qt.NoPen)
-            boya.setBrush(QColor(T.VURGU) if tps < 15.0 else QColor(T.YAZI))
-            boya.drawRect(QRectF(x, taban - h, cubuk, h))
-        # taban çizgisi + eksen
+        en = 20.0
+
+        # yatay izgara: veri olmasa da cerceve her zaman durur
+        boya.setPen(QPen(QColor("#242B2E"), 1))
+        for k in range(1, 4):
+            y = taban - yukseklik * k / 4.0
+            boya.drawLine(QPointF(sol, y), QPointF(sag, y))
+
+        # 20.0 hedef cizgisi (ince, kesintisiz)
+        boya.setPen(QPen(QColor("#3F4749"), 1))
+        boya.drawLine(QPointF(sol, ust_kenar), QPointF(sag, ust_kenar))
+
+        # taban cizgisi
         boya.setPen(QPen(QColor(T.BOLUCU), 1))
-        boya.drawLine(QPointF(alan.left() + 10, taban),
-                      QPointF(alan.right() - 10, taban))
+        boya.drawLine(QPointF(sol, taban), QPointF(sag, taban))
+
+        veri = self._veri[-24:]
+        if len(veri) >= 2:
+            genislik = sag - sol
+            adim = genislik / float(len(veri))
+            cubuk = max(4.0, adim * 0.52)
+            for i, o in enumerate(veri):
+                tps = float(o.get("tps", 0) or 0)
+                oran = max(0.0, min(1.0, tps / en))
+                h = max(2.0, yukseklik * oran)
+                x = sol + adim * i + (adim - cubuk) / 2.0
+                boya.setPen(Qt.NoPen)
+                boya.setBrush(QColor(T.VURGU) if tps < 15.0 else QColor(T.YAZI))
+                boya.drawRect(QRectF(x, taban - h, cubuk, h))
+        else:
+            boya.setPen(QColor("#545B5C"))
+            boya.drawText(QRectF(sol, ust_kenar, sag - sol, taban - ust_kenar),
+                          Qt.AlignCenter, "Henüz ölçüm yok")
         boya.end()
 
 
@@ -119,7 +127,7 @@ class DurumSayfasi(QWidget):
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
-        dis.setSpacing(T.KART_ARALIK)
+        dis.setSpacing(0)
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
                                               SAYFA_ACIKLAMA,
                                               "DGMCRAFT / DURUM")
@@ -129,6 +137,7 @@ class DurumSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
+        dis.setContentsMargins(0, 0, 0, 33)
 
         # --- siyah metrik bandı (1208x132) ---
         self.band = T.MetrikBandi([
@@ -144,7 +153,7 @@ class DurumSayfasi(QWidget):
         self.oyuncuKart = self.band.metrikler["Oyuncular"]
 
         alt = QHBoxLayout()
-        alt.setSpacing(T.KART_ARALIK)
+        alt.setSpacing(20)
 
         # --- sol: TPS geçmiş kartı ---
         sol = QFrame()
@@ -157,23 +166,29 @@ class DurumSayfasi(QWidget):
         b0 = T.etiket("TPS geçmişi", "bolumAltBaslik")
         grafikUst.addWidget(b0)
         grafikUst.addStretch(1)
-        self.ornekYazi = T.etiket("son ölçüm", "minik")
+        self.ornekYazi = T.etiket("SON 5 DAKİKA", "bolumBaslik")
+        self.ornekYazi.setStyleSheet("color: %s; font-size: 13px; font-weight: 700;" % T.VURGU)
         grafikUst.addWidget(self.ornekYazi)
         solGovde.addLayout(grafikUst)
         self.grafik = TpsGrafik()
         self.grafik.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         solGovde.addWidget(self.grafik, 1)
-        self.grafikAlt = T.etiket("Son 60 ölçüm · 20,0 hedef", "minik")
-        solGovde.addWidget(self.grafikAlt)
-        sol.setFixedWidth(786)
-        sol.setFixedHeight(398)
+        grafikAltSatir = QHBoxLayout()
+        grafikAltSatir.setContentsMargins(0, 0, 0, 0)
+        grafikAltSatir.addWidget(T.etiket("\u2212 5 dk", "minik"))
+        grafikAltSatir.addStretch(1)
+        self.grafikAlt = T.etiket("son ölçüm", "minik")
+        grafikAltSatir.addWidget(self.grafikAlt)
+        solGovde.addLayout(grafikAltSatir)
+        sol.setFixedWidth(784)
+        sol.setFixedHeight(400)
         alt.addWidget(sol)
 
         # --- sağ: sistem bilgisi kartı ---
         sagKart = QFrame()
         sagKart.setObjectName("kart")
         sagKart.setFixedWidth(404)
-        sagKart.setFixedHeight(398)
+        sagKart.setFixedHeight(400)
         sagGovde = QVBoxLayout(sagKart)
         sagGovde.setContentsMargins(20, 18, 20, 16)
         sagGovde.setSpacing(4)
@@ -181,7 +196,7 @@ class DurumSayfasi(QWidget):
         sagGovde.addWidget(b1)
         sagGovde.addSpacing(8)
         self.sunucuSatirlari = {}
-        for ad in ("Motor", "Sürüm", "Çalışma süresi", "Son örnek", "Varlık",
+        for ad in ("Motor", "Sürüm", "Çalışma süresi",
                    "Yüklü chunk", "Boş disk", "RCON"):
             satir = QHBoxLayout()
             satir.setContentsMargins(0, 0, 0, 0)
@@ -192,29 +207,21 @@ class DurumSayfasi(QWidget):
             satir.addWidget(deger)
             sagGovde.addLayout(satir)
             self.sunucuSatirlari[ad] = deger
+            if ad != "RCON":
+                ay = T.ayirici()
+                ay.setContentsMargins(0, 6, 0, 6)
+                sagGovde.addWidget(ay)
         sagGovde.addStretch(1)
         alt.addWidget(sagKart, 0)
         ic.addLayout(alt, 1)
 
+        # Çevrimiçi oyuncular: ayrı kart değil, Sistem panelinin içinde.
+        # Referansta sunucu kapalıyken bu alan boş kalır (panel 6 satır).
         self.durumEtiketi = T.etiket("", "minik")
         self.oyuncuBos = T.BosDurum("Sunucu kapalıyken çevrimiçi liste yok.")
-        self.oyuncuListeKart = T.kart()
-        oyuncuKartGovde = QVBoxLayout(self.oyuncuListeKart)
-        oyuncuKartGovde.setContentsMargins(20, 16, 20, 16)
-        oyuncuKartGovde.setSpacing(8)
-        oyuncuUst = QHBoxLayout()
-        oyuncuUst.setContentsMargins(0, 0, 0, 0)
-        oyuncuUst.addWidget(T.etiket("ÇEVRİMİÇİ OYUNCULAR", "bolumBaslik"))
-        oyuncuUst.addStretch(1)
-        oyuncuUst.addWidget(self.durumEtiketi)
-        oyuncuKartGovde.addLayout(oyuncuUst)
         self.oyuncuListe = QVBoxLayout()
         self.oyuncuListe.setContentsMargins(0, 0, 0, 0)
         self.oyuncuListe.setSpacing(4)
-        oyuncuKartGovde.addLayout(self.oyuncuListe)
-        oyuncuKartGovde.addWidget(self.oyuncuBos, 1)
-        self.oyuncuListeKart.setFixedHeight(120)
-        ic.addWidget(self.oyuncuListeKart)
 
     # ---------- veri ----------
     def _istek(self):

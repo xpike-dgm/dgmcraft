@@ -152,6 +152,7 @@ class Sihirbaz(QWidget):
     def _ray_kur(self):
         """1208x84 yatay 7 adim ilerleme satiri."""
         serit = QFrame()
+        serit.setObjectName("kart")
         serit.setFixedHeight(84)
         dis = QHBoxLayout(serit)
         dis.setContentsMargins(T.IC_PAY, 18, T.IC_PAY, 18)
@@ -201,7 +202,6 @@ class Sihirbaz(QWidget):
         self.baslikYazi = T.etiket("", "sayfaBaslik")
         self.baslikYazi.setContentsMargins(24, 6, 24, 0)
         sagDikey.addWidget(self.baslikYazi)
-        T.ayirici().setContentsMargins(0, 0, 0, 0)
         ayrac = T.ayirici()
         ayrac.setStyleSheet("background: %s; border: none; max-height: 1px;"
                             " min-height: 1px;" % T.CERCEVE)
@@ -227,24 +227,21 @@ class Sihirbaz(QWidget):
         markaDikey = QVBoxLayout(self.markaKart)
         markaDikey.setContentsMargins(28, 24, 28, 24)
         markaDikey.setSpacing(12)
-        markaDikey.addStretch(1)
-        self.markaAd = QLabel("DGMCRAFT / KURULUM")
-        self.markaAd.setObjectName("bolumBaslik")
+        self.markaGorsel = QLabel()
+        self.markaGorsel.setPixmap(T.mark_pixmap(150))
+        self.markaGorsel.setAlignment(Qt.AlignCenter)
+        self.markaGorsel.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        markaDikey.addWidget(self.markaGorsel)
+        markaDikey.addSpacing(10)
+        self.markaAd = T.etiket("DGMCRAFT / KURULUM", "bolumBaslik")
         markaDikey.addWidget(self.markaAd)
-        self.markaBaslik = T.etiket("", "kartBaslik")
+        self.markaBaslik = T.etiket("", "sihirKartBaslik")
         self.markaBaslik.setWordWrap(True)
-        self.markaBaslik.setObjectName("sihirKartBaslik")
         markaDikey.addWidget(self.markaBaslik)
         self.markaAciklama = T.etiket("", "soluk")
         self.markaAciklama.setWordWrap(True)
         markaDikey.addWidget(self.markaAciklama)
-        markaDikey.addSpacing(16)
-        self.markaGorsel = QLabel()
-        self.markaGorsel.setPixmap(T.mark_pixmap(150))
-        self.markaGorsel.setAlignment(Qt.AlignCenter)
-        markaDikey.addWidget(self.markaGorsel)
         markaDikey.addStretch(1)
-        satir.addWidget(self.sag, 1)
         satir.addWidget(self.markaKart, 0)
         return govde
 
@@ -291,9 +288,9 @@ class Sihirbaz(QWidget):
             else:
                 zemin, yazi_rengi = "#20272A", T.PASIF_NAV
             nokta.setStyleSheet(
-                "background: %s; color: %s; border-radius: 12px; font-size: 11px;"
+                "background: %s; color: %s; border-radius: 12px; font-size: 13px;"
                 " font-weight: 700;" % (zemin, yazi_rengi))
-            yazi.setStyleSheet("color: %s; font-size: 11px; font-weight: %s;"
+            yazi.setStyleSheet("color: %s; font-size: 13px; font-weight: %s;"
                                " background: transparent;"
                                % (T.VURGU if (tamam or aktif) else T.PASIF_NAV,
                                   "700" if aktif else "600"))
@@ -303,7 +300,7 @@ class Sihirbaz(QWidget):
         self.markaAd.setText("DGMCRAFT / KURULUM")
         self.markaBaslik.setText(MARKA_BASLIKLARI[self.adim])
         self.markaAciklama.setText(MARKA_ACIKLAMALARI[self.adim])
-        self.adimYazi.setText("ADIM %d / %d" % (self.adim + 1, len(ADIMLAR)))
+        self.adimYazi.setText("ADIM %02d / %02d" % (self.adim + 1, len(ADIMLAR)))
         self.geriDugmesi.setVisible(self.adim > 0)
         self.ileriDugmesi.setText("Bitir ve başla" if self.adim == len(ADIMLAR) - 1
                                   else "Devam Et →")
@@ -328,22 +325,22 @@ class Sihirbaz(QWidget):
         kutu.setObjectName("sihirNot")
         lb = QLabel(metin)
         lb.setWordWrap(True)
-        lb.setStyleSheet("color: %s; font-size: 12px; background: transparent;"
+        lb.setStyleSheet("color: %s; font-size: 15px; background: transparent;"
                          % (renk or T.SOLUK))
         kutuLayout = QVBoxLayout(kutu)
         kutuLayout.setContentsMargins(14, 10, 14, 10)
         kutuLayout.addWidget(lb)
         self.govde.addWidget(kutu)
 
-    def _girdi(self, yertutucu="", gizli=False, genislik=320):
+    def _girdi(self, yertutucu="", gizli=False, genislik=610):
         e = QLineEdit()
         e.setPlaceholderText(yertutucu)
         e.setFixedWidth(genislik or 610)
-        e.setFixedHeight(46)
+        e.setFixedHeight(52)
         e.setEchoMode(QLineEdit.Password if gizli else QLineEdit.Normal)
         e.setStyleSheet(
             "QLineEdit { background: %s; border: 1px solid %s; border-radius: 4px;"
-            " padding: 12px; color: %s; font-size: 12px; }"
+            " padding: 12px; color: %s; font-size: 15px; }"
             "QLineEdit:focus { border: 2px solid %s; padding: 11px; }"
             % (T.YUZEY, T.CERCEVE, T.YAZI, T.VURGU))
         self.govde.addWidget(e, 0, Qt.AlignLeft)
@@ -413,7 +410,7 @@ class Sihirbaz(QWidget):
         self._aciklama(
             "Bu kod seni arkadaşlarının özel oyun ağına bağlar. Sadece bu kodu "
             "bilenler girebilir.")
-        self.anahtarGirdi = self._girdi("Davet kodunu yapıştır", gizli=True, genislik=380)
+        self.anahtarGirdi = self._girdi("Davet kodunu yapıştır", gizli=True)
         self.anahtarGirdi.textChanged.connect(self._anahtar_taslakla)
         taslak = getattr(self, "_anahtar_taslak", "")
         if taslak:

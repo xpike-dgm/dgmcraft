@@ -61,7 +61,7 @@ class KonsolSayfasi(QWidget):
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
-        dis.setSpacing(T.KART_ARALIK)
+        dis.setSpacing(0)
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
                                               SAYFA_ACIKLAMA,
                                               "DGMCRAFT / KONSOL")
@@ -71,6 +71,7 @@ class KonsolSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
+        dis.setContentsMargins(0, 0, 0, 33)
 
         kart = QFrame()
         kart.setObjectName("siyahKart")
@@ -104,7 +105,7 @@ class KonsolSayfasi(QWidget):
         self.cikti.setStyleSheet(
             "QPlainTextEdit { background: transparent; border: none;"
             " padding: 14px 20px; color: %s;"
-            " font-family: 'Consolas'; font-size: 12px; }" % RENK_NORMAL)
+            " font-family: 'Consolas'; font-size: 15px; }" % RENK_NORMAL)
         self.cikti.setFont(QFont("Consolas", 10))
         govde.addWidget(self.cikti, 1)
 
@@ -122,7 +123,7 @@ class KonsolSayfasi(QWidget):
         self.girdi.setFixedHeight(48)
         self.girdi.setStyleSheet(
             "QLineEdit { background: %s; border: 1px solid %s; border-radius: 4px;"
-            " padding: 13px 12px; color: %s; font-size: 12px; }"
+            " padding: 13px 12px; color: %s; font-size: 15px; }"
             "QLineEdit:focus { border: 2px solid %s; padding: 12px 11px; }"
             % (T.YUZEY, T.CERCEVE, T.YAZI, T.VURGU))
         self.girdi.returnPressed.connect(self.gonder)

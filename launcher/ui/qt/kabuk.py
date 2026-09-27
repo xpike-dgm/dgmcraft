@@ -177,7 +177,7 @@ class Kabuk(QMainWindow):
         kaplayan.addWidget(self.pencere, 0, Qt.AlignCenter)
 
         govde = QVBoxLayout(self.pencere)
-        govde.setContentsMargins(1, 1, 1, 1)
+        govde.setContentsMargins(0, 0, 0, 0)
         govde.setSpacing(0)
         govde.addWidget(self._ust_cubuk_kur())
 
@@ -223,7 +223,7 @@ class Kabuk(QMainWindow):
         marka.setObjectName("markaAd")
         marka.setAttribute(Qt.WA_TransparentForMouseEvents, True)
         satir.addWidget(marka)
-        satir.addSpacing(34)
+        satir.addSpacing(48)
 
         self.navGrubu = QButtonGroup(self)
         self.navGrubu.setExclusive(True)
@@ -234,7 +234,7 @@ class Kabuk(QMainWindow):
             b.setCheckable(True)
             b.setCursor(Qt.PointingHandCursor)
             b.setFixedHeight(79)
-            b.setMinimumWidth(76)
+            b.setMinimumWidth(0)
             b.setIcon(T.svg_ikon(ikon, T.IKON))
             b.setIconSize(QSize(T.IKON, T.IKON))
             b.setCursor(Qt.PointingHandCursor)

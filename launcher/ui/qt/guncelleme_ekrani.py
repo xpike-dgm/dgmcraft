@@ -154,8 +154,7 @@ class GuncellemePenceresi(QWidget):
         sol.addSpacing(8)
 
         self.dugme = T.dugme("Güncellemeyi başlat", "kontrast")
-        self.dugme.setFixedHeight(46)
-        self.dugme.setFixedWidth(280)
+        self.dugme.setFixedSize(560, 64)
         self.dugme.setFocusPolicy(Qt.StrongFocus)
         self.dugme.clicked.connect(self._guncelle)
         sol.addWidget(self.dugme)
@@ -172,6 +171,7 @@ class GuncellemePenceresi(QWidget):
         notKart = QFrame()
         notKart.setObjectName("siyahKart")
         notKart.setFixedWidth(617)
+        notKart.setFixedHeight(627)
         notDikey = QVBoxLayout(notKart)
         notDikey.setContentsMargins(0, 0, 0, 0)
         notDikey.setSpacing(0)
@@ -180,6 +180,9 @@ class GuncellemePenceresi(QWidget):
         notUstSatir = QHBoxLayout(notUst)
         notUstSatir.setContentsMargins(22, 20, 22, 16)
         notUstSatir.setSpacing(12)
+        notDikeyBaslik = T.etiket("Daha iyi bir başlangıç.", "sihirKartBaslik")
+        notDikeyBaslik.setContentsMargins(22, 18, 22, 0)
+        notDikey.addWidget(notDikeyBaslik)
         notUstSatir.addWidget(T.etiket("BU SÜRÜMDE", "bolumBaslik"))
         notUstSatir.addStretch(1)
         notGorsel = QLabel()
@@ -192,13 +195,17 @@ class GuncellemePenceresi(QWidget):
         notlar = QTextBrowser()
         notlar.setObjectName("konsolMetin")
         notlar.setOpenExternalLinks(False)
-        notlar.setHtml(_not_html(self.sonuc.get("notlar", "")))
+        notlar.setHtml(_not_maddeleri(self.sonuc.get("notlar", "")))
         notDikey.addWidget(notlar, 1)
 
         notAlt = QWidget()
         notAltSatir = QHBoxLayout(notAlt)
         notAltSatir.setContentsMargins(22, 12, 22, 16)
-        notAltSatir.addWidget(T.etiket("DGMCRAFT / GÜNCELLEME", "yardimciEtiket"))
+        notAltSatir.addStretch(1)
+        notAltSatir.addWidget(self.surumEtiketi)
+        self.surumEtiketi = T.etiket(
+            "DGMCRAFT / %s" % (self.sonuc.get("son") or "?"),
+            "bolumBaslik")
         notDikey.addWidget(notAlt)
         satir.addWidget(notKart, 1)
         return govde
@@ -308,6 +315,34 @@ def _dogrudan_paket_url(sonuc):
     if not tag:
         return ""
     return "https://github.com/%s/archive/refs/tags/%s.zip" % (repo, quote(tag))
+
+
+def _not_maddeleri(metin):
+    """Sürüm notlarını 01/02 numaralı, kalın başlıklı bloklara çevirir."""
+    import re as _re
+    satirlar = [s.strip() for s in (metin or "").splitlines()]
+    bloklar, baslik, ogeler = [], "", []
+    for s in satirlar:
+        if s.startswith("###"):
+            if baslik:
+                bloklar.append((baslik, ogeler))
+            baslik, ogeler = s.lstrip("# ").strip(), []
+        elif s.startswith("- ") and baslik:
+            ogeler.append(s[2:].strip())
+    if baslik:
+        bloklar.append((baslik, ogeler))
+    parca = []
+    for i, (b, o) in enumerate(bloklar[:4], 1):
+        parca.append('<div style="margin:0 0 14px 0;">'
+                     '<div style="color:#FF9B2C;font-size:11px;font-weight:700;">%02d</div>'
+                     '<div style="color:#F4F5F1;font-size:15px;font-weight:700;'
+                     'margin:2px 0 3px 0;">%s</div>'
+                     % (i, b))
+        for m in o[:2]:
+            parca.append('<div style="color:#B0B8B8;font-size:12px;'
+                         'margin-left:26px;">%s</div>' % m)
+        parca.append('<div style="color:#545B5C;height:1px;margin:10px 0 0 0;"></div>')
+    return "".join(parca) or '<div style="color:#B0B8B8;">Sürüm notu yok.</div>'
 
 
 def _not_html(metin):

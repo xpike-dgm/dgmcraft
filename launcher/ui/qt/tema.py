@@ -47,9 +47,9 @@ KART = YUZEY
 KART_ACIK = YUZEY_ACIK
 CERCEVE_PARLAK = VURGU
 VURGU_HOVER = "#FFAE4F"
-YESIL = "#5FC27E"
-KIRMIZI = "#F07167"
-MAVI = "#8FB8E8"
+YESIL = VURGU          # palet disi yesil yok; durum metinle belirtilir
+KIRMIZI = IKINCIL     # palet disi kirmizi yok
+MAVI = BOLUCU_ACIK    # palet disi mavi yok
 NOTR = "#4B4F50"
 BOLUCU_NOTR = "#4B4F50"
 RAY_GENISLIK = 0
@@ -88,30 +88,30 @@ QWidget {
     border-bottom: 3px solid %(vurgu)s;
 }
 #markaAd {
-    font-size: 18px; font-weight: 700; color: %(yazi)s; letter-spacing: 1px;
+    font-size: 24px; font-weight: 700; color: %(yazi)s; letter-spacing: 1px;
 }
 #markaAlt {
-    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 2px;
+    font-size: 12px; font-weight: 700; color: %(vurgu)s; letter-spacing: 2px;
 }
-#oyuncuAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
-#sayfaEtiket { font-size: 12px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px; }
+#oyuncuAd { font-size: 14px; font-weight: 600; color: %(yazi)s; }
+#sayfaEtiket { font-size: 13px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px; }
 #ustYazi {
-    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 2px;
+    font-size: 13px; font-weight: 700; color: %(vurgu)s; letter-spacing: 2px;
 }
-#sayfaBaslik { font-size: 28px; font-weight: 700; color: %(yazi)s; }
-#sayfaAciklama { font-size: 12px; color: %(ikincil)s; }
+#sayfaBaslik { font-size: 37px; font-weight: 700; color: %(yazi)s; }
+#sayfaAciklama { font-size: 16px; color: %(ikincil)s; }
 #yardimciEtiket {
-    font-size: 10px; font-weight: 700; color: %(ikincil)s; letter-spacing: 1px;
+    font-size: 12px; font-weight: 700; color: %(ikincil)s; letter-spacing: 1px;
 }
 
 /* --- kartlar --- */
-QFrame#kart {
+QWidget#kart, QFrame#kart {
     background: %(yuzey)s; border: 1px solid %(cerceve)s; border-radius: 4px;
 }
-QFrame#siyahKart {
+QWidget#siyahKart, QFrame#siyahKart {
     background: %(siyah)s; border: 1px solid %(siyah)s; border-radius: 4px;
 }
-QFrame#vurguKart {
+QWidget#vurguKart, QFrame#vurguKart {
     background: %(vurgu)s; border: 1px solid %(vurgu)s; border-radius: 4px;
 }
 QFrame#icKutu {
@@ -122,50 +122,50 @@ QFrame#dikeyBolucu { background: %(bolucuAcik)s; border: none; max-width: 1px; }
 
 /* --- tipografi --- */
 QLabel#metrikEtiket {
-    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
+    font-size: 12px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
 }
 QLabel#metrikDeger { font-size: 34px; font-weight: 700; color: %(yazi)s; }
-QLabel#metrikAlt { font-size: 11px; color: %(ikincil)s; }
+QLabel#metrikAlt { font-size: 13px; color: %(ikincil)s; }
 QLabel#kartBaslik { font-size: 20px; font-weight: 700; color: %(yazi)s; }
 QLabel#bolumBaslik {
-    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
+    font-size: 12px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
 }
-QLabel#metin { font-size: 12px; color: %(yazi)s; }
-QLabel#ikincil { font-size: 12px; color: %(ikincil)s; }
-QLabel#soluk { font-size: 11px; color: %(ikincil)s; }
-QLabel#minik { font-size: 10px; color: %(ikincil)s; }
-QLabel#komutAd { font-size: 13px; font-weight: 700; color: %(yazi)s; }
-QLabel#konsolZaman { font-size: 11px; color: %(konsolZaman)s; }
-QLabel#konsolSatir { font-size: 12px; color: %(yazi)s; }
-QLabel#konsolUyari { font-size: 12px; color: %(konsolUyari)s; }
-QLabel#vurguYazi { font-size: 12px; font-weight: 700; color: %(vurguYazi)s; }
-QLabel#vurguIkincil { font-size: 11px; color: #4A3208; }
-QLabel#satirAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
+QLabel#metin { font-size: 16px; color: %(yazi)s; }
+QLabel#ikincil { font-size: 16px; color: %(ikincil)s; }
+QLabel#soluk { font-size: 15px; color: %(ikincil)s; }
+QLabel#minik { font-size: 13px; color: %(ikincil)s; }
+QLabel#komutAd { font-size: 16px; font-weight: 700; color: %(yazi)s; }
+QLabel#konsolZaman { font-size: 13px; color: %(konsolZaman)s; }
+QLabel#konsolSatir { font-size: 15px; color: %(yazi)s; }
+QLabel#konsolUyari { font-size: 15px; color: %(konsolUyari)s; }
+QLabel#vurguYazi { font-size: 15px; font-weight: 700; color: %(vurguYazi)s; }
+QLabel#vurguIkincil { font-size: 15px; color: #4A3208; }
+QLabel#satirAd { font-size: 15px; font-weight: 600; color: %(yazi)s; }
 QLabel#satirSag {
-    font-size: 10px; font-weight: 700; color: %(ikincil)s; letter-spacing: 1px;
+    font-size: 12px; font-weight: 700; color: %(ikincil)s; letter-spacing: 1px;
 }
 QLabel#listeBaslik {
-    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
+    font-size: 12px; font-weight: 700; color: %(vurgu)s; letter-spacing: 1px;
 }
-QLabel#yetenekAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
-QLabel#yetenekSeviye { font-size: 10px; color: %(ikincil)s; }
-QLabel#yetenekXp { font-size: 10px; color: %(ikincil)s; }
+QLabel#yetenekAd { font-size: 15px; font-weight: 600; color: %(yazi)s; }
+QLabel#yetenekSeviye { font-size: 13px; color: %(ikincil)s; }
+QLabel#yetenekXp { font-size: 13px; color: %(ikincil)s; }
 
 /* --- hero / turuncu kart --- */
 QLabel#heroBaslik { font-size: 43px; font-weight: 700; color: %(yazi)s; }
-QLabel#heroMetin { font-size: 12px; color: %(ikincil)s; }
-QLabel#rozetYazi { font-size: 10px; font-weight: 700; color: %(yazi)s; }
+QLabel#heroMetin { font-size: 16px; color: %(ikincil)s; }
+QLabel#rozetYazi { font-size: 12px; font-weight: 700; color: %(yazi)s; }
 QLabel#vurguUst {
-    font-size: 10px; font-weight: 700; color: %(vurguYazi)s; letter-spacing: 2px;
+    font-size: 12px; font-weight: 700; color: %(vurguYazi)s; letter-spacing: 2px;
 }
 QLabel#vurguSayac { font-size: 48px; font-weight: 700; color: %(vurguYazi)s; }
-QLabel#vurguAlt { font-size: 12px; color: #7A4E10; }
-QLabel#vurguAltKalin { font-size: 12px; font-weight: 700; color: %(vurguYazi)s; }
+QLabel#vurguAlt { font-size: 15px; color: #7A4E10; }
+QLabel#vurguAltKalin { font-size: 15px; font-weight: 700; color: %(vurguYazi)s; }
 QLabel#kartSayac { font-size: 34px; font-weight: 700; color: %(yazi)s; }
 QLabel#kartSayacKucuk { font-size: 22px; font-weight: 700; color: %(yazi)s; }
-QLabel#bolumAltBaslik { font-size: 13px; font-weight: 700; color: %(yazi)s; }
-QLabel#kategoriAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
-QLabel#kategoriSayi { font-size: 10px; font-weight: 700; color: %(ikincil)s; }
+QLabel#bolumAltBaslik { font-size: 17px; font-weight: 700; color: %(yazi)s; }
+QLabel#kategoriAd { font-size: 15px; font-weight: 600; color: %(yazi)s; }
+QLabel#kategoriSayi { font-size: 12px; font-weight: 700; color: %(ikincil)s; }
 QLabel#komutDetayAd { font-size: 22px; font-weight: 700; color: %(yazi)s; }
 QLabel#vurguSurum { font-size: 22px; font-weight: 700; color: %(vurguYazi)s; }
 QLabel#vurguOk { font-size: 20px; font-weight: 700; color: %(vurguYazi)s; }
@@ -247,19 +247,19 @@ QFrame#tabloSatir[secili="1"] {
     background: %(siyah)s; border: 1px solid %(siyah)s; border-radius: 4px;
 }
 
-QLabel#kucuk { font-size: 11px; color: %(ikincil)s; }
-QLabel#tabloSatirAd { font-size: 13px; font-weight: 700; color: %(yazi)s; }
+QLabel#kucuk { font-size: 13px; color: %(ikincil)s; }
+QLabel#tabloSatirAd { font-size: 17px; font-weight: 700; color: %(yazi)s; }
 QLabel#detayBaslik { font-size: 20px; font-weight: 700; color: %(yazi)s; }
-QLabel#detayAlt { font-size: 11px; color: %(ikincil)s; }
-QLabel#detayAlinti { font-size: 12px; color: %(vurgu)s; font-weight: 600; }
+QLabel#detayAlt { font-size: 13px; color: %(ikincil)s; }
+QLabel#detayAlinti { font-size: 15px; color: %(vurgu)s; font-weight: 600; }
 QLabel#detayBolum {
-    font-size: 10px; font-weight: 700; color: %(vurgu)s; letter-spacing: 2px;
+    font-size: 12px; font-weight: 700; color: %(vurgu)s; letter-spacing: 2px;
 }
-QLabel#hedefKutu { font-size: 12px; color: %(yazi)s; }
-QLabel#odulYazi { font-size: 12px; color: %(yazi)s; }
-QLabel#bolumAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
-QLabel#bolumSayi { font-size: 11px; color: %(ikincil)s; }
-QLabel#satirAlt { font-size: 11px; color: %(ikincil)s; }
+QLabel#hedefKutu { font-size: 15px; color: %(yazi)s; }
+QLabel#odulYazi { font-size: 15px; color: %(yazi)s; }
+QLabel#bolumAd { font-size: 15px; font-weight: 600; color: %(yazi)s; }
+QLabel#bolumSayi { font-size: 13px; color: %(ikincil)s; }
+QLabel#satirAlt { font-size: 13px; color: %(ikincil)s; }
 QLabel#sayac { font-size: 30px; font-weight: 700; color: %(yazi)s; }
 QLabel#rozetDeger { font-size: 22px; font-weight: 700; color: %(vurgu)s; }
 QLabel#rozetEtiket {
@@ -271,7 +271,7 @@ QLabel#kategoriSatirAd { font-size: 12px; font-weight: 600; color: %(yazi)s; }
 
 QPushButton[rol="sekme"] {
     background: transparent; color: %(ikincil)s; border: 1px solid %(cerceve)s;
-    border-radius: 4px; font-weight: 600; padding: 12px 16px; min-height: 46px;
+    border-radius: 4px; font-weight: 600; padding: 0 16px; min-height: 44px;
 }
 QPushButton[rol="sekme"]:hover { border-color: %(vurgu)s; color: %(yazi)s; }
 QPushButton[rol="sekme"][secili="1"] {
@@ -594,7 +594,7 @@ class ListeSatiri(QFrame):
             self.ortaYazi.setText(orta)
 
 
-class AramaKutusu(QWidget):
+class AramaKutusu(QFrame):
     """Siyah arama bandı: SVG büyüteç + giriş."""
 
     def __init__(self, ipucu="Komut ara... yardım, tel, banka", ebeveyn=None):
@@ -706,7 +706,6 @@ class Sekmeler(QWidget):
             b.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
             satir.addWidget(b, 1)
             self.dugmeler.append(b)
-        satir.addStretch(1)
 
     def sec(self, indeks):
         if indeks == self._secili:

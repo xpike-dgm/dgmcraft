@@ -32,7 +32,7 @@ class Satir(QFrame):
         sira.setFixedWidth(22)
         sira.setAlignment(Qt.AlignCenter)
         renk = MADALYALAR.get(kayit["sira"], (T.SILIK,))[0]
-        sira.setStyleSheet("color: %s; font-size: 12px; font-weight: 700;"
+        sira.setStyleSheet("color: %s; font-size: 15px; font-weight: 700;"
                            " background: transparent;" % renk)
         satir.addWidget(sira, 0, Qt.AlignVCenter)
         ad = QLabel(kayit["ad"])
@@ -110,7 +110,7 @@ class SiralamaSayfasi(QWidget):
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
-        dis.setSpacing(T.KART_ARALIK)
+        dis.setSpacing(0)
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
                                               SAYFA_ACIKLAMA,
                                               "DGMCRAFT / SIRALAMA")
@@ -120,6 +120,7 @@ class SiralamaSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
+        dis.setContentsMargins(0, 0, 0, 33)
 
         # --- dört yatay kategori sekmesi ---
         self.sekmeler = T.Sekmeler(["En zengin", "En son oynayan",

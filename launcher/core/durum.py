@@ -124,13 +124,14 @@ def durum_topla(kok, rcon_dene=True):
 
 
 def tps_renk(tps):
+    """Spec 3.1: palet disi yesil/kirmizi yok. Durum metin ve ikonla da
+    anlatildigi icin deger rengi yalnizca metin vurgusunu tasir."""
+    from ui.qt import tema as _T
     if tps is None:
-        return "#6E7F76"
+        return _T.BOLUCU
     if tps >= 19.0:
-        return "#34D399"
-    if tps >= 15.0:
-        return "#F5C86B"
-    return "#FB7185"
+        return _T.YAZI
+    return _T.VURGU
 
 
 def sure_bicim(saniye):

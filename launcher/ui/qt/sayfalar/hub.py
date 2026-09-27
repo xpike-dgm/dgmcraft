@@ -51,6 +51,7 @@ class HubSayfasi(QWidget):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
         dis.setSpacing(0)
+        dis.setContentsMargins(0, 0, 0, 33)
 
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK, SAYFA_ACIKLAMA,
                                          "DGMCRAFT / HUB")
@@ -59,6 +60,7 @@ class HubSayfasi(QWidget):
         govde = QVBoxLayout()
         govde.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         govde.setSpacing(14)
+        govde.addStretch(1)
 
         # --- üst satır: siyah hero + turuncu durum kartı (262px) ---
         ust = QHBoxLayout()
@@ -127,7 +129,7 @@ class HubSayfasi(QWidget):
         self.rozetYazi = QLabel("HAZIR")
         self.rozetYazi.setObjectName("rozetYazi")
         self.rozetYazi.setStyleSheet(
-            "color: %s; font-size: 10px; font-weight: 700;"
+            "color: %s; font-size: 13px; font-weight: 700;"
             " letter-spacing: 2px; background: transparent;" % T.YAZI)
         rozetSatir.addWidget(self.rozetYazi)
         sol.addWidget(self.rozet)
@@ -143,7 +145,7 @@ class HubSayfasi(QWidget):
 
         self.aciklama = QLabel("3 kişilik özel Survival+ sunucun.")
         self.aciklama.setObjectName("heroMetin")
-        self.aciklama.setStyleSheet("font-size: 12px; color: %s;" % T.IKINCIL)
+        self.aciklama.setStyleSheet("font-size: 15px; color: %s;" % T.IKINCIL)
         self.aciklama.setWordWrap(True)
         self.aciklama.setMaximumWidth(430)
         sol.addWidget(self.aciklama)
@@ -323,11 +325,12 @@ class HubSayfasi(QWidget):
             kutu = QVBoxLayout()
             kutu.setContentsMargins(0, 0, 0, 0)
             kutu.setSpacing(2)
-            y1 = QLabel(baslik)
+            y1 = QLabel(_kisalt(baslik, 44))
             y1.setObjectName("satirAd")
+            y1.setWordWrap(True)
             kutu.addWidget(y1)
             if ozet:
-                y2 = QLabel(_kisalt(ozet, 110))
+                y2 = QLabel(_kisalt(ozet, 74))
                 y2.setObjectName("minik")
                 y2.setWordWrap(True)
                 kutu.addWidget(y2)

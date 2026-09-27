@@ -33,7 +33,7 @@ class Kart(QFrame):
         govde.addWidget(b)
         self.govde = govde
         self.rozet = QLabel("")
-        self.rozet.setStyleSheet("color: %s; font-size: 11px;" % T.SILIK)
+        self.rozet.setStyleSheet("color: %s; font-size: 13px;" % T.SILIK)
         govde.addWidget(self.rozet)
 
     def satir(self, etiket, denetim=None, aciklama=None):
@@ -79,7 +79,7 @@ class AyarlarSayfasi(QWidget):
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
-        dis.setSpacing(T.KART_ARALIK)
+        dis.setSpacing(0)
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
                                               SAYFA_ACIKLAMA,
                                               "DGMCRAFT / AYARLAR")
@@ -89,6 +89,7 @@ class AyarlarSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
+        dis.setContentsMargins(0, 0, 0, 33)
         govde = QHBoxLayout()
         govde.setContentsMargins(0, 0, 0, 0)
         govde.setSpacing(T.KART_ARALIK)
@@ -137,10 +138,11 @@ class AyarlarSayfasi(QWidget):
         anaKartIc.addWidget(self.kaydirma, 1)
         govde.addWidget(self.anaKart)
         ic.addLayout(govde)
-        ic.addStretch(1)
+        # Mesaj satırı sayfa yüksekliğine eklenmez; ana kartın içinde,
+        # en son kartın altında görünür (referansta 548px kart tam sığar).
         self.mesaj = T.etiket("", "soluk")
         self.mesaj.setWordWrap(True)
-        ic.addWidget(self.mesaj)
+        self.izgara.addWidget(self.mesaj)
         self._aktif_bolum = "Profil"
 
     def _dugme(self, metin, islev, birincil=False):
@@ -155,7 +157,7 @@ class AyarlarSayfasi(QWidget):
         e.setFixedWidth(190)
         e.setStyleSheet(
             "QLineEdit { background: %s; border: 1px solid %s; border-radius: 4px;"
-            " padding: 8px 10px; color: %s; font-size: 12px; }"
+            " padding: 8px 10px; color: %s; font-size: 15px; }"
             "QLineEdit:focus { border: 2px solid %s; padding: 7px 9px; }"
             % (T.YUZEY, T.CERCEVE, T.YAZI, T.VURGU))
         return e
@@ -182,13 +184,13 @@ class AyarlarSayfasi(QWidget):
                 b.setStyleSheet(
                     "QPushButton { background: %s; color: %s;"
                     " border: 1px solid %s; border-radius: 4px;"
-                    " font-size: 12px; font-weight: 700; text-align: left;"
+                    " font-size: 15px; font-weight: 700; text-align: left;"
                     " padding-left: 14px; }" % (T.VURGU, T.VURGU_YAZI, T.VURGU))
             else:
                 b.setStyleSheet(
                     "QPushButton { background: transparent; color: %s;"
                     " border: 1px solid transparent; border-radius: 4px;"
-                    " font-size: 12px; font-weight: 600; text-align: left;"
+                    " font-size: 15px; font-weight: 600; text-align: left;"
                     " padding-left: 14px; }"
                     "QPushButton:hover { color: %s; }" % (T.YAZI, T.VURGU))
 
@@ -252,7 +254,7 @@ class AyarlarSayfasi(QWidget):
         self.parolaGirdi.setFixedWidth(130)
         self.parolaGirdi.setStyleSheet(
             "QLineEdit { background: #0F1513; border: 1px solid %s; border-radius: 4px;"
-            " padding: 8px 10px; color: %s; font-size: 12px; }"
+            " padding: 8px 10px; color: %s; font-size: 15px; }"
             "QLineEdit:focus { border-color: %s; }" % (T.CERCEVE, T.YAZI, T.VURGU))
         satir.addWidget(self.parolaGirdi)
         self.yayinlaDugmesi = self._dugme("Güncelleme Yayınla", self._yayinla,

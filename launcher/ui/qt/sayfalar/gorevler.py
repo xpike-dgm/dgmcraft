@@ -179,6 +179,7 @@ class GorevSatiri(QFrame):
         metin.setSpacing(0)
         self.ad = QLabel(_kisalt(dugum.get("ad") or "Görev", 40))
         self.ad.setObjectName("satirAd")
+        self.ad.setWordWrap(True)
         self.aciklama = QLabel(_kisalt(dugum.get("aciklama") or
                                        GA.ARSIV_OZET.get(dugum["arsiv"], ""), 80))
         self.aciklama.setObjectName("satirAlt")
@@ -238,6 +239,7 @@ class BolumSatiri(QFrame):
         satir.addWidget(self.okSimge)
         self.ad = QLabel("Bölüm %d · %s" % (arsiv["sira"] + 1, arsiv["ad"]))
         self.ad.setObjectName("bolumAd")
+        self.ad.setWordWrap(True)
         satir.addWidget(self.ad)
         satir.addStretch(1)
         self.sayi = QLabel("%d görev" % self.toplam)
@@ -370,6 +372,7 @@ class DetayKarti(QFrame):
         kutu.addWidget(ikon)
         baslik = QLabel("Bir görev seç")
         baslik.setObjectName("detayBaslik")
+        baslik.setWordWrap(True)
         baslik.setAlignment(Qt.AlignCenter)
         kutu.addWidget(baslik)
         aciklama = QLabel("Soldaki listeden bir göreve tıkla; hedefleri, ön koşulları ve ödülleri burada görürsün.")
@@ -411,7 +414,7 @@ class DetayKarti(QFrame):
         rozet.setObjectName("durumRozeti")
         rozet_rengi = T.SOLUK if durum == GA.DURUM_TANIMSIZ else renk
         rozet.setStyleSheet("QLabel { color: %s; background: %s; border: 1px solid %s;"
-                            " border-radius: 11px; padding: 5px 11px; font-size: 11px;"
+                            " border-radius: 11px; padding: 5px 11px; font-size: 13px;"
                             " font-weight: 700; }" % (rozet_rengi, _zemin(rozet_rengi),
                                                      _kenar(rozet_rengi)))
         ust.addWidget(rozet, 0, Qt.AlignTop)
@@ -520,6 +523,7 @@ class DetayKarti(QFrame):
             ad = "%s (%d)" % (ad, hedef["adet"])
         ilk = QLabel(ad)
         ilk.setObjectName("satirAd")
+        ilk.setWordWrap(True)
         metinler.addWidget(ilk)
         if hedef.get("ipucu"):
             ip = QLabel(_kisalt(hedef["ipucu"], 70))
@@ -572,10 +576,10 @@ class FiltreDugmesi(QPushButton):
         if secili:
             return ("QPushButton { background: %s; color: %s;"
                     " border: 1px solid %s; border-radius: 4px;"
-                    " font-size: 11px; font-weight: 700; padding: 0 12px; }"
+                    " font-size: 13px; font-weight: 700; padding: 0 12px; }"
                     % (T.VURGU, T.VURGU_YAZI, T.VURGU))
         return ("QPushButton { background: transparent; color: %s;"
-                " border: 1px solid %s; border-radius: 4px; font-size: 11px;"
+                " border: 1px solid %s; border-radius: 4px; font-size: 13px;"
                 " font-weight: 600; padding: 0 12px; }"
                 "QPushButton:hover { border-color: %s; color: %s; }"
                 % (T.IKINCIL, T.CERCEVE, T.VURGU, T.YAZI))
@@ -638,7 +642,7 @@ class GorevlerSayfasi(QWidget):
 
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
-        dis.setContentsMargins(0, 0, 0, 0)
+        dis.setContentsMargins(0, 0, 0, 33)
         dis.setSpacing(0)
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
                                         SAYFA_ACIKLAMA, "DGMCRAFT / GÖREVLER")
@@ -648,12 +652,12 @@ class GorevlerSayfasi(QWidget):
         dis.addWidget(icKutu, 1)
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
-        ic.setSpacing(12)
+        ic.setSpacing(14)
         ic.addWidget(self._baslik_kismi())
 
         govde = QHBoxLayout()
         govde.setContentsMargins(0, 0, 0, 0)
-        govde.setSpacing(12)
+        govde.setSpacing(14)
         solSutun = self._sol_sutun()
         solSutun.setFixedWidth(735)
         solSutun.setFixedHeight(333)
@@ -662,7 +666,6 @@ class GorevlerSayfasi(QWidget):
         self.detay.setFixedHeight(333)
         govde.addWidget(solSutun)
         govde.addWidget(self.detay)
-        govde.addStretch(1)
         ic.addLayout(govde, 1)
 
     def _baslik_kismi(self):

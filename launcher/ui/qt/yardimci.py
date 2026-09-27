@@ -413,7 +413,7 @@ def rozet(ebeveyn, metin, renk, nokta=True):
         satir.addWidget(n, 0, Qt.AlignVCenter)
     yazi = QLabel(metin, kutu)
     yazi.setObjectName("rozetYazi")
-    yazi.setStyleSheet("color: %s; font-size: 11px;" % T.SOLUK)
+    yazi.setStyleSheet("color: %s; font-size: 13px;" % T.SOLUK)
     satir.addWidget(yazi, 0, Qt.AlignVCenter)
     kutu.setFixedHeight(19)
     return kutu

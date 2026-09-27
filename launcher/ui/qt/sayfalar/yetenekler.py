@@ -90,21 +90,21 @@ class YetenekKarti(QFrame):
             self.setStyleSheet(
                 "QFrame { background: %s; border: 1px solid %s; border-radius: 4px; }"
                 % (T.VURGU, T.VURGU))
-            self.ad.setStyleSheet("color: %s; font-size: 12px; font-weight: 700;"
+            self.ad.setStyleSheet("color: %s; font-size: 15px; font-weight: 700;"
                                   % T.VURGU_YAZI)
-            self.seviye.setStyleSheet("color: #7A4E10; font-size: 10px; font-weight: 700;")
-            self.xp.setStyleSheet("color: #7A4E10; font-size: 10px;")
-            self.kalan.setStyleSheet("color: #7A4E10; font-size: 10px;")
+            self.seviye.setStyleSheet("color: #7A4E10; font-size: 13px; font-weight: 700;")
+            self.xp.setStyleSheet("color: #7A4E10; font-size: 13px;")
+            self.kalan.setStyleSheet("color: #7A4E10; font-size: 13px;")
         else:
             self.setStyleSheet(
                 "QFrame { background: %s; border: 1px solid %s; border-radius: 4px; }"
                 "QFrame:hover { border-color: %s; }"
                 % (T.YUZEY, T.CERCEVE, T.VURGU))
-            self.ad.setStyleSheet("color: %s; font-size: 12px; font-weight: 600;"
+            self.ad.setStyleSheet("color: %s; font-size: 15px; font-weight: 600;"
                                   % T.YAZI)
-            self.seviye.setStyleSheet("color: %s; font-size: 10px;" % T.IKINCIL)
-            self.xp.setStyleSheet("color: %s; font-size: 10px;" % T.IKINCIL)
-            self.kalan.setStyleSheet("color: %s; font-size: 10px;" % T.IKINCIL)
+            self.seviye.setStyleSheet("color: %s; font-size: 13px;" % T.IKINCIL)
+            self.xp.setStyleSheet("color: %s; font-size: 13px;" % T.IKINCIL)
+            self.kalan.setStyleSheet("color: %s; font-size: 13px;" % T.IKINCIL)
 
     def sec(self, deger):
         self._secili = bool(deger)
@@ -148,7 +148,7 @@ class YeteneklerSayfasi(QWidget):
     def _arayuz_kur(self):
         dis = QVBoxLayout(self)
         dis.setContentsMargins(0, 0, 0, 0)
-        dis.setSpacing(T.KART_ARALIK)
+        dis.setSpacing(0)
         self.baslikAlani = T.BaslikAlani(UST_ETIKET, SAYFA_BASLIK,
                                               SAYFA_ACIKLAMA,
                                               "DGMCRAFT / YETENEKLER")
@@ -158,6 +158,7 @@ class YeteneklerSayfasi(QWidget):
         ic = QVBoxLayout(icKutu)
         ic.setContentsMargins(T.IC_PAY, 0, T.IC_PAY, 0)
         ic.setSpacing(T.KART_ARALIK)
+        dis.setContentsMargins(0, 0, 0, 33)
 
         # --- 1208x101 siyah ozet bandi ---
         self.band = T.MetrikBandi([
