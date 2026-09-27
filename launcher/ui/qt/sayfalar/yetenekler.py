@@ -333,7 +333,9 @@ class YeteneklerSayfasi(QWidget):
         self._aktif_yetenek = veri
         self.seciliAd.setText(str(veri.get("ad") or "-"))
         mevcut = veri.get("xp") or 0
-        gerekli = veri.get("xpGerekli") or 0
+        # Kartlar "gerekli" kullanir; bant "xpGerekli" ariyordu ve hep 0
+        # buluyordu -> "0 / 0 XP" ve "Seviye doldu" yaziyordu.
+        gerekli = veri.get("xpGerekli") or veri.get("gerekli") or 0
         seviye = veri.get("seviye") or 0
         self.seciliXp.setText("%d / %d XP · Sv. %d" % (mevcut, gerekli, seviye))
         oran = veri.get("oran")
@@ -341,7 +343,13 @@ class YeteneklerSayfasi(QWidget):
             oran = (mevcut / float(gerekli)) if gerekli else 0.0
         self.seciliCubuk.guncelle(max(0.0, min(1.0, oran)) * 100)
         kalan = max(0, int(gerekli) - int(mevcut))
-        self.seciliKalan.setText("%d XP kaldı" % kalan if kalan else "Seviye doldu")
+        if gerekli <= 0:
+            # Esik bilgisi yok; "Seviye doldu" demek yaniltici olur.
+            self.seciliKalan.setText("eşik verisi yok")
+        elif kalan:
+            self.seciliKalan.setText("%d XP kaldı" % kalan)
+        else:
+            self.seciliKalan.setText("Seviye doldu")
         self._suz(self.arama.text())
 
     def goster(self):

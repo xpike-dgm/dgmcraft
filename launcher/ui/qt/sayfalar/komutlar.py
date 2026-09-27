@@ -310,6 +310,12 @@ class KomutlarSayfasi(QWidget):
         for satir in self._kategori_satirlari:
             satir.sec(satir.kimlik == ad)
         self._liste_yenile()
+        # Detay paneli kategori metni gostermesin; ilk komutu sec.
+        if not self.arama.text().strip():
+            for k in self._veri.get("kategoriler", []):
+                if k.get("ad") == ad and k.get("komutlar"):
+                    self._komut_sec(k["komutlar"][0]["ad"])
+                    return
 
     def _sorgu_degisti(self, metin):
         self._liste_yenile()
@@ -402,8 +408,18 @@ class KomutlarSayfasi(QWidget):
         if komut.get("dikkat"):
             self.icerikDikey.addWidget(self._alan_kart(
                 "Dikkat", komut["dikkat"], "", uyarı=True))
+        # Spec 4.2: komutu kopyala zorunlu dugmesi
+        kopyalaDugme = QPushButton("Komutu kopyala")
+        kopyalaDugme.setObjectName("anaDugme")
+        kopyalaDugme.setFixedSize(220, 44)
+        kopyalaDugme.setCursor(Qt.PointingHandCursor)
+        kopyalaDugme.clicked.connect(
+            lambda _c, a=komut["ad"]: self._kopyala(a))
+        self.icerikDikey.addWidget(kopyalaDugme, 0, Qt.AlignLeft)
+        self.icerikDikey.addSpacing(8)
         geri = QPushButton("← Listeye dön")
         geri.setObjectName("hayaletDugme")
+        geri.setFixedSize(220, 38)
         geri.setCursor(Qt.PointingHandCursor)
         geri.clicked.connect(self._detay_kapat)
         self.icerikDikey.addWidget(geri, 0, Qt.AlignLeft)

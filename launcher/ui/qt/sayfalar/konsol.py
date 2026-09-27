@@ -36,6 +36,7 @@ def _kacis(metin):
 
 class KonsolSayfasi(QWidget):
     cikti_hazir = Signal(str, str)
+    baglanti_hazir = Signal(bool)
     tamamlandi = Signal()
 
     def __init__(self, hizmetler, ebeveyn=None):
@@ -48,10 +49,13 @@ class KonsolSayfasi(QWidget):
         self._gizli = True
         self._arayuz_kur()
         self.cikti_hazir.connect(self.yaz)
+        self.baglanti_hazir.connect(self._baglanti_guncelle)
         self.tamamlandi.connect(self._gonder_bitti)
         self._zamanlayici = QTimer(self)
         self._zamanlayici.timeout.connect(self._kuyrugu_bosalt)
         self._zamanlayici.start(250)
+        self._gonder_basladi = False
+        self._baglanti_durumu = False
 
     def baslik_alani_guncelle(self, ust, baslik, aciklama):
         self.baslikAlani.ustYazi.setText(ust.upper())
@@ -91,8 +95,15 @@ class KonsolSayfasi(QWidget):
             "background: %s; border-radius: 3px; border: none;" % T.KIRMIZI)
         ustSatir.addWidget(self.baglantiNokta)
         ustSatir.addSpacing(4)
+        self.baglantiNokta = QFrame()
+        self.baglantiNokta.setFixedSize(8, 8)
+        self.baglantiNokta.setStyleSheet(
+            "background: %s; border-radius: 4px; border: none;"
+            % T.IKINCIL)
+        ustSatir.addWidget(self.baglantiNokta)
         self.baglantiYazi = T.etiket("BAĞLI DEĞİL", "soluk")
         ustSatir.addWidget(self.baglantiYazi)
+        self._baglanti_durumu = False
         govde.addWidget(ustSerit)
         govde.addWidget(T.ayirici(T.BOLUCU_ACIK))
 
@@ -129,6 +140,8 @@ class KonsolSayfasi(QWidget):
         satir.addWidget(self.girdi, 1)
         self.gonderDugmesi = T.dugme("Gönder", "ana")
         self.gonderDugmesi.setFixedSize(134, 48)
+        # Sunucuya bağlanmadan komut gönderilemez (spec 4.4)
+        self.gonderDugmesi.setEnabled(False)
         self.gonderDugmesi.setCursor(Qt.PointingHandCursor)
         self.gonderDugmesi.clicked.connect(self.gonder)
         satir.addWidget(self.gonderDugmesi)
@@ -248,11 +261,49 @@ class KonsolSayfasi(QWidget):
             return "cevap"
         return "bilgi"
 
+    # ---------- bağlantı durumu ----------
+    def _baglanti_guncelle(self, canli):
+        """Metin, nokta rengi ve Gönder/INPUT birlikte güncellenir."""
+        self._baglanti_sorgu = False
+        self._baglanti_durumu = bool(canli)
+        self.baglantiYazi.setText("BAĞLI" if canli else "BAĞLI DEĞİL")
+        self.baglantiYazi.setStyleSheet("color: %s; font-size: 13px;"
+                                        " font-weight: 700;" % T.VURGU
+                                        if canli else "")
+        self.baglantiNokta.setStyleSheet(
+            "background: %s; border-radius: 4px; border: none;"
+            % (T.VURGU if canli else T.IKINCIL))
+        # Spec 4.4: sunucuya bağlı değilken komut gönderilemez.
+        self.gonderDugmesi.setEnabled(bool(canli) and not self._gonder_basladi)
+        self.girdi.setEnabled(bool(canli))
+        self.gonderDugmesi.setToolTip(
+            "" if canli else "Sunucuya bağlanmadan komut gönderilemez.")
+
+    def _baglanti_sor(self):
+        """RCON sorgusu arka planda; UI donmamali (event loop kilitlenmesin)."""
+        if getattr(self, "_baglanti_sorgu", False):
+            return
+        self._baglanti_sorgu = True
+
+        def _is():
+            canli = False
+            try:
+                from core import durum as _D
+                canli = _D.rcon_aktif_mi(self.h.kok)
+            except Exception:
+                canli = False
+            Y.guvenli_yayin(self.baglanti_hazir, canli)
+
+        threading.Thread(target=_is, daemon=True).start()
+
     # ---------- komut gönderme ----------
     def gonder(self):
         komut = self.girdi.text().strip()
         if not komut:
             return
+        if not self._baglanti_durumu:
+            # Ilk komut oncesi bilinmiyor; dogrudan dene, sonuc durumu belirler.
+            self.gonderDugmesi.setEnabled(False)
         try:
             from core import constants as C
             tehlikeli = C.TEHLIKELI_KOMUTLAR
@@ -273,6 +324,7 @@ class KonsolSayfasi(QWidget):
         self._gecmis_yeri = len(self._gecmis)
         self.yaz("> " + komut, "komut")
         self.girdi.clear()
+        self._gonder_basladi = True
         self.gonderDugmesi.setEnabled(False)
         threading.Thread(target=self._gonder_is, args=(komut,), daemon=True).start()
 
@@ -282,13 +334,16 @@ class KonsolSayfasi(QWidget):
             ok, cevap = self.h.sunucu_al().komut_gonder(komut)
         except Exception as e:
             ok, cevap = False, str(e)
-        Y.guvenli_yayin(self.cikti_hazir, 
+        Y.guvenli_yayin(self.cikti_hazir,
             cevap or ("Gönderildi." if ok else "Gönderilemedi."), "cevap")
+        # Baglanti durumu gercek sonuctan turetilir.
+        Y.guvenli_yayin(self.baglanti_hazir, bool(ok) or bool(cevap))
         Y.guvenli_yayin(self.tamamlandi)
 
     def _gonder_bitti(self):
+        self._gonder_basladi = False
         try:
-            self.gonderDugmesi.setEnabled(True)
+            self.gonderDugmesi.setEnabled(self._baglanti_durumu)
         except Exception:
             pass
 
@@ -300,7 +355,7 @@ class KonsolSayfasi(QWidget):
             for satir in self._bekleyen[-200:]:
                 for parca in str(satir).replace("\r", "").split("\n"):
                     if parca.strip():
-                        self.yaz(parca, self._renk_bul(parca))
+                        self.yaz(parca, self._tur_bul(parca))
             self._bekleyen = []
         if self.cikti.blockCount() <= 1:
             self.yaz("Sunucu çıktısı burada akar. Komut yazıp Gönder'e basabilirsin.",
@@ -310,3 +365,4 @@ class KonsolSayfasi(QWidget):
 
     def gizle(self):
         self._gizli = True
+        self._zamanlayici.stop()

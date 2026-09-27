@@ -279,6 +279,31 @@ class Sihirbaz(QWidget):
         QApplication.quit()
 
     # ---------- adım çizimi ----------
+    def _adim_dogrula(self):
+        """İleri dugmesi yalnizca adimin girdisi tamamlandiginda etkin.
+
+        Spec 5: iki kod kutusu bosken "Eşleştir", denetim surerken kurulum
+        dugmeleri etkin olmamali. Widget'lar henuz olusmamis olabilecegi
+        icin getattr ile guvenli erisim kullanilir.
+        """
+        def _metin(ad):
+            w = getattr(self, ad, None)
+            try:
+                return w.text().strip()
+            except Exception:
+                return ""
+
+        adim = self.adim
+        if adim == 2 and not (_metin("anahtarGirdi")
+                             or getattr(self, "_kod_yok", False)):
+            return False
+        if adim == 5:
+            g1 = _metin("arkadasKod1")
+            g2 = _metin("arkadasKod2")
+            if not (g1 and g2) and not getattr(self, "_kodlar_yok", False):
+                return False
+        return True
+
     def ciz(self):
         for i, (nokta, yazi) in enumerate(self.rayEtiketleri):
             aktif = i == self.adim
@@ -304,6 +329,7 @@ class Sihirbaz(QWidget):
         self.markaAciklama.setText(MARKA_ACIKLAMALARI[self.adim])
         self.adimYazi.setText("ADIM %02d / %02d" % (self.adim + 1, len(ADIMLAR)))
         self.geriDugmesi.setVisible(self.adim > 0)
+        self.ileriDugmesi.setEnabled(self._adim_dogrula())
         self.ileriDugmesi.setText("Bitir ve başla" if self.adim == len(ADIMLAR) - 1
                                   else "Devam Et →")
         if self.adim == 3:
